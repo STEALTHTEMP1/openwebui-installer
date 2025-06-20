@@ -179,6 +179,7 @@ class MainWindow(QMainWindow):
                 self.update_status()
             except Exception as e:
                 QMessageBox.warning(self, "Error", f"Failed to uninstall: {str(e)}")
+                self.update_status()
                 
     def update_progress(self, message: str):
         """Update progress bar message."""
