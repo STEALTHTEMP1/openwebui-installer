@@ -29,7 +29,8 @@ def cli():
 @click.option('--model', '-m', help='Ollama model to install', default='llama2')
 @click.option('--port', '-p', help='Port to run Open WebUI on', default=3000, type=int)
 @click.option('--force', '-f', is_flag=True, help='Force installation even if already installed')
-def install(model: str, port: int, force: bool):
+@click.option('--image', help='Custom Open WebUI image to use')
+def install(model: str, port: int, force: bool, image: Optional[str]):
     """Install Open WebUI and configure Ollama integration."""
     try:
         if not validate_system():
@@ -42,7 +43,7 @@ def install(model: str, port: int, force: bool):
             console=console,
         ) as progress:
             task = progress.add_task("Installing Open WebUI...", total=None)
-            installer.install(model=model, port=port, force=force)
+            installer.install(model=model, port=port, force=force, image=image)
             progress.update(task, completed=True)
             
         console.print("[green]✓[/green] Installation complete!")
@@ -55,6 +56,9 @@ def install(model: str, port: int, force: bool):
 @cli.command()
 def uninstall():
     """Uninstall Open WebUI."""
+    if not click.confirm("Are you sure you want to uninstall Open WebUI?", default=False):
+        console.print("Uninstallation aborted.")
+        return
     try:
         installer = Installer()
         with Progress(

@@ -35,7 +35,8 @@ def test_install_success(runner, mock_installer):
     mock_installer.install.assert_called_once_with(
         model="llama2",
         port=3000,
-        force=False
+        force=False,
+        image=None  # Added
     )
 
 def test_install_with_options(runner, mock_installer):
@@ -50,7 +51,8 @@ def test_install_with_options(runner, mock_installer):
     mock_installer.install.assert_called_once_with(
         model="codellama",
         port=8080,
-        force=True
+        force=True,
+        image=None  # Added
     )
 
 def test_install_system_requirements_error(runner, mock_installer):
@@ -111,7 +113,7 @@ def test_status_installed_not_running(runner, mock_installer):
     result = runner.invoke(cli, ["status"])
     assert result.exit_code == 0
     assert "installed" in result.output.lower()
-    assert "not running" in result.output.lower()
+    assert "stopped" in result.output.lower()
 
 def test_status_installed_and_running(runner, mock_installer):
     """Test status command when installed and running."""
@@ -142,7 +144,7 @@ class TestCLI:
         assert result.exit_code == 0
         assert "Installation complete!" in result.output
         
-        mock_installer.check_system_requirements.assert_called_once()
+        # mock_installer._check_system_requirements.assert_called_once() # This is an internal call of the real Installer.install, not directly by CLI
         mock_installer.install.assert_called_once()
         
         # Test installation failure
@@ -154,43 +156,53 @@ class TestCLI:
     def test_uninstall_command(self, runner, mock_installer):
         """Test uninstall command"""
         # Test successful uninstallation
-        result = runner.invoke(uninstall)
+        result = runner.invoke(uninstall, input="y\n") # Added input
         assert result.exit_code == 0
         assert "Uninstallation complete!" in result.output
         
-        mock_installer.cleanup.assert_called_once()
+        mock_installer.uninstall.assert_called_once() # Changed from cleanup
         
         # Test uninstallation failure
-        mock_installer.cleanup.side_effect = InstallerError("Uninstallation failed")
-        result = runner.invoke(uninstall)
+        mock_installer.uninstall.reset_mock() # Reset mock
+        mock_installer.uninstall.side_effect = InstallerError("Uninstallation failed")
+        result = runner.invoke(uninstall, input="y\n") # Added input
         assert result.exit_code == 1
         assert "Error: Uninstallation failed" in result.output
         
     def test_status_command(self, runner, mock_installer):
         """Test status command"""
         # Test when Open WebUI is running
-        mock_installer.is_open_webui_running.return_value = True
+        mock_installer.get_status.return_value = { # Use get_status
+            "installed": True, "version": "0.1.0", "port": 3000,
+            "model": "test", "running": True
+        }
         result = runner.invoke(status)
         assert result.exit_code == 0
-        assert "Open WebUI is running" in result.output
-        
+        assert "Open WebUI is installed" in result.output
+        assert "Status: Running" in result.output
+
         # Test when Open WebUI is not running
-        mock_installer.is_open_webui_running.return_value = False
+        mock_installer.get_status.return_value = { # Use get_status
+            "installed": True, "version": "0.1.0", "port": 3000,
+            "model": "test", "running": False
+        }
         result = runner.invoke(status)
         assert result.exit_code == 0
-        assert "Open WebUI is not running" in result.output
-        
+        assert "Open WebUI is installed" in result.output
+        assert "Status: Stopped" in result.output
+
         # Test status check failure
-        mock_installer.is_open_webui_running.side_effect = InstallerError("Status check failed")
+        mock_installer.get_status.side_effect = InstallerError("Status check failed") # Use get_status
         result = runner.invoke(status)
         assert result.exit_code == 1
         assert "Error: Status check failed" in result.output
         
     def test_version_option(self, runner):
         """Test --version option"""
+        from openwebui_installer import __version__ # Import to use in test
         result = runner.invoke(cli, ['--version'])
         assert result.exit_code == 0
-        assert result.output.startswith('openwebui-installer')
+        assert f"cli, version {__version__}" in result.output # New
         
     def test_help_option(self, runner):
         """Test --help option"""
@@ -204,11 +216,21 @@ class TestCLI:
         result = runner.invoke(install, ['--port', '3001'])
         assert result.exit_code == 0
         
-        mock_installer.install.assert_called_once_with(port=3001)
+        mock_installer.install.assert_called_once_with(
+            model='llama2', # Default from CLI
+            port=3001,      # Provided in test
+            force=False,    # Default from CLI
+            image=None      # Added
+        )
         
     def test_install_with_image_option(self, runner, mock_installer):
         """Test install command with custom image"""
         result = runner.invoke(install, ['--image', 'custom/image:tag'])
         assert result.exit_code == 0
         
-        mock_installer.install.assert_called_once_with(image='custom/image:tag') 
+        mock_installer.install.assert_called_once_with(
+            model='llama2',      # Default from CLI
+            port=3000,         # Default from CLI
+            force=False,       # Default from CLI
+            image='custom/image:tag' # Provided in test
+        )

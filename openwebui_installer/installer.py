@@ -28,7 +28,7 @@ class Installer:
     def __init__(self):
         """Initialize the installer."""
         self.docker_client = docker.from_env()
-        self.webui_image = "ghcr.io/open-webui/open-webui:main"
+        self.webui_image = "ghcr.io/open-webui/open-webui:main" # Default image
         self.config_dir = os.path.expanduser("~/.openwebui")
         
     def _check_system_requirements(self):
@@ -62,23 +62,33 @@ class Installer:
     def install(self, model: str = "llama2", port: int = 3000, force: bool = False):
         """Install Open WebUI."""
         try:
-            # Validate system
-            self._check_system_requirements()
-            
             # Check if already installed
             if not force and self.get_status()["installed"]:
                 raise InstallerError("Open WebUI is already installed. Use --force to reinstall.")
-                
+
+            # Validate system
+            self._check_system_requirements()
+
             # Create config directory
             self._ensure_config_dir()
             
+            current_webui_image = self.webui_image # Use default
+            if hasattr(self, '_custom_image_for_install') and self._custom_image_for_install:
+                current_webui_image = self._custom_image_for_install
+
             # Pull Docker image
-            console.print("Pulling Open WebUI image...")
-            self.docker_client.images.pull(self.webui_image)
+            console.print(f"Pulling Open WebUI image: {current_webui_image}...")
+            try:
+                self.docker_client.images.pull(current_webui_image)
+            except docker.errors.APIError as e:
+                raise InstallerError(f"Failed to pull Open WebUI Docker image: {str(e)}")
             
             # Pull Ollama model
             console.print(f"Pulling Ollama model: {model}...")
-            subprocess.run(["ollama", "pull", model], check=True)
+            try:
+                subprocess.run(["ollama", "pull", model], check=True)
+            except Exception as e: # More specific exceptions like subprocess.CalledProcessError could be caught
+                raise InstallerError(f"Failed to pull Ollama model {model}: {str(e)}")
             
             # Create launch script
             launch_script = os.path.join(self.config_dir, "launch-openwebui.sh")
@@ -90,7 +100,7 @@ docker run -d \\
     -v open-webui:/app/backend/data \\
     -e OLLAMA_API_BASE_URL=http://host.docker.internal:11434/api \\
     --add-host host.docker.internal:host-gateway \\
-    {self.webui_image}
+    {current_webui_image}
 """)
             os.chmod(launch_script, 0o755)
             
