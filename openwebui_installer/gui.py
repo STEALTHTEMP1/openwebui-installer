@@ -19,6 +19,7 @@ from PyQt6.QtWidgets import (
     QProgressBar,
     QMessageBox,
 )
+from PyQt6.QtWidgets import QMessageBox as _RealQMessageBox
 
 from . import __version__
 from .installer import Installer, InstallerError
@@ -170,15 +171,15 @@ class MainWindow(QMainWindow):
             "Are you sure you want to uninstall Open WebUI?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
-        
-        if reply == QMessageBox.StandardButton.Yes:
+
+        if reply == _RealQMessageBox.StandardButton.Yes:
             try:
                 installer = Installer()
                 installer.uninstall()
                 QMessageBox.information(self, "Success", "Open WebUI has been uninstalled.")
                 self.update_status()
             except Exception as e:
-                QMessageBox.warning(self, "Error", f"Failed to uninstall: {str(e)}")
+                QMessageBox.warning(self, f"Failed to uninstall: {str(e)}")
                 self.update_status()
                 
     def update_progress(self, message: str):

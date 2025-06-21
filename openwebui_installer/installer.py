@@ -59,7 +59,13 @@ class Installer:
         """Ensure configuration directory exists."""
         os.makedirs(self.config_dir, exist_ok=True)
         
-    def install(self, model: str = "llama2", port: int = 3000, force: bool = False):
+    def install(
+        self,
+        model: str = "llama2",
+        port: int = 3000,
+        force: bool = False,
+        image: Optional[str] = None,
+    ):
         """Install Open WebUI."""
         try:
             # Check if already installed
@@ -72,9 +78,7 @@ class Installer:
             # Create config directory
             self._ensure_config_dir()
             
-            current_webui_image = self.webui_image # Use default
-            if hasattr(self, '_custom_image_for_install') and self._custom_image_for_install:
-                current_webui_image = self._custom_image_for_install
+            current_webui_image = image or self.webui_image
 
             # Pull Docker image
             console.print(f"Pulling Open WebUI image: {current_webui_image}...")
