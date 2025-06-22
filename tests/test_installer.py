@@ -7,8 +7,9 @@ import shutil
 import subprocess
 from unittest.mock import MagicMock, mock_open
 
-import docker
 import pytest
+docker = pytest.importorskip("docker")
+requests = pytest.importorskip("requests")
 from openwebui_installer.installer import (Installer, InstallerError,
                                            SystemRequirementsError)
 
