@@ -14,7 +14,7 @@ def main():
     parser.add_argument('command', nargs='?', default='help',
                        choices=['install', 'start', 'stop', 'status', 'update', 'uninstall', 'help'],
                        help='Command to execute')
-    parser.add_argument('--version', action='version', version='1.0.0')
+    parser.add_argument('--version', action='version', version='1.1.0')
 
     args = parser.parse_args()
 
