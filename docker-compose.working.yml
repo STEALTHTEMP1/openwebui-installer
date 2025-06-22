@@ -6,8 +6,8 @@ services:
     container_name: open-webui
     ports:
       - "3000:8080"
+    env_file: .env
     environment:
-      - OLLAMA_BASE_URL=http://host.docker.internal:11434
       - WEBUI_SECRET_KEY=
     volumes:
       - open-webui:/app/backend/data

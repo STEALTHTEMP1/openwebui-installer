@@ -8,6 +8,8 @@ import subprocess
 import sys
 from typing import Dict, Optional
 
+from dotenv import load_dotenv
+
 import docker
 import requests
 from rich.console import Console
@@ -30,6 +32,7 @@ class Installer:
 
     def __init__(self):
         """Initialize the installer."""
+        load_dotenv()
         self.docker_client = docker.from_env()
         self.webui_image = "ghcr.io/open-webui/open-webui:main"  # Default image
         self.config_dir = os.path.expanduser("~/.openwebui")
@@ -98,14 +101,17 @@ class Installer:
 
             # Create launch script
             launch_script = os.path.join(self.config_dir, "launch-openwebui.sh")
+            ollama_base_url = os.environ.get("OLLAMA_BASE_URL", "http://host.docker.internal:11434")
+            ollama_api_base_url = os.environ.get("OLLAMA_API_BASE_URL", "http://host.docker.internal:11434/api")
             with open(launch_script, "w") as f:
                 f.write(f"""#!/bin/bash
-docker run -d \\
-    --name open-webui \\
-    -p {port}:8080 \\
-    -v open-webui:/app/backend/data \\
-    -e OLLAMA_API_BASE_URL=http://host.docker.internal:11434/api \\
-    --add-host host.docker.internal:host-gateway \\
+docker run -d \
+    --name open-webui \
+    -p {port}:8080 \
+    -v open-webui:/app/backend/data \
+    -e OLLAMA_BASE_URL={ollama_base_url} \
+    -e OLLAMA_API_BASE_URL={ollama_api_base_url} \
+    --add-host host.docker.internal:host-gateway \
     {current_webui_image}
 """)
             os.chmod(launch_script, 0o755)
@@ -138,7 +144,12 @@ docker run -d \\
                     ports={'8080/tcp': port},
                     volumes={"open-webui": {"bind": "/app/backend/data", "mode": "rw"}},
                     environment={
-                        "OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"
+                        "OLLAMA_BASE_URL": os.environ.get(
+                            "OLLAMA_BASE_URL", "http://host.docker.internal:11434"
+                        ),
+                        "OLLAMA_API_BASE_URL": os.environ.get(
+                            "OLLAMA_API_BASE_URL", "http://host.docker.internal:11434/api"
+                        ),
                     },
                     extra_hosts={"host.docker.internal": "host-gateway"},
                     detach=True,
