@@ -152,7 +152,7 @@ After each release, you'll need to update your public Homebrew tap:
 - **`.github/workflows/release.yml`** - Automated release workflow
 - **`setup.sh`** - Interactive setup script
 - **`README.md`** - This file
-- **Sample files** - Created if not present (README.md, install.py, LICENSE)
+- **`install.py`** - Compatibility wrapper that calls `openwebui-installer`
 
 ## 🔧 Workflow Features
 
