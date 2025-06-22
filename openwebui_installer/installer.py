@@ -1,9 +1,11 @@
 """
 Core installer functionality for Open WebUI
 """
+
 import json
 import os
 import platform
+import shutil
 import subprocess
 import sys
 from typing import Dict, Optional
@@ -17,11 +19,13 @@ console = Console()
 
 class InstallerError(Exception):
     """Base exception for installer errors."""
+
     pass
 
 
 class SystemRequirementsError(InstallerError):
     """Exception for system requirement validation failures."""
+
     pass
 
 
@@ -36,21 +40,26 @@ class Installer:
 
     def _check_system_requirements(self):
         """Validate system requirements."""
-        # Check macOS
-        if platform.system() != "Darwin":
-            raise SystemRequirementsError("This installer only supports macOS")
+        allowed_systems = {"Darwin", "Linux", "Ubuntu", "Debian"}
+        current_system = platform.system()
+        if current_system not in allowed_systems:
+            raise SystemRequirementsError("This installer only supports macOS and Linux")
 
         # Check Python version (aligned with setup.py)
         if sys.version_info < (3, 9):
             raise SystemRequirementsError("Python 3.9 or higher is required")
 
         # Check Docker
+        if shutil.which("docker") is None:
+            raise SystemRequirementsError("Docker command not found in PATH")
         try:
             self.docker_client.ping()
         except Exception:
             raise SystemRequirementsError("Docker is not running or not installed")
 
         # Check Ollama with timeout
+        if shutil.which("ollama") is None:
+            raise SystemRequirementsError("Ollama command not found in PATH")
         try:
             response = requests.get("http://localhost:11434/api/tags", timeout=10)
             if response.status_code != 200:
@@ -64,7 +73,13 @@ class Installer:
         """Ensure configuration directory exists."""
         os.makedirs(self.config_dir, exist_ok=True)
 
-    def install(self, model: str = "llama2", port: int = 3000, force: bool = False, image: Optional[str] = None):
+    def install(
+        self,
+        model: str = "llama2",
+        port: int = 3000,
+        force: bool = False,
+        image: Optional[str] = None,
+    ):
         """Install Open WebUI."""
         try:
             # Check if already installed
@@ -99,7 +114,8 @@ class Installer:
             # Create launch script
             launch_script = os.path.join(self.config_dir, "launch-openwebui.sh")
             with open(launch_script, "w") as f:
-                f.write(f"""#!/bin/bash
+                f.write(
+                    f"""#!/bin/bash
 docker run -d \\
     --name open-webui \\
     -p {port}:8080 \\
@@ -107,7 +123,8 @@ docker run -d \\
     -e OLLAMA_API_BASE_URL=http://host.docker.internal:11434/api \\
     --add-host host.docker.internal:host-gateway \\
     {current_webui_image}
-""")
+"""
+                )
             os.chmod(launch_script, 0o755)
 
             # Create configuration file
@@ -135,14 +152,12 @@ docker run -d \\
                 container = self.docker_client.containers.run(
                     current_webui_image,
                     name="open-webui",
-                    ports={'8080/tcp': port},
+                    ports={"8080/tcp": port},
                     volumes={"open-webui": {"bind": "/app/backend/data", "mode": "rw"}},
-                    environment={
-                        "OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"
-                    },
+                    environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
                     extra_hosts={"host.docker.internal": "host-gateway"},
                     detach=True,
-                    restart_policy={"Name": "unless-stopped"}
+                    restart_policy={"Name": "unless-stopped"},
                 )
                 console.print(f"✓ Container started with ID: {container.short_id}")
 
@@ -165,6 +180,7 @@ docker run -d \\
 
             # Remove configuration
             import shutil
+
             if os.path.exists(self.config_dir):
                 shutil.rmtree(self.config_dir)
 
@@ -197,12 +213,14 @@ docker run -d \\
         try:
             with open(config_file) as f:
                 config = json.load(f)
-                status.update({
-                    "installed": True,
-                    "version": config.get("version"),
-                    "port": config.get("port"),
-                    "model": config.get("model"),
-                })
+                status.update(
+                    {
+                        "installed": True,
+                        "version": config.get("version"),
+                        "port": config.get("port"),
+                        "model": config.get("model"),
+                    }
+                )
         except Exception:
             return status
 
