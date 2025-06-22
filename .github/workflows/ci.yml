@@ -21,11 +21,13 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -r requirements-dev.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          # Ensure key packages are available for tests
+          pip install PyQt6 docker requests pytest-cov
         
     - name: Run tests
       run: |
