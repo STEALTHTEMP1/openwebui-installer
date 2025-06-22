@@ -46,6 +46,14 @@ brew install openwebui-installer
 openwebui-installer install
 ```
 
+You can also invoke the installer with Python if you prefer:
+
+```bash
+python3 install.py install
+```
+
+The `install.py` script simply delegates to the same command-line interface.
+
 ## 🔧 Container Management
 
 ```bash
@@ -152,7 +160,7 @@ After each release, you'll need to update your public Homebrew tap:
 - **`.github/workflows/release.yml`** - Automated release workflow
 - **`setup.sh`** - Interactive setup script
 - **`README.md`** - This file
-- **Sample files** - Created if not present (README.md, install.py, LICENSE)
+- **Sample files** - Created if not present (README.md, install.py wrapper, LICENSE)
 
 ## 🔧 Workflow Features
 
