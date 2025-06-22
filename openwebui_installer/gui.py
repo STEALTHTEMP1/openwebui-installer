@@ -3,63 +3,72 @@ GUI interface for Open WebUI Installer
 """
 import sys
 
-from PyQt6.QtCore import Qt, QThread, pyqtSignal
-from PyQt6.QtWidgets import (
-    QApplication,
-    QMainWindow,
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLabel,
-    QComboBox,
-    QPushButton,
-    QSpinBox,
-    QProgressBar,
-    QMessageBox,
-)
+try:  # PyQt6 might not be installed or fully functional
+    from PyQt6.QtCore import Qt, QThread, pyqtSignal
+    from PyQt6.QtWidgets import (
+        QApplication,
+        QMainWindow,
+        QWidget,
+        QVBoxLayout,
+        QHBoxLayout,
+        QLabel,
+        QComboBox,
+        QPushButton,
+        QSpinBox,
+        QProgressBar,
+        QMessageBox,
+    )
+    PYQT_AVAILABLE = True
+except Exception as e:  # pragma: no cover - environment without PyQt6 support
+    PYQT_AVAILABLE = False
+    QT_IMPORT_ERROR = e
 
 from . import __version__
 from .installer import Installer
 
-class InstallerThread(QThread):
-    """Thread for running installation process."""
-    progress = pyqtSignal(str)
-    error = pyqtSignal(str)
-    finished = pyqtSignal()
+if PYQT_AVAILABLE:
 
-    def __init__(self, model: str, port: int, force: bool = False):
-        super().__init__()
-        self.model = model
-        self.port = port
-        self.force = force
-        self.installer = Installer()
+    class InstallerThread(QThread):
+        """Thread for running installation process."""
 
-    def run(self):
-        """Run installation process."""
-        try:
-            self.progress.emit("Checking system requirements...")
-            self.installer._check_system_requirements()
+        progress = pyqtSignal(str)
+        error = pyqtSignal(str)
+        finished = pyqtSignal()
 
-            self.progress.emit("Installing Open WebUI...")
-            self.installer.install(
-                model=self.model,
-                port=self.port,
-                force=self.force
-            )
+        def __init__(self, model: str, port: int, force: bool = False):
+            super().__init__()
+            self.model = model
+            self.port = port
+            self.force = force
+            self.installer = Installer()
 
-            self.finished.emit()
+        def run(self):
+            """Run installation process."""
+            try:
+                self.progress.emit("Checking system requirements...")
+                self.installer._check_system_requirements()
 
-        except Exception as e:
-            self.error.emit(str(e))
+                self.progress.emit("Installing Open WebUI...")
+                self.installer.install(
+                    model=self.model,
+                    port=self.port,
+                    force=self.force,
+                )
 
-class MainWindow(QMainWindow):
-    """Main window for the installer GUI."""
+                self.finished.emit()
 
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle(f"Open WebUI Installer v{__version__}")
-        self.setMinimumWidth(500)
-        self.setMinimumHeight(300)
+            except Exception as e:  # pragma: no cover - runtime error handling
+                self.error.emit(str(e))
+
+
+    class MainWindow(QMainWindow):
+        """Main window for the installer GUI."""
+
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle(f"Open WebUI Installer v{__version__}")
+            self.setMinimumWidth(500)
+            self.setMinimumHeight(300)
 
         # Create central widget and layout
         central_widget = QWidget()
@@ -203,8 +212,22 @@ class MainWindow(QMainWindow):
         )
         self.update_status()
 
+else:
+    InstallerThread = None  # type: ignore
+    MainWindow = None  # type: ignore
+
+
 def main():
     """Main entry point for the GUI."""
+    if not PYQT_AVAILABLE:
+        msg = (
+            "PyQt6 is required for the graphical installer but could not be loaded."
+        )
+        if "QT_IMPORT_ERROR" in globals():
+            msg += f"\nReason: {QT_IMPORT_ERROR}"
+        print(msg)
+        return
+
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
