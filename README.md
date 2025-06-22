@@ -117,8 +117,8 @@ Once the workflow is set up:
 
 1. **Tag your release**:
    ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
+   git tag v0.1.0
+   git push origin v0.1.0
    ```
 
 2. **Watch the workflow run**:
@@ -138,13 +138,13 @@ After each release, you'll need to update your public Homebrew tap:
 
 2. **Update the formula** with the new version and SHA256:
    ```ruby
-   url "https://github.com/STEALTHTEMP1/openwebui-installer/archive/refs/tags/v1.0.0.tar.gz"
+   url "https://github.com/STEALTHTEMP1/openwebui-installer/archive/refs/tags/v0.1.0.tar.gz"
    sha256 "your-sha256-hash-here"
    ```
 
 3. **Or use the update script**:
    ```bash
-   ./update-formula.sh v1.0.0
+   ./update-formula.sh v0.1.0
    ```
 
 ## 📁 What's Included
@@ -158,7 +158,7 @@ After each release, you'll need to update your public Homebrew tap:
 
 The automated workflow:
 
-- ✅ **Triggers on git tags** (v1.0.0, v1.1.0, etc.)
+- ✅ **Triggers on git tags** (v0.1.0, v0.2.0, etc.)
 - ✅ **Creates release archives** automatically
 - ✅ **Uploads to GitHub Releases** with detailed descriptions
 - ✅ **Calculates SHA256 hashes** for Homebrew
@@ -219,7 +219,7 @@ The workflow works with any project structure. It automatically includes all fil
 1. **Download the exact release archive** from GitHub
 2. **Calculate hash locally**:
    ```bash
-   curl -L -o temp.tar.gz "https://github.com/STEALTHTEMP1/openwebui-installer/archive/refs/tags/v1.0.0.tar.gz"
+   curl -L -o temp.tar.gz "https://github.com/STEALTHTEMP1/openwebui-installer/archive/refs/tags/v0.1.0.tar.gz"
    shasum -a 256 temp.tar.gz
    ```
 3. **Use the exact hash** in your Homebrew formula
@@ -233,7 +233,7 @@ The workflow works with any project structure. It automatically includes all fil
 ## 🎯 Next Steps
 
 1. **Set up the workflow** (run `./setup.sh`)
-2. **Create your first release** (`git tag v1.0.0 && git push origin v1.0.0`)
+2. **Create your first release** (`git tag v0.1.0 && git push origin v0.1.0`)
 3. **Set up your Homebrew tap** (see main project documentation)
 4. **Test the complete flow** end-to-end
 

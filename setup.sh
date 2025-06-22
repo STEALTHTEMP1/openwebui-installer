@@ -5,6 +5,9 @@
 
 set -e
 
+# Get project version from __init__.py
+VERSION=$(grep -oP '(?<=__version__ = ")\S+(?=")' openwebui_installer/__init__.py)
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -439,7 +442,7 @@ EOF
         if [[ "$DRY_RUN" == true ]]; then
             log_info "Would create: install.py (sample)"
         else
-            cat > install.py << 'EOF'
+            cat > install.py << EOF
 #!/usr/bin/env python3
 """
 Open WebUI Installer
@@ -456,7 +459,7 @@ def main():
     parser.add_argument('command', nargs='?', default='help',
                        choices=['install', 'start', 'stop', 'status', 'update', 'uninstall', 'help'],
                        help='Command to execute')
-    parser.add_argument('--version', action='version', version='1.1.1')
+    parser.add_argument('--version', action='version', version='${VERSION}')
 
     args = parser.parse_args()
 
@@ -561,8 +564,8 @@ show_next_steps() {
     echo "   git push origin main"
     echo ""
     echo "3. 🏷️  Create your first release:"
-    echo "   git tag v1.0.0"
-    echo "   git push origin v1.0.0"
+    echo "   git tag v${VERSION}"
+    echo "   git push origin v${VERSION}"
     echo ""
     echo "4. 👀 Watch the magic happen:"
     echo "   - Go to your GitHub repository"
@@ -573,7 +576,7 @@ show_next_steps() {
     echo "5. 🍺 Update your Homebrew formula:"
     echo "   - Go to your homebrew-openwebui-installer repository"
     echo "   - Update Formula/openwebui-installer.rb with the new SHA256"
-    echo "   - Or use: ./update-formula.sh v1.0.0"
+    echo "   - Or use: ./update-formula.sh v${VERSION}"
     echo ""
     echo "6. 🧪 Test the installation:"
     echo "   brew tap STEALTHTEMP1/openwebui-installer"

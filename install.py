@@ -9,12 +9,14 @@ import argparse
 import subprocess
 import os
 
+from openwebui_installer import __version__
+
 def main():
     parser = argparse.ArgumentParser(description='Open WebUI Installer')
     parser.add_argument('command', nargs='?', default='help',
                        choices=['install', 'start', 'stop', 'status', 'update', 'uninstall', 'help'],
                        help='Command to execute')
-    parser.add_argument('--version', action='version', version='1.1.1')
+    parser.add_argument('--version', action='version', version=__version__)
 
     args = parser.parse_args()
 
