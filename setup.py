@@ -1,11 +1,12 @@
 from setuptools import setup, find_packages
+from openwebui_installer import __version__
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
     name="openwebui-installer",
-    version="0.1.0",
+    version=__version__,
     author="Open WebUI Team",
     author_email="team@openwebui.com",
     description="A macOS installer for Open WebUI with native Ollama integration",

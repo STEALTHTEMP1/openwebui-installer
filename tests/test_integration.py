@@ -7,6 +7,7 @@ import subprocess
 import pytest
 import docker
 import requests
+from openwebui_installer import __version__
 from pathlib import Path
 from openwebui_installer.installer import Installer
 from unittest.mock import patch, Mock, MagicMock # Added MagicMock
@@ -103,10 +104,10 @@ def test_status_check(installer):
     with patch('os.path.exists', return_value=True), \
          patch('builtins.open', create=True) as mock_open:
 
-        mock_open.return_value.__enter__.return_value.read.return_value = '{"version": "0.1.0", "port": 3000, "model": "llama2"}'
+        mock_open.return_value.__enter__.return_value.read.return_value = '{"version": "' + __version__ + '", "port": 3000, "model": "llama2"}'
 
         with patch.object(installer.docker_client.containers, 'get', side_effect=docker.errors.NotFound("Container not found")):
             status = installer.get_status()
             assert status["installed"] is True
-            assert status["version"] == "0.1.0"
+            assert status["version"] == __version__
             assert status["running"] is False

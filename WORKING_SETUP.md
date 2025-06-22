@@ -103,6 +103,6 @@ The installer can be updated to use this working Docker command instead of the c
 
 ## 📝 Notes for Future Development
 
-- The current installer (v1.1.1) needs to be updated to use the official Open WebUI image
+ - The current installer (v0.1.0) needs to be updated to use the official Open WebUI image
 - Consider removing the custom development setup and using this proven Docker approach
 - Port 3000 works well but can be changed if needed (e.g., `-p 8080:8080`)

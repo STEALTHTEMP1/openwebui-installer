@@ -8,6 +8,8 @@ import subprocess
 import sys
 from typing import Dict, Optional
 
+from . import __version__
+
 import docker
 import requests
 from rich.console import Console
@@ -112,7 +114,7 @@ docker run -d \\
 
             # Create configuration file
             config = {
-                "version": "0.1.0",
+                "version": __version__,
                 "model": model,
                 "port": port,
                 "image": current_webui_image,

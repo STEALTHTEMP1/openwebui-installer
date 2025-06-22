@@ -8,6 +8,7 @@ from click.testing import CliRunner
 
 from openwebui_installer.cli import cli, install, uninstall, status
 from openwebui_installer.installer import InstallerError, SystemRequirementsError
+from openwebui_installer import __version__
 
 @pytest.fixture
 def runner():
@@ -105,7 +106,7 @@ def test_status_installed_not_running(runner, mock_installer):
     """Test status command when installed but not running."""
     mock_installer.get_status.return_value = {
         "installed": True,
-        "version": "0.1.0",
+        "version": __version__,
         "port": 3000,
         "model": "llama2",
         "running": False,
@@ -119,7 +120,7 @@ def test_status_installed_and_running(runner, mock_installer):
     """Test status command when installed and running."""
     mock_installer.get_status.return_value = {
         "installed": True,
-        "version": "0.1.0",
+        "version": __version__,
         "port": 3000,
         "model": "llama2",
         "running": True,
@@ -173,7 +174,7 @@ class TestCLI:
         """Test status command"""
         # Test when Open WebUI is running
         mock_installer.get_status.return_value = { # Use get_status
-            "installed": True, "version": "0.1.0", "port": 3000,
+            "installed": True, "version": __version__, "port": 3000,
             "model": "test", "running": True
         }
         result = runner.invoke(status)
@@ -183,7 +184,7 @@ class TestCLI:
 
         # Test when Open WebUI is not running
         mock_installer.get_status.return_value = { # Use get_status
-            "installed": True, "version": "0.1.0", "port": 3000,
+            "installed": True, "version": __version__, "port": 3000,
             "model": "test", "running": False
         }
         result = runner.invoke(status)
