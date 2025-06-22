@@ -14,26 +14,46 @@ Official installer for Open WebUI with native Ollama integration for macOS.
 ## Requirements
 
 - macOS 12 (Monterey) or later
-- Python 3.8 or later
+- Python 3.9 or later
 - Docker Desktop for Mac
 - Ollama
 
 ## Installation
 
-### Using Homebrew (Recommended)
+### Using pip with virtual environment (Recommended)
 
 ```bash
-# Add the tap
-brew tap open-webui/tap
+# Create and activate a virtual environment
+python3 -m venv openwebui-installer-env
+source openwebui-installer-env/bin/activate
 
 # Install the installer
-brew install openwebui-installer
+pip install openwebui-installer
 ```
 
-### Using pip
+### Using Homebrew (Coming Soon)
+
+The Homebrew tap is not yet available. Please use the pip installation method above.
 
 ```bash
-pip install openwebui-installer
+# This will be available once the tap is created:
+# brew tap open-webui/homebrew-tap
+# brew install openwebui-installer
+```
+
+### Alternative: Install from source
+
+```bash
+# Clone the repository
+git clone https://github.com/open-webui/openwebui-installer.git
+cd openwebui-installer
+
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install in development mode
+pip install -e .
 ```
 
 ## Usage
@@ -123,10 +143,64 @@ bandit -r openwebui_installer
 4. Push to the branch
 5. Create a Pull Request
 
+## Troubleshooting
+
+### Externally Managed Environment Error
+
+If you get an "externally-managed-environment" error when using pip:
+
+```bash
+# Solution 1: Use virtual environment (recommended)
+python3 -m venv openwebui-installer-env
+source openwebui-installer-env/bin/activate
+pip install openwebui-installer
+
+# Solution 2: Use pipx (installs in isolated environment)
+brew install pipx
+pipx install openwebui-installer
+
+# Solution 3: Use --user flag (not recommended)
+pip install --user openwebui-installer
+```
+
+### Homebrew Tap Not Found
+
+The error "Repository not found" for Homebrew tap indicates:
+
+1. **The tap repository doesn't exist yet** - Use pip installation instead
+2. **GitHub repository access issues** - Check your internet connection
+3. **Incorrect tap name** - The repository should be named `homebrew-tap`
+
+**Current Status**: The Homebrew tap is not yet available. Please use pip installation.
+
+### Docker Not Running
+
+If you get "Docker is not running" errors:
+
+1. Install Docker Desktop for Mac from https://www.docker.com/products/docker-desktop
+2. Start Docker Desktop
+3. Verify Docker is running: `docker --version`
+
+### Ollama Not Running
+
+If you get "Ollama is not running" errors:
+
+1. Install Ollama from https://ollama.ai
+2. Start Ollama: `ollama serve`
+3. Verify Ollama is running: `curl http://localhost:11434/api/tags`
+
+### Python Version Issues
+
+If you get Python version errors:
+
+1. Check your Python version: `python3 --version`
+2. Install Python 3.9 or later from https://python.org
+3. Use the correct Python version in commands
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) file
 
 ## Security
 
-Please report security issues to security@openwebui.com 
+Please report security issues to security@openwebui.com

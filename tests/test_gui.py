@@ -2,7 +2,7 @@
 Tests for the GUI module
 """
 import sys
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import pytest
 from PyQt6.QtWidgets import QApplication, QMessageBox
 from openwebui_installer.gui import MainWindow
@@ -38,10 +38,10 @@ def test_start_installation(window):
          patch.object(window.install_button, 'setEnabled') as mock_set_install_enabled, \
          patch.object(window.uninstall_button, 'setEnabled') as mock_set_uninstall_enabled, \
          patch.object(window.progress_bar, 'show') as mock_show_progress:
-        
+
         mock_thread_instance = mock_thread_class.return_value
         window.start_installation()
-        
+
         mock_set_install_enabled.assert_called_with(False)
         mock_set_uninstall_enabled.assert_called_with(False)
         mock_show_progress.assert_called_once()
@@ -84,20 +84,28 @@ def test_update_progress(window):
         window.update_progress(message)
         mock_set_format.assert_called_with(message)
 
-@patch("openwebui_installer.gui.QMessageBox")
-@patch("openwebui_installer.gui.Installer")
-def test_uninstall_confirmed(mock_installer_class, mock_msg_box, window):
+def test_uninstall_confirmed(window):
     """Test that installer.uninstall is called when the user confirms."""
+    # Let's mock QMessageBox at the window level instead
     with patch.object(window, 'update_status') as mock_update:
-        mock_msg_box.question.return_value = QMessageBox.StandardButton.Yes
-        mock_installer_instance = mock_installer_class.return_value
-        
-        window.uninstall()
-        
-        mock_msg_box.question.assert_called_once()
-        mock_installer_instance.uninstall.assert_called_once()
-        mock_msg_box.information.assert_called_once()
-        mock_update.assert_called_once()
+        with patch("openwebui_installer.gui.Installer") as mock_installer_class:
+            with patch("PyQt6.QtWidgets.QMessageBox.question", return_value=QMessageBox.StandardButton.Yes) as mock_question:
+                with patch("PyQt6.QtWidgets.QMessageBox.information") as mock_information:
+
+                    # Mock installer instance
+                    mock_installer_instance = mock_installer_class.return_value
+                    mock_installer_instance.uninstall = MagicMock()
+
+                    window.uninstall()
+
+                    # Check that question was asked
+                    mock_question.assert_called_once()
+                    # Check that installer was created and uninstall called
+                    mock_installer_class.assert_called_once()
+                    mock_installer_instance.uninstall.assert_called_once()
+                    # Check success message was shown
+                    mock_information.assert_called_once()
+                    mock_update.assert_called_once()
 
 @patch("openwebui_installer.gui.QMessageBox")
 @patch("openwebui_installer.gui.Installer")
@@ -105,26 +113,32 @@ def test_uninstall_cancelled(mock_installer_class, mock_msg_box, window):
     """Test that installer.uninstall is NOT called when the user cancels."""
     mock_msg_box.question.return_value = QMessageBox.StandardButton.No
     mock_installer_instance = mock_installer_class.return_value
-    
+
     window.uninstall()
-    
+
     mock_msg_box.question.assert_called_once()
     mock_installer_instance.uninstall.assert_not_called()
 
-@patch("openwebui_installer.gui.QMessageBox")
-@patch("openwebui_installer.gui.Installer")
-def test_uninstall_with_error(mock_installer_class, mock_msg_box, window):
+def test_uninstall_with_error(window):
     """Test the error handling logic during uninstallation."""
     with patch.object(window, 'update_status') as mock_update:
-        mock_msg_box.question.return_value = QMessageBox.StandardButton.Yes
-        error_message = "Could not uninstall."
-        mock_installer_instance = mock_installer_class.return_value
-        mock_installer_instance.uninstall.side_effect = Exception(error_message)
-        
-        window.uninstall()
-        
-        mock_installer_instance.uninstall.assert_called_once()
-        mock_msg_box.warning.assert_called_once()
-        # The exact message includes the exception, so we check for containment
-        assert "Could not uninstall" in mock_msg_box.warning.call_args[0][1]
-        mock_update.assert_called_once() # Status should still be updated after an error
+        with patch("openwebui_installer.gui.Installer") as mock_installer_class:
+            with patch("PyQt6.QtWidgets.QMessageBox.question", return_value=QMessageBox.StandardButton.Yes) as mock_question:
+                with patch("PyQt6.QtWidgets.QMessageBox.warning") as mock_warning:
+
+                    # Mock installer to raise exception
+                    error_message = "Could not uninstall."
+                    mock_installer_instance = mock_installer_class.return_value
+                    mock_installer_instance.uninstall.side_effect = Exception(error_message)
+
+                    window.uninstall()
+
+                    # Check that installer was created and uninstall called
+                    mock_installer_class.assert_called_once()
+                    mock_installer_instance.uninstall.assert_called_once()
+                    # Check error message was shown
+                    mock_warning.assert_called_once()
+                    # Check that the warning contains our error message
+                    warning_args = mock_warning.call_args[0]
+                    assert "Could not uninstall" in warning_args[2]  # message is third argument
+                    mock_update.assert_called_once()

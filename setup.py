@@ -38,9 +38,10 @@ setup(
     entry_points={
         "console_scripts": [
             "openwebui-installer=openwebui_installer.cli:cli",
+            "openwebui-installer-gui=openwebui_installer.gui:main",
         ],
     },
     package_data={
         "openwebui_installer": ["resources/*"],
     },
-) 
+)

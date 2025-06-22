@@ -14,16 +14,24 @@ from .installer import Installer
 
 console = Console()
 
+
 def validate_system() -> bool:
     """Validate system requirements."""
-    # TODO: Implement system validation
-    return True
+    try:
+        installer = Installer()
+        installer._check_system_requirements()
+        return True
+    except Exception as e:
+        console.print(f"[red]System validation failed:[/red] {str(e)}")
+        return False
+
 
 @click.group()
 @click.version_option(version=__version__)
 def cli():
     """Open WebUI Installer - Install and manage Open WebUI with Ollama integration."""
     pass
+
 
 @cli.command()
 @click.option('--model', '-m', help='Ollama model to install', default='llama2')
@@ -35,7 +43,7 @@ def install(model: str, port: int, force: bool, image: Optional[str]):
     try:
         if not validate_system():
             sys.exit(1)
-            
+
         installer = Installer()
         with Progress(
             SpinnerColumn(),
@@ -45,13 +53,14 @@ def install(model: str, port: int, force: bool, image: Optional[str]):
             task = progress.add_task("Installing Open WebUI...", total=None)
             installer.install(model=model, port=port, force=force, image=image)
             progress.update(task, completed=True)
-            
+
         console.print("[green]✓[/green] Installation complete!")
         console.print(f"\nOpen WebUI is now available at: http://localhost:{port}")
-        
+
     except Exception as e:
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
+
 
 @cli.command()
 def uninstall():
@@ -69,12 +78,13 @@ def uninstall():
             task = progress.add_task("Uninstalling Open WebUI...", total=None)
             installer.uninstall()
             progress.update(task, completed=True)
-            
+
         console.print("[green]✓[/green] Uninstallation complete!")
-        
+
     except Exception as e:
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
+
 
 @cli.command()
 def status():
@@ -82,7 +92,7 @@ def status():
     try:
         installer = Installer()
         status = installer.get_status()
-        
+
         if status['installed']:
             console.print("[green]✓[/green] Open WebUI is installed")
             console.print(f"Version: {status['version']}")
@@ -91,14 +101,16 @@ def status():
             console.print(f"Status: {'Running' if status['running'] else 'Stopped'}")
         else:
             console.print("[yellow]![/yellow] Open WebUI is not installed")
-            
+
     except Exception as e:
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
+
 
 def main():
     """Main entry point for the CLI."""
     cli()
 
+
 if __name__ == "__main__":
-    main() 
+    main()

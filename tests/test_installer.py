@@ -4,6 +4,7 @@ Tests for the installer module
 import json
 import platform
 import shutil
+import subprocess
 from unittest.mock import MagicMock, mock_open
 
 import docker
@@ -35,11 +36,11 @@ class TestInstallerSuite:
     def test_check_system_requirements_success(self, installer, mocker):
         """Test that system requirements check passes on macOS with Docker and Ollama running."""
         mocker.patch('platform.system', return_value='Darwin')
-        mocker.patch('sys.version_info', (3, 8, 0))
+        mocker.patch('sys.version_info', (3, 9, 0))
         installer.docker_client.ping.return_value = True
         mock_requests_get = mocker.patch('requests.get')
         mock_requests_get.return_value.status_code = 200
-        
+
         # This should not raise any exception
         installer._check_system_requirements()
 
@@ -52,27 +53,27 @@ class TestInstallerSuite:
     def test_check_system_requirements_wrong_python(self, installer, mocker):
         """Test that system requirements check fails on an old Python version."""
         mocker.patch('platform.system', return_value='Darwin')
-        mocker.patch('sys.version_info', (3, 7, 0))
-        with pytest.raises(SystemRequirementsError, match="Python 3.8 or higher is required"):
+        mocker.patch('sys.version_info', (3, 8, 0))
+        with pytest.raises(SystemRequirementsError, match="Python 3.9 or higher is required"):
             installer._check_system_requirements()
 
     def test_check_system_requirements_docker_not_running(self, installer, mocker):
         """Test that system requirements check fails if Docker is not running."""
         mocker.patch('platform.system', return_value='Darwin')
-        mocker.patch('sys.version_info', (3, 8, 0))
+        mocker.patch('sys.version_info', (3, 9, 0))
         installer.docker_client.ping.side_effect = Exception("Docker not running")
-        
+
         with pytest.raises(SystemRequirementsError, match="Docker is not running or not installed"):
             installer._check_system_requirements()
 
     def test_check_system_requirements_ollama_not_running(self, installer, mocker):
         """Test that system requirements check fails if Ollama is not running."""
         mocker.patch('platform.system', return_value='Darwin')
-        mocker.patch('sys.version_info', (3, 8, 0))
+        mocker.patch('sys.version_info', (3, 9, 0))
         installer.docker_client.ping.return_value = True
         mock_requests_get = mocker.patch('requests.get')
         mock_requests_get.side_effect = Exception("Connection failed")
-        
+
         with pytest.raises(SystemRequirementsError, match="Ollama is not installed or not running"):
             installer._check_system_requirements()
 
@@ -90,9 +91,27 @@ class TestInstallerSuite:
 
         installer._check_system_requirements.assert_called_once()
         installer.docker_client.images.pull.assert_called_with(installer.webui_image)
-        mock_subprocess_run.assert_called_with(["ollama", "pull", "test-model"], check=True)
+        mock_subprocess_run.assert_called_with(["ollama", "pull", "test-model"], check=True, timeout=300)
         assert mock_json_dump.call_args[0][0]['port'] == 1234
         assert mock_json_dump.call_args[0][0]['model'] == "test-model"
+
+    def test_install_with_custom_image(self, installer, mocker):
+        """Test installation with a custom Docker image."""
+        mocker.patch.object(installer, '_check_system_requirements')
+        mocker.patch.object(installer, 'get_status', return_value={'installed': False})
+        mock_open_patch = mocker.patch('builtins.open', mock_open())
+        mocker.patch('os.makedirs')
+        mock_json_dump = mocker.patch('json.dump')
+        mock_subprocess_run = mocker.patch('subprocess.run')
+        mocker.patch('os.chmod')
+
+        custom_image = "custom/open-webui:latest"
+        installer.install(model="test-model", port=1234, force=False, image=custom_image)
+
+        installer.docker_client.images.pull.assert_called_with(custom_image)
+        # Check that custom image is stored in config
+        config_data = mock_json_dump.call_args[0][0]
+        assert config_data['image'] == custom_image
 
     def test_install_stops_if_already_installed_without_force(self, installer, mocker):
         """Test that installation stops if already installed and force=False."""
@@ -107,7 +126,7 @@ class TestInstallerSuite:
 
         mock_container = MagicMock()
         mock_volume = MagicMock()
-        
+
         installer.docker_client.containers.get.return_value = mock_container
         installer.docker_client.volumes.get.return_value = mock_volume
 
@@ -141,13 +160,13 @@ class TestInstallerSuite:
         mock_file_content = '{"version": "1.0", "port": 8080, "model": "test-model"}'
         mocker.patch('builtins.open', mock_open(read_data=mock_file_content))
         mocker.patch('os.path.exists', return_value=True)
-        
+
         mock_container = MagicMock()
         mock_container.status = "running"
         installer.docker_client.containers.get.return_value = mock_container
-        
+
         status = installer.get_status()
-        
+
         assert status["installed"]
         assert status["running"]
         assert status["version"] == "1.0"
@@ -157,9 +176,9 @@ class TestInstallerSuite:
         mock_file_content = '{"version": "1.0", "port": 8080, "model": "test-model"}'
         mocker.patch('builtins.open', mock_open(read_data=mock_file_content))
         mocker.patch('os.path.exists', return_value=True)
-        
+
         installer.docker_client.containers.get.side_effect = docker.errors.NotFound("not found")
-        
+
         status = installer.get_status()
         assert status["installed"]
         assert not status["running"]
@@ -179,15 +198,15 @@ class TestInstallerSuite:
 
         with pytest.raises(InstallerError, match="Failed to pull Open WebUI Docker image: pull failed"):
             installer.install(force=False) # Call install, which contains the pull logic
-            
+
     # def test_start_open_webui(self, installer, mocker):
     #     """Test starting Open WebUI container."""
     #     mock_docker_client = mocker.patch('docker.from_env').return_value
     #     container = MagicMock()
     #     mock_docker_client.containers.run.return_value = container
-        
+
     #     installer.start_open_webui(port=3000)
-        
+
     #     mock_docker_client.containers.run.assert_called_with(
     #         installer.webui_image,
     #         name='open-webui',
@@ -208,14 +227,14 @@ class TestInstallerSuite:
 
         # Mock subprocess.run to fail for the ollama pull
         mock_subprocess_run = mocker.patch('subprocess.run')
-        mock_subprocess_run.side_effect = Exception("pull failed")
+        mock_subprocess_run.side_effect = subprocess.CalledProcessError(1, ["ollama", "pull", model_name])
 
-        expected_error_message = f"Failed to pull Ollama model {model_name}: pull failed"
+        expected_error_message = f"Failed to pull Ollama model {model_name}"
         with pytest.raises(InstallerError, match=expected_error_message):
             installer.install(model=model_name, force=False)
 
         # Ensure subprocess.run was called with the correct model
-        mock_subprocess_run.assert_called_with(["ollama", "pull", model_name], check=True)
+        mock_subprocess_run.assert_called_with(["ollama", "pull", model_name], check=True, timeout=300)
 
     def test_stop_open_webui(self, installer, mocker): # Renaming to reflect what it does
         """Test that uninstall stops and removes the container."""
@@ -237,7 +256,7 @@ class TestInstallerSuite:
     # def test_is_open_webui_running(self, installer, mocker):
     #     """Test checking if open webui is running."""
     #     # installer.docker_client is already a MagicMock
-        
+
     #     # Setup for "installed" state
     #     mock_file_content = '{"version": "1.0", "port": 8080, "model": "test-model"}'
     #     mocker.patch('builtins.open', mock_open(read_data=mock_file_content))
@@ -247,7 +266,7 @@ class TestInstallerSuite:
     #     mock_container_running = MagicMock(name="mock_container_running")
     #     mock_container_running.status = "running"
     #     installer.docker_client.containers.get.return_value = mock_container_running
-        
+
     #     status_running = installer.get_status()
     #     assert status_running["running"] is True
     #     installer.docker_client.containers.get.assert_called_with("open-webui")
@@ -314,7 +333,7 @@ class TestInstallerSuite:
     #     mock_subprocess_run.return_value.returncode = 0
     #     # installer.install_ollama() # Method doesn't exist
     #     # mock_subprocess_run.assert_called_with(['brew', 'install', 'ollama'], check=True)
-        
+
     #     mock_subprocess_run.side_effect = Exception("Installation failed")
     #     # with pytest.raises(InstallerError):
     #         # installer.install_ollama() # Method doesn't exist
