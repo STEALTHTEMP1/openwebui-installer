@@ -1,0 +1,192 @@
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/workspace \
+    DEVELOPMENT=true
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    wget \
+    build-essential \
+    pkg-config \
+    libssl-dev \
+    libffi-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    zlib1g-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libfreetype6-dev \
+    liblcms2-dev \
+    libwebp-dev \
+    tcl8.6-dev \
+    tk8.6-dev \
+    python3-tk \
+    vim \
+    nano \
+    htop \
+    tree \
+    jq \
+    unzip \
+    zip \
+    rsync \
+    openssh-client \
+    gnupg \
+    lsb-release \
+    ca-certificates \
+    apt-transport-https \
+    software-properties-common \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Docker CLI
+RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
+    && apt-get update \
+    && apt-get install -y docker-ce-cli \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Docker Compose
+RUN curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
+    && chmod +x /usr/local/bin/docker-compose
+
+# Install Node.js (for some dev tools)
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs
+
+# Create workspace directory
+WORKDIR /workspace
+
+# Copy requirements first to leverage Docker cache
+COPY requirements*.txt ./
+COPY requirements-container.txt ./
+
+# Upgrade pip and install Python dependencies
+RUN pip install --upgrade pip setuptools wheel
+
+# Install development dependencies (container-safe)
+RUN pip install -r requirements-container.txt
+RUN pip install -r requirements-dev.txt
+
+# Install additional development tools
+RUN pip install \
+    ipython \
+    ipdb \
+    jupyter \
+    jupyterlab \
+    notebook \
+    pre-commit \
+    commitizen \
+    semantic-version \
+    sphinx \
+    sphinx-rtd-theme \
+    sphinx-autodoc-typehints \
+    myst-parser \
+    watchdog \
+    python-dotenv \
+    httpx \
+    aiohttp \
+    websockets \
+    fastapi \
+    uvicorn \
+    pytest-asyncio \
+    pytest-httpx \
+    pytest-mock \
+    pytest-xdist \
+    pytest-benchmark \
+    factory-boy \
+    faker \
+    responses \
+    vcrpy \
+    freezegun
+
+# Install AI/ML development tools (optional)
+RUN pip install \
+    openai \
+    anthropic \
+    langchain \
+    tiktoken \
+    transformers \
+    torch \
+    --extra-index-url https://download.pytorch.org/whl/cpu
+
+# Install code quality tools
+RUN pip install \
+    black \
+    isort \
+    flake8 \
+    mypy \
+    pylint \
+    bandit \
+    safety \
+    pydocstyle \
+    autopep8 \
+    yapf \
+    ruff
+
+# Install additional CLI tools
+RUN npm install -g \
+    prettier \
+    markdownlint-cli \
+    @commitlint/cli \
+    @commitlint/config-conventional
+
+# Create development scripts (as root)
+RUN echo '#!/bin/bash\necho "🧠 Starting Codex Development Environment..."\nexec "$@"' > /usr/local/bin/dev-entrypoint.sh \
+    && chmod +x /usr/local/bin/dev-entrypoint.sh
+
+# Create non-root user for development
+RUN useradd --create-home --shell /bin/bash --uid 1000 developer \
+    && usermod -aG root developer
+
+# Set up development environment
+RUN mkdir -p /workspace/.vscode \
+    /workspace/.codex \
+    /workspace/tests \
+    /workspace/docs \
+    /workspace/logs \
+    /workspace/.cache
+
+# Copy development configuration files
+COPY .vscode/ /workspace/.vscode/
+COPY .codex/ /workspace/.codex/
+
+# Set permissions
+RUN chown -R developer:developer /workspace
+
+# Switch to non-root user
+USER developer
+
+# Set up shell environment
+RUN echo 'export PS1="\[\e[36m\][DEV]\[\e[m\] \[\e[32m\]\u@\h\[\e[m\]:\[\e[33m\]\w\[\e[m\]\$ "' >> ~/.bashrc \
+    && echo 'alias ll="ls -la"' >> ~/.bashrc \
+    && echo 'alias la="ls -A"' >> ~/.bashrc \
+    && echo 'alias l="ls -CF"' >> ~/.bashrc \
+    && echo 'alias ..="cd .."' >> ~/.bashrc \
+    && echo 'alias ...="cd ../.."' >> ~/.bashrc \
+    && echo 'alias grep="grep --color=auto"' >> ~/.bashrc \
+    && echo 'alias fgrep="fgrep --color=auto"' >> ~/.bashrc \
+    && echo 'alias egrep="egrep --color=auto"' >> ~/.bashrc \
+    && echo 'alias pytest="python -m pytest"' >> ~/.bashrc \
+    && echo 'alias black="python -m black"' >> ~/.bashrc \
+    && echo 'alias isort="python -m isort"' >> ~/.bashrc \
+    && echo 'alias flake8="python -m flake8"' >> ~/.bashrc \
+    && echo 'alias mypy="python -m mypy"' >> ~/.bashrc
+
+# Set up Git configuration
+RUN git config --global init.defaultBranch main \
+    && git config --global pull.rebase false \
+    && git config --global core.editor nano
+
+# Expose common development ports
+EXPOSE 8000 8001 8888 8889
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python --version || exit 1
+
+# Default command
+CMD ["/usr/local/bin/dev-entrypoint.sh", "bash"]
