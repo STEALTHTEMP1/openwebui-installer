@@ -1,6 +1,7 @@
 """
 Core installer functionality for Open WebUI
 """
+
 import json
 import os
 import platform
@@ -17,11 +18,13 @@ console = Console()
 
 class InstallerError(Exception):
     """Base exception for installer errors."""
+
     pass
 
 
 class SystemRequirementsError(InstallerError):
     """Exception for system requirement validation failures."""
+
     pass
 
 
@@ -31,7 +34,8 @@ class Installer:
     def __init__(self):
         """Initialize the installer."""
         self.docker_client = docker.from_env()
-        self.webui_image = "ghcr.io/open-webui/open-webui:main"  # Default image
+        self.webui_image = "ghcr.io/open-webui/open-webui:main"
+        # Default image for installation
         self.config_dir = os.path.expanduser("~/.openwebui")
 
     def _check_system_requirements(self):
@@ -48,28 +52,39 @@ class Installer:
         try:
             self.docker_client.ping()
         except Exception:
-            raise SystemRequirementsError("Docker is not running or not installed")
+            msg = "Docker is not running or not installed"
+            raise SystemRequirementsError(msg)
 
         # Check Ollama with timeout
         try:
-            response = requests.get("http://localhost:11434/api/tags", timeout=10)
+            ollama_url = "http://localhost:11434/api/tags"
+            response = requests.get(ollama_url, timeout=10)
             if response.status_code != 200:
                 raise SystemRequirementsError("Ollama is not running")
         except requests.exceptions.Timeout:
-            raise SystemRequirementsError("Timeout connecting to Ollama - check if it's running")
+            msg = "Timeout connecting to Ollama - check if it's running"
+            raise SystemRequirementsError(msg)
         except Exception:
-            raise SystemRequirementsError("Ollama is not installed or not running")
+            msg = "Ollama is not installed or not running"
+            raise SystemRequirementsError(msg)
 
     def _ensure_config_dir(self):
         """Ensure configuration directory exists."""
         os.makedirs(self.config_dir, exist_ok=True)
 
-    def install(self, model: str = "llama2", port: int = 3000, force: bool = False, image: Optional[str] = None):
+    def install(
+        self,
+        model: str = "llama2",
+        port: int = 3000,
+        force: bool = False,
+        image: Optional[str] = None,
+    ):
         """Install Open WebUI."""
         try:
             # Check if already installed
             if not force and self.get_status()["installed"]:
-                raise InstallerError("Open WebUI is already installed. Use --force to reinstall.")
+                msg = "Open WebUI already installed. Use --force to reinstall."
+                raise InstallerError(msg)
 
             # Validate system
             self._check_system_requirements()
@@ -81,25 +96,37 @@ class Installer:
             current_webui_image = image if image else self.webui_image
 
             # Pull Docker image
-            console.print(f"Pulling Open WebUI image: {current_webui_image}...")
+            msg = f"Pulling Open WebUI image: {current_webui_image}..."
+            console.print(msg)
             try:
                 self.docker_client.images.pull(current_webui_image)
             except docker.errors.APIError as e:
-                raise InstallerError(f"Failed to pull Open WebUI Docker image: {str(e)}")
+                msg = f"Failed to pull Open WebUI Docker image: {str(e)}"
+                raise InstallerError(msg)
 
             # Pull Ollama model
             console.print(f"Pulling Ollama model: {model}...")
             try:
-                subprocess.run(["ollama", "pull", model], check=True, timeout=300)
+                subprocess.run(
+                    ["ollama", "pull", model],
+                    check=True,
+                    timeout=300,
+                )
             except subprocess.TimeoutExpired:
-                raise InstallerError(f"Timeout while pulling Ollama model {model}")
+                msg = f"Timeout while pulling Ollama model {model}"
+                raise InstallerError(msg)
             except subprocess.CalledProcessError as e:
-                raise InstallerError(f"Failed to pull Ollama model {model}: {str(e)}")
+                msg = f"Failed to pull Ollama model {model}: {str(e)}"
+                raise InstallerError(msg)
 
             # Create launch script
-            launch_script = os.path.join(self.config_dir, "launch-openwebui.sh")
+            launch_script = os.path.join(
+                self.config_dir,
+                "launch-openwebui.sh",
+            )
             with open(launch_script, "w") as f:
-                f.write(f"""#!/bin/bash
+                f.write(
+                    f"""#!/bin/bash
 docker run -d \\
     --name open-webui \\
     -p {port}:8080 \\
@@ -107,7 +134,8 @@ docker run -d \\
     -e OLLAMA_API_BASE_URL=http://host.docker.internal:11434/api \\
     --add-host host.docker.internal:host-gateway \\
     {current_webui_image}
-""")
+"""
+                )
             os.chmod(launch_script, 0o755)
 
             # Create configuration file
@@ -125,29 +153,39 @@ docker run -d \\
             try:
                 # Stop and remove existing container if it exists
                 try:
-                    existing_container = self.docker_client.containers.get("open-webui")
+                    container_name = "open-webui"
+                    client = self.docker_client.containers
+                    existing_container = client.get(container_name)
                     existing_container.stop()
                     existing_container.remove()
                 except docker.errors.NotFound:
                     pass
 
                 # Start new container
+                ollama_api_url = "http://host.docker.internal:11434/api"
+                env = {"OLLAMA_API_BASE_URL": ollama_api_url}
+
                 container = self.docker_client.containers.run(
                     current_webui_image,
                     name="open-webui",
-                    ports={'8080/tcp': port},
-                    volumes={"open-webui": {"bind": "/app/backend/data", "mode": "rw"}},
-                    environment={
-                        "OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"
+                    ports={"8080/tcp": port},
+                    volumes={
+                        "open-webui": {
+                            "bind": "/app/backend/data",
+                            "mode": "rw",
+                        }
                     },
+                    environment=env,
                     extra_hosts={"host.docker.internal": "host-gateway"},
                     detach=True,
-                    restart_policy={"Name": "unless-stopped"}
+                    restart_policy={"Name": "unless-stopped"},
                 )
-                console.print(f"✓ Container started with ID: {container.short_id}")
+                msg = f"✓ Container started with ID: {container.short_id}"
+                console.print(msg)
 
             except docker.errors.APIError as e:
-                raise InstallerError(f"Failed to start Open WebUI container: {str(e)}")
+                msg = f"Failed to start Open WebUI container: {str(e)}"
+                raise InstallerError(msg)
 
         except Exception as e:
             raise InstallerError(f"Installation failed: {str(e)}")
@@ -165,6 +203,7 @@ docker run -d \\
 
             # Remove configuration
             import shutil
+
             if os.path.exists(self.config_dir):
                 shutil.rmtree(self.config_dir)
 
@@ -197,12 +236,14 @@ docker run -d \\
         try:
             with open(config_file) as f:
                 config = json.load(f)
-                status.update({
-                    "installed": True,
-                    "version": config.get("version"),
-                    "port": config.get("port"),
-                    "model": config.get("model"),
-                })
+                status.update(
+                    {
+                        "installed": True,
+                        "version": config.get("version"),
+                        "port": config.get("port"),
+                        "model": config.get("model"),
+                    }
+                )
         except Exception:
             return status
 

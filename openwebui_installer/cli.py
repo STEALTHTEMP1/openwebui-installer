@@ -29,15 +29,31 @@ def validate_system() -> bool:
 @click.group()
 @click.version_option(version=__version__)
 def cli():
-    """Open WebUI Installer - Install and manage Open WebUI with Ollama integration."""
+    """Open WebUI Installer with Ollama integration."""
     pass
 
 
 @cli.command()
-@click.option('--model', '-m', help='Ollama model to install', default='llama2')
-@click.option('--port', '-p', help='Port to run Open WebUI on', default=3000, type=int)
-@click.option('--force', '-f', is_flag=True, help='Force installation even if already installed')
-@click.option('--image', help='Custom Open WebUI image to use')
+@click.option(
+    "--model",
+    "-m",
+    help="Ollama model to install",
+    default="llama2",
+)
+@click.option(
+    "--port",
+    "-p",
+    help="Port to run Open WebUI on",
+    default=3000,
+    type=int,
+)
+@click.option(
+    "--force",
+    "-f",
+    is_flag=True,
+    help="Force installation even if already installed",
+)
+@click.option("--image", help="Custom Open WebUI image to use")
 def install(model: str, port: int, force: bool, image: Optional[str]):
     """Install Open WebUI and configure Ollama integration."""
     try:
@@ -55,7 +71,8 @@ def install(model: str, port: int, force: bool, image: Optional[str]):
             progress.update(task, completed=True)
 
         console.print("[green]✓[/green] Installation complete!")
-        console.print(f"\nOpen WebUI is now available at: http://localhost:{port}")
+        url = f"http://localhost:{port}"
+        console.print(f"\nOpen WebUI is now available at: {url}")
 
     except Exception as e:
         console.print(f"[red]Error:[/red] {str(e)}")
@@ -65,7 +82,8 @@ def install(model: str, port: int, force: bool, image: Optional[str]):
 @cli.command()
 def uninstall():
     """Uninstall Open WebUI."""
-    if not click.confirm("Are you sure you want to uninstall Open WebUI?", default=False):
+    confirm_msg = "Are you sure you want to uninstall Open WebUI?"
+    if not click.confirm(confirm_msg, default=False):
         console.print("Uninstallation aborted.")
         return
     try:
@@ -93,12 +111,13 @@ def status():
         installer = Installer()
         status = installer.get_status()
 
-        if status['installed']:
+        if status["installed"]:
             console.print("[green]✓[/green] Open WebUI is installed")
             console.print(f"Version: {status['version']}")
             console.print(f"Port: {status['port']}")
             console.print(f"Model: {status['model']}")
-            console.print(f"Status: {'Running' if status['running'] else 'Stopped'}")
+            status_msg = "Running" if status["running"] else "Stopped"
+            console.print(f"Status: {status_msg}")
         else:
             console.print("[yellow]![/yellow] Open WebUI is not installed")
 
