@@ -1,6 +1,6 @@
 -r requirements.txt
 pytest>=7.0.0
-pytest-cov>=3.0.0
+pytest-cov>=6.2.1
 pytest-qt>=4.2.0
 pytest-mock>=3.10.0
 black>=22.0.0
