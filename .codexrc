@@ -1,0 +1,6 @@
+test: xvfb-run -a pytest -q
+lint:
+  - black --check .
+  - isort --check-only .
+  - flake8 .
+build: python -m build
