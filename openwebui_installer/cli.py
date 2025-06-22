@@ -34,10 +34,10 @@ def cli():
 
 
 @cli.command()
-@click.option('--model', '-m', help='Ollama model to install', default='llama2')
-@click.option('--port', '-p', help='Port to run Open WebUI on', default=3000, type=int)
-@click.option('--force', '-f', is_flag=True, help='Force installation even if already installed')
-@click.option('--image', help='Custom Open WebUI image to use')
+@click.option("--model", "-m", help="Ollama model to install", default="llama2")
+@click.option("--port", "-p", help="Port to run Open WebUI on", default=3000, type=int)
+@click.option("--force", "-f", is_flag=True, help="Force installation even if already installed")
+@click.option("--image", help="Custom Open WebUI image to use")
 def install(model: str, port: int, force: bool, image: Optional[str]):
     """Install Open WebUI and configure Ollama integration."""
     try:
@@ -93,7 +93,7 @@ def status():
         installer = Installer()
         status = installer.get_status()
 
-        if status['installed']:
+        if status["installed"]:
             console.print("[green]✓[/green] Open WebUI is installed")
             console.print(f"Version: {status['version']}")
             console.print(f"Port: {status['port']}")
