@@ -46,6 +46,12 @@ brew install openwebui-installer
 openwebui-installer install
 ```
 
+### Method 3: Signed DMG
+
+Releases include a notarized DMG for macOS users. Download the latest `.dmg` file
+from GitHub Releases and drag the **OpenWebUIInstaller.app** to your
+Applications folder.
+
 ## 🔧 Container Management
 
 ```bash
