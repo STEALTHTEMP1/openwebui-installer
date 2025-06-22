@@ -4,7 +4,14 @@ Tests for the GUI module
 import sys
 from unittest.mock import patch, MagicMock
 import pytest
-from PyQt6.QtWidgets import QApplication, QMessageBox
+# Skip GUI tests if PyQt6 or required system libraries are unavailable
+try:
+    from PyQt6.QtWidgets import QApplication, QMessageBox
+except Exception:  # pragma: no cover - platform specific
+    pytest.skip(
+        "PyQt6 is not available; skipping GUI tests",
+        allow_module_level=True,
+    )
 from openwebui_installer.gui import MainWindow
 from openwebui_installer import __version__
 
