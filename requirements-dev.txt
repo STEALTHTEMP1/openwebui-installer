@@ -10,3 +10,5 @@ mypy>=0.900
 bandit>=1.7.0
 build>=0.10.0
 twine>=4.0.0
+types-docker
+types-requests
