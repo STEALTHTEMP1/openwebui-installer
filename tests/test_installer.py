@@ -33,9 +33,10 @@ def installer(tmp_path, mocker): # Added mocker
 class TestInstallerSuite:
     """A comprehensive and corrected test suite for the Installer class."""
 
-    def test_check_system_requirements_success(self, installer, mocker):
-        """Test that system requirements check passes on macOS with Docker and Ollama running."""
-        mocker.patch('platform.system', return_value='Darwin')
+    @pytest.mark.parametrize("os_name", ["Darwin", "Linux"])
+    def test_check_system_requirements_success(self, installer, mocker, os_name):
+        """System requirements check passes on supported platforms."""
+        mocker.patch('platform.system', return_value=os_name)
         mocker.patch('sys.version_info', (3, 9, 0))
         installer.docker_client.ping.return_value = True
         mock_requests_get = mocker.patch('requests.get')
@@ -45,21 +46,22 @@ class TestInstallerSuite:
         installer._check_system_requirements()
 
     def test_check_system_requirements_wrong_os(self, installer, mocker):
-        """Test that system requirements check fails on a non-macOS system."""
-        mocker.patch('platform.system', return_value='Linux')
-        with pytest.raises(SystemRequirementsError, match="This installer only supports macOS"):
+        """System requirements check fails on unsupported OS."""
+        mocker.patch('platform.system', return_value='Windows')
+        mocker.patch('platform.release', return_value='10')
+        with pytest.raises(SystemRequirementsError, match="Windows is supported only via WSL"):
             installer._check_system_requirements()
 
     def test_check_system_requirements_wrong_python(self, installer, mocker):
         """Test that system requirements check fails on an old Python version."""
-        mocker.patch('platform.system', return_value='Darwin')
+        mocker.patch('platform.system', return_value='Linux')
         mocker.patch('sys.version_info', (3, 8, 0))
         with pytest.raises(SystemRequirementsError, match="Python 3.9 or higher is required"):
             installer._check_system_requirements()
 
     def test_check_system_requirements_docker_not_running(self, installer, mocker):
         """Test that system requirements check fails if Docker is not running."""
-        mocker.patch('platform.system', return_value='Darwin')
+        mocker.patch('platform.system', return_value='Linux')
         mocker.patch('sys.version_info', (3, 9, 0))
         installer.docker_client.ping.side_effect = Exception("Docker not running")
 
@@ -68,7 +70,7 @@ class TestInstallerSuite:
 
     def test_check_system_requirements_ollama_not_running(self, installer, mocker):
         """Test that system requirements check fails if Ollama is not running."""
-        mocker.patch('platform.system', return_value='Darwin')
+        mocker.patch('platform.system', return_value='Linux')
         mocker.patch('sys.version_info', (3, 9, 0))
         installer.docker_client.ping.return_value = True
         mock_requests_get = mocker.patch('requests.get')
