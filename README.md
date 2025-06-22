@@ -70,6 +70,16 @@ docker rm open-webui
 - [Working Setup Guide](WORKING_SETUP.md) - Detailed troubleshooting and setup notes
 - [Release Notes](CHANGELOG.md) - Version history and changes
 
+## 🧑‍💻 Development and Testing
+
+Install the development requirements and Qt dependencies before running tests.
+
+```bash
+pip install -r requirements-dev.txt
+sudo apt-get update && sudo apt-get install -y libegl1
+QT_QPA_PLATFORM=offscreen pytest tests/
+```
+
 ---
 
 # Private Repository Setup for Open WebUI Installer
