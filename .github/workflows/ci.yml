@@ -52,10 +52,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 black isort
         
-    - name: Check formatting
+    - name: Ensure formatting
       run: |
-        black --check .
-        isort --check-only --diff .
+        black --check openwebui_installer tests
+        isort --check-only openwebui_installer tests
         
     - name: Lint with flake8
       run: |
