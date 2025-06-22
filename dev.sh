@@ -70,6 +70,7 @@ Commands:
   monitor               Start monitoring dashboard
   backup                Backup development data
   restore               Restore development data
+  exec                  Execute command in development container
 
 Options:
   -h, --help           Show this help message
@@ -86,6 +87,8 @@ Examples:
   $0 shell             # Open development shell
   $0 jupyter           # Open Jupyter Lab
   $0 clean --force     # Force clean all containers
+  $0 exec "python -m pytest"  # Run tests in container
+  $0 exec "python -c 'import openwebui_installer'"  # Test imports
 EOF
 }
 
@@ -228,11 +231,32 @@ show_logs() {
 open_shell() {
     log_dev "Opening development shell..."
 
-    if docker-compose -f docker-compose.dev.yml ps dev-environment | grep -q "Up"; then
-        docker-compose -f docker-compose.dev.yml exec dev-environment bash
-    else
+    # Check if container is running
+    if ! docker ps --format "table {{.Names}}" | grep -q "openwebui-installer-dev"; then
         log_error "Development environment is not running. Start it first with: $0 start"
         exit 1
+    fi
+
+    # Check if we have a TTY
+    if [ -t 0 ] && [ -t 1 ]; then
+        log_success "Opening interactive shell..."
+        docker-compose -f docker-compose.dev.yml exec dev-environment bash
+    else
+        log_warning "No TTY available - running in non-interactive mode"
+        log_info "Container is running. To access interactively, use:"
+        log_info "  docker exec -it openwebui-installer-dev bash"
+        log_info ""
+        log_info "Running quick test instead:"
+        docker exec openwebui-installer-dev bash -c "
+            echo '🚀 Development Container Status:'
+            echo '================================'
+            echo 'Python version:' \$(python --version)
+            echo 'Current directory:' \$(pwd)
+            echo 'Available commands: pytest, black, isort, mypy, flake8'
+            echo ''
+            echo 'To run commands:'
+            echo '  docker exec openwebui-installer-dev python -c \"import openwebui_installer; print(\"✅ Ready!\")\"'
+        "
     fi
 }
 
@@ -434,6 +458,28 @@ restore_data() {
     log_success "Development data restored"
 }
 
+exec_command() {
+    local command="$1"
+
+    if [[ -z "$command" ]]; then
+        log_error "Please specify a command to execute"
+        log_info "Example: $0 exec \"python --version\""
+        log_info "Example: $0 exec \"python -m pytest tests/\""
+        return 1
+    fi
+
+    log_dev "Executing command in development container: $command"
+
+    # Check if container is running
+    if ! docker ps --format "table {{.Names}}" | grep -q "openwebui-installer-dev"; then
+        log_error "Development environment is not running. Start it first with: $0 start"
+        exit 1
+    fi
+
+    # Execute the command
+    docker exec openwebui-installer-dev bash -c "cd /workspace && $command"
+}
+
 show_service_urls() {
     cat << EOF
 🌐 Service URLs:
@@ -562,6 +608,9 @@ case $COMMAND in
         ;;
     restore)
         restore_data "$1"
+        ;;
+    exec)
+        exec_command "$1"
         ;;
     "")
         log_error "No command specified"
