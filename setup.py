@@ -34,6 +34,7 @@ setup(
         "docker>=6.1.0",
         "PyQt6>=6.6.0",
         "requests>=2.31.0",
+        "rich>=10.0.0",
     ],
     entry_points={
         "console_scripts": [
