@@ -28,7 +28,7 @@ def validate_system() -> bool:
 
 @click.group()
 @click.version_option(version=__version__)
-def cli():
+def cli() -> None:
     """Open WebUI Installer - Install and manage Open WebUI with Ollama integration."""
     pass
 
@@ -38,7 +38,7 @@ def cli():
 @click.option('--port', '-p', help='Port to run Open WebUI on', default=3000, type=int)
 @click.option('--force', '-f', is_flag=True, help='Force installation even if already installed')
 @click.option('--image', help='Custom Open WebUI image to use')
-def install(model: str, port: int, force: bool, image: Optional[str]):
+def install(model: str, port: int, force: bool, image: Optional[str]) -> None:
     """Install Open WebUI and configure Ollama integration."""
     try:
         if not validate_system():
@@ -63,7 +63,7 @@ def install(model: str, port: int, force: bool, image: Optional[str]):
 
 
 @cli.command()
-def uninstall():
+def uninstall() -> None:
     """Uninstall Open WebUI."""
     if not click.confirm("Are you sure you want to uninstall Open WebUI?", default=False):
         console.print("Uninstallation aborted.")
@@ -87,7 +87,7 @@ def uninstall():
 
 
 @cli.command()
-def status():
+def status() -> None:
     """Check Open WebUI installation status."""
     try:
         installer = Installer()
@@ -107,7 +107,7 @@ def status():
         sys.exit(1)
 
 
-def main():
+def main() -> None:
     """Main entry point for the CLI."""
     cli()
 

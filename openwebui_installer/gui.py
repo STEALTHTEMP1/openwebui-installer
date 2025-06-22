@@ -27,14 +27,14 @@ class InstallerThread(QThread):
     error = pyqtSignal(str)
     finished = pyqtSignal()
 
-    def __init__(self, model: str, port: int, force: bool = False):
+    def __init__(self, model: str, port: int, force: bool = False) -> None:
         super().__init__()
         self.model = model
         self.port = port
         self.force = force
         self.installer = Installer()
 
-    def run(self):
+    def run(self) -> None:
         """Run installation process."""
         try:
             self.progress.emit("Checking system requirements...")
@@ -55,7 +55,7 @@ class InstallerThread(QThread):
 class MainWindow(QMainWindow):
     """Main window for the installer GUI."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle(f"Open WebUI Installer v{__version__}")
         self.setMinimumWidth(500)
@@ -117,7 +117,7 @@ class MainWindow(QMainWindow):
         # Update UI based on current status
         self.update_status()
 
-    def update_status(self):
+    def update_status(self) -> None:
         """Update UI based on current installation status."""
         try:
             installer = Installer()
@@ -142,7 +142,7 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.warning(self, "Error", f"Failed to get status: {str(e)}")
 
-    def start_installation(self):
+    def start_installation(self) -> None:
         """Start the installation process."""
         self.progress_bar.setRange(0, 0)
         self.progress_bar.show()
@@ -160,7 +160,7 @@ class MainWindow(QMainWindow):
         self.installer_thread.finished.connect(self.handle_success)
         self.installer_thread.start()
 
-    def uninstall(self):
+    def uninstall(self) -> None:
         """Uninstall Open WebUI."""
         reply = QMessageBox.question(
             self,
@@ -179,11 +179,11 @@ class MainWindow(QMainWindow):
                 QMessageBox.warning(self, "Error", f"Failed to uninstall: {str(e)}")
                 self.update_status()
 
-    def update_progress(self, message: str):
+    def update_progress(self, message: str) -> None:
         """Update progress bar message."""
         self.progress_bar.setFormat(message)
 
-    def handle_error(self, message: str):
+    def handle_error(self, message: str) -> None:
         """Handle installation error."""
         self.progress_bar.hide()
         self.install_button.setEnabled(True)
@@ -191,7 +191,7 @@ class MainWindow(QMainWindow):
         QMessageBox.warning(self, "Installation Error", message)
         self.update_status()
 
-    def handle_success(self):
+    def handle_success(self) -> None:
         """Handle successful installation."""
         self.progress_bar.hide()
         self.install_button.setEnabled(True)
@@ -203,7 +203,7 @@ class MainWindow(QMainWindow):
         )
         self.update_status()
 
-def main():
+def main() -> None:
     """Main entry point for the GUI."""
     app = QApplication(sys.argv)
     window = MainWindow()
