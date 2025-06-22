@@ -36,9 +36,12 @@ class Installer:
 
     def _check_system_requirements(self):
         """Validate system requirements."""
-        # Check macOS
-        if platform.system() != "Darwin":
-            raise SystemRequirementsError("This installer only supports macOS")
+        # Check supported operating systems
+        os_name = platform.system()
+        if os_name not in ("Darwin", "Linux"):
+            raise SystemRequirementsError(
+                "This installer only supports macOS and Linux"
+            )
 
         # Check Python version (aligned with setup.py)
         if sys.version_info < (3, 9):

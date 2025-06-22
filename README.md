@@ -19,7 +19,10 @@ Then access: **http://localhost:3000**
 
 ## 📋 Prerequisites
 
+- Supported OS: **macOS** or **Linux**
+- Python **3.9+**
 - Docker Desktop installed and running
+- Ollama running locally
 - Web browser
 
 ## 🚀 Installation Methods

@@ -33,7 +33,7 @@ def installer(tmp_path, mocker): # Added mocker
 class TestInstallerSuite:
     """A comprehensive and corrected test suite for the Installer class."""
 
-    def test_check_system_requirements_success(self, installer, mocker):
+    def test_check_system_requirements_success_macos(self, installer, mocker):
         """Test that system requirements check passes on macOS with Docker and Ollama running."""
         mocker.patch('platform.system', return_value='Darwin')
         mocker.patch('sys.version_info', (3, 9, 0))
@@ -44,10 +44,21 @@ class TestInstallerSuite:
         # This should not raise any exception
         installer._check_system_requirements()
 
-    def test_check_system_requirements_wrong_os(self, installer, mocker):
-        """Test that system requirements check fails on a non-macOS system."""
+    def test_check_system_requirements_success_linux(self, installer, mocker):
+        """Test that system requirements check passes on Linux with Docker and Ollama running."""
         mocker.patch('platform.system', return_value='Linux')
-        with pytest.raises(SystemRequirementsError, match="This installer only supports macOS"):
+        mocker.patch('sys.version_info', (3, 9, 0))
+        installer.docker_client.ping.return_value = True
+        mock_requests_get = mocker.patch('requests.get')
+        mock_requests_get.return_value.status_code = 200
+
+        # This should not raise any exception
+        installer._check_system_requirements()
+
+    def test_check_system_requirements_wrong_os(self, installer, mocker):
+        """Test that system requirements check fails on unsupported systems."""
+        mocker.patch('platform.system', return_value='Windows')
+        with pytest.raises(SystemRequirementsError, match="This installer only supports macOS and Linux"):
             installer._check_system_requirements()
 
     def test_check_system_requirements_wrong_python(self, installer, mocker):
