@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      version: ${{ steps.extract_version.outputs.VERSION }}
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -182,10 +185,16 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        upload_url: ${{ needs.release.outputs.upload_url }}
         asset_path: ./release/openwebui-installer-${{ steps.extract_version.outputs.VERSION }}.tar.gz
         asset_name: openwebui-installer-${{ steps.extract_version.outputs.VERSION }}.tar.gz
         asset_content_type: application/gzip
+
+    - name: Save archive for notarization
+      uses: actions/upload-artifact@v3
+      with:
+        name: installer-archive
+        path: ./release/openwebui-installer-${{ steps.extract_version.outputs.VERSION }}.tar.gz
 
     - name: Generate SHA256 for Homebrew
       run: |
@@ -244,3 +253,36 @@ jobs:
         echo "2. 🔄 Update Homebrew formula with the SHA256 hash above"
         echo "3. 🧪 Test the installation"
         echo "4. 📢 Announce the release!"
+
+  notarize:
+    needs: release
+    runs-on: macos-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Download packaged installer
+      uses: actions/download-artifact@v3
+      with:
+        name: installer-archive
+
+    - name: Run installer verification
+      run: bash scripts/test_installation.sh
+
+    - name: Notarize installer
+      run: bash scripts/notarize.sh openwebui-installer-${{ needs.release.outputs.version }}.tar.gz
+      env:
+        APPLE_ID: ${{ secrets.APPLE_ID }}
+        APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        DEVELOPER_ID_APP: ${{ secrets.DEVELOPER_ID_APP }}
+
+    - name: Upload notarized artifact
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.release.outputs.upload_url }}
+        asset_path: notarized-openwebui-installer-${{ needs.release.outputs.version }}.tar.gz
+        asset_name: openwebui-installer-${{ needs.release.outputs.version }}-notarized.tar.gz
+        asset_content_type: application/gzip
