@@ -4,4 +4,4 @@ Open WebUI Installer - Official installer for Open WebUI with native Ollama inte
 
 __version__ = "0.1.0"
 __author__ = "Open WebUI Team"
-__email__ = "team@openwebui.com" 
+__email__ = "team@openwebui.com"

@@ -106,4 +106,4 @@ deactivate
 cd ..
 rm -rf openwebui-installer
 
-echo -e "${GREEN}All installation tests completed successfully!${NC}" 
+echo -e "${GREEN}All installation tests completed successfully!${NC}"
