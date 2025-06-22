@@ -21,6 +21,21 @@ Then access: **http://localhost:3000**
 
 - Docker Desktop installed and running
 - Web browser
+- Python 3.9 or higher with pip
+
+### Install Python Dependencies
+
+Install the required Python packages before running the installer or tests:
+
+```bash
+pip install PyQt6 docker requests pytest-cov
+```
+
+You can also use the requirement files for a full setup:
+
+```bash
+pip install -r requirements.txt -r requirements-dev.txt
+```
 
 ## 🚀 Installation Methods
 
