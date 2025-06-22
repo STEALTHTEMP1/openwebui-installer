@@ -2,6 +2,11 @@
 
 Easy installer and manager for Open WebUI - User-friendly AI Interface
 
+## 🖥️ Supported Platforms
+- macOS
+- Linux
+- Windows via WSL
+
 ## 🎯 WORKING SETUP (Verified ✅)
 
 **Quick Start - Direct Docker Method:**
