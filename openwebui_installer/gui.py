@@ -1,28 +1,31 @@
 """
 GUI interface for Open WebUI Installer
 """
+
 import sys
 
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtWidgets import (
     QApplication,
-    QMainWindow,
-    QWidget,
-    QVBoxLayout,
+    QComboBox,
     QHBoxLayout,
     QLabel,
-    QComboBox,
+    QMainWindow,
+    QMessageBox,
+    QProgressBar,
     QPushButton,
     QSpinBox,
-    QProgressBar,
-    QMessageBox,
+    QVBoxLayout,
+    QWidget,
 )
 
 from . import __version__
 from .installer import Installer
 
+
 class InstallerThread(QThread):
     """Thread for running installation process."""
+
     progress = pyqtSignal(str)
     error = pyqtSignal(str)
     finished = pyqtSignal()
@@ -41,16 +44,13 @@ class InstallerThread(QThread):
             self.installer._check_system_requirements()
 
             self.progress.emit("Installing Open WebUI...")
-            self.installer.install(
-                model=self.model,
-                port=self.port,
-                force=self.force
-            )
+            self.installer.install(model=self.model, port=self.port, force=self.force)
 
             self.finished.emit()
 
         except Exception as e:
             self.error.emit(str(e))
+
 
 class MainWindow(QMainWindow):
     """Main window for the installer GUI."""
@@ -153,7 +153,7 @@ class MainWindow(QMainWindow):
         self.installer_thread = InstallerThread(
             model=self.model_combo.currentText(),
             port=self.port_spin.value(),
-            force=True if self.install_button.text() == "Reinstall" else False
+            force=True if self.install_button.text() == "Reinstall" else False,
         )
         self.installer_thread.progress.connect(self.update_progress)
         self.installer_thread.error.connect(self.handle_error)
@@ -199,9 +199,10 @@ class MainWindow(QMainWindow):
         QMessageBox.information(
             self,
             "Installation Complete",
-            f"Open WebUI has been installed and is available at:\nhttp://localhost:{self.port_spin.value()}"
+            f"Open WebUI has been installed and is available at:\nhttp://localhost:{self.port_spin.value()}",
         )
         self.update_status()
+
 
 def main():
     """Main entry point for the GUI."""
