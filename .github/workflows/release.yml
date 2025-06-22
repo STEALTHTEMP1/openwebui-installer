@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      version: ${{ steps.extract_version.outputs.VERSION }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -244,3 +247,41 @@ jobs:
         echo "2. 🔄 Update Homebrew formula with the SHA256 hash above"
         echo "3. 🧪 Test the installation"
         echo "4. 📢 Announce the release!"
+
+  build_dmg:
+    needs: release
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Import signing certificate
+        uses: apple-actions/import-codesign-certs@v2
+        with:
+          p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_P12 }}
+          p12-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+
+      - name: Build and notarize DMG
+        env:
+          VERSION: ${{ needs.release.outputs.version }}
+          CODESIGN_IDENTITY: ${{ secrets.CODESIGN_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: scripts/build_dmg.sh
+
+      - name: Upload DMG
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.upload_url }}
+          asset_path: dist/OpenWebUIInstaller-${{ needs.release.outputs.version }}.dmg
+          asset_name: openwebui-installer-${{ needs.release.outputs.version }}.dmg
+          asset_content_type: application/octet-stream

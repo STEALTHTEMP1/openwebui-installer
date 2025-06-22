@@ -20,9 +20,15 @@ The following secrets must be configured in GitHub repository settings:
 
 2. `HOMEBREW_TAP_TOKEN`: GitHub Personal Access Token
    - Generate at: https://github.com/settings/tokens
-   - Required scopes: 
+   - Required scopes:
      * `repo` (Full control of private repositories)
      * `workflow` (Update GitHub Action workflows)
+3. `APPLE_CERTIFICATE_P12`: Base64 encoded signing certificate
+4. `APPLE_CERTIFICATE_PASSWORD`: Password for the certificate
+5. `CODESIGN_IDENTITY`: Signing identity name
+6. `APPLE_ID`: Apple ID used for notarization
+7. `APPLE_PASSWORD`: App-specific password for notarization
+8. `APPLE_TEAM_ID`: Apple Developer team ID
 
 ## Release Steps
 
@@ -48,6 +54,7 @@ The following secrets must be configured in GitHub repository settings:
      3. Create GitHub Release
      4. Publish to PyPI
      5. Update Homebrew formula
+     6. Build, sign, and notarize the DMG
 
 4. **Verify Release**
    - Check GitHub release page
@@ -57,6 +64,7 @@ The following secrets must be configured in GitHub repository settings:
      brew update
      brew install openwebui-installer
      ```
+   - Download and mount the DMG to confirm it is signed and opens correctly
 
 ## Troubleshooting
 
