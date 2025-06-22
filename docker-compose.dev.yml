@@ -1,0 +1,207 @@
+services:
+  # Main development environment
+  dev-environment:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: openwebui-installer-dev
+    env_file:
+      - .env.dev
+    volumes:
+      - .:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+      - dev-cache:/workspace/.cache
+      - dev-venv:/workspace/venv
+    ports:
+      - "8000:8000" # Development server
+      - "8001:8001" # Testing server
+      - "8888:8888" # Jupyter notebook
+    environment:
+      - PYTHONPATH=/workspace
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - DEVELOPMENT=true
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    working_dir: /workspace
+    command: tail -f /dev/null
+    networks:
+      - dev-network
+
+  # Database for testing
+  test-db:
+    image: postgres:15-alpine
+    container_name: openwebui-test-db
+    env_file:
+      - .env.dev
+    environment:
+      - POSTGRES_DB=openwebui_test
+      - POSTGRES_USER=testuser
+      - POSTGRES_PASSWORD=testpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - test-db-data:/var/lib/postgresql/data
+    networks:
+      - dev-network
+
+  # Redis for caching/session management
+  redis:
+    image: redis:7-alpine
+    container_name: openwebui-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - dev-network
+
+  # Code quality and analysis tools
+  code-quality:
+    build:
+      context: .
+      dockerfile: Dockerfile.quality
+    container_name: openwebui-code-quality
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    profiles:
+      - quality
+    networks:
+      - dev-network
+
+  # Documentation server
+  docs:
+    build:
+      context: .
+      dockerfile: Dockerfile.docs
+    container_name: openwebui-docs
+    volumes:
+      - .:/workspace
+      - docs-build:/workspace/docs/_build
+    ports:
+      - "8080:8080"
+    working_dir: /workspace
+    command: >
+      bash -c "
+        pip install sphinx sphinx-rtd-theme &&
+        sphinx-build -b html docs docs/_build/html &&
+        python -m http.server 8080 --directory docs/_build/html
+      "
+    profiles:
+      - docs
+    networks:
+      - dev-network
+
+  # AI/ML development environment
+  ai-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.ai
+    container_name: openwebui-ai-dev
+    env_file:
+      - .env.dev
+    volumes:
+      - .:/workspace
+      - ai-cache:/root/.cache
+      - ai-models:/workspace/models
+    ports:
+      - "8889:8889" # Alternative Jupyter port
+    environment:
+      - PYTHONPATH=/workspace
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    working_dir: /workspace
+    command: >
+      bash -c "
+        pip install jupyter jupyterlab openai anthropic &&
+        jupyter lab --ip=0.0.0.0 --port=8889 --no-browser --allow-root --token=''
+      "
+    profiles:
+      - ai
+    networks:
+      - dev-network
+
+  # Mock OpenWebUI for testing
+  mock-openwebui:
+    image: nginx:alpine
+    container_name: mock-openwebui
+    ports:
+      - "3001:80"
+    volumes:
+      - ./tests/mock-data:/usr/share/nginx/html
+    profiles:
+      - testing
+    networks:
+      - dev-network
+
+  # Performance monitoring
+  monitoring:
+    image: prom/prometheus:latest
+    container_name: openwebui-monitoring
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./dev-config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    profiles:
+      - monitoring
+    networks:
+      - dev-network
+
+  # Log aggregation
+  logs:
+    image: grafana/loki:latest
+    container_name: openwebui-logs
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-data:/loki
+    profiles:
+      - monitoring
+    networks:
+      - dev-network
+
+  # Development dashboard
+  dashboard:
+    image: grafana/grafana:latest
+    container_name: openwebui-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./dev-config/grafana:/etc/grafana/provisioning
+    profiles:
+      - monitoring
+    networks:
+      - dev-network
+
+volumes:
+  dev-cache:
+    driver: local
+  dev-venv:
+    driver: local
+  test-db-data:
+    driver: local
+  redis-data:
+    driver: local
+  docs-build:
+    driver: local
+  ai-cache:
+    driver: local
+  ai-models:
+    driver: local
+  prometheus-data:
+    driver: local
+  loki-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+networks:
+  dev-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16

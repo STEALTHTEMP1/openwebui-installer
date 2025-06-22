@@ -1,0 +1,373 @@
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/workspace
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js for additional tools
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create workspace directory
+WORKDIR /workspace
+
+# Install Python code quality tools
+RUN pip install --upgrade pip setuptools wheel
+
+# Core code quality tools
+RUN pip install \
+    black==23.9.1 \
+    isort==5.12.0 \
+    flake8==6.1.0 \
+    mypy==1.6.1 \
+    pylint==3.0.1 \
+    bandit==1.7.5 \
+    safety==2.3.5 \
+    pydocstyle==6.3.0 \
+    autopep8==2.0.4 \
+    ruff==0.1.3
+
+# Testing and coverage tools
+RUN pip install \
+    pytest==7.4.3 \
+    pytest-cov==4.1.0 \
+    pytest-xdist==3.3.1 \
+    pytest-mock==3.12.0 \
+    pytest-benchmark==4.0.0 \
+    coverage==7.3.2
+
+# Documentation tools
+RUN pip install \
+    sphinx==7.2.6 \
+    sphinx-rtd-theme==1.3.0 \
+    sphinx-autodoc-typehints==1.25.2 \
+    pydocstyle==6.3.0
+
+# Security and vulnerability scanning
+RUN pip install \
+    semgrep==1.45.0 \
+    pip-audit==2.6.1
+
+# Complexity analysis
+RUN pip install \
+    radon==6.0.1 \
+    xenon==0.9.1 \
+    mccabe==0.7.0
+
+# Type checking enhancements
+RUN pip install \
+    types-requests \
+    types-PyYAML \
+    types-setuptools
+
+# Install JavaScript/Markdown linting tools
+RUN npm install -g \
+    eslint \
+    prettier \
+    markdownlint-cli \
+    alex \
+    write-good
+
+# Create quality check scripts
+RUN mkdir -p /usr/local/bin/quality-scripts
+
+# Code formatting script
+RUN cat > /usr/local/bin/quality-scripts/format.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "🎨 Formatting code..."
+
+echo "  Running Black..."
+black --config pyproject.toml .
+
+echo "  Running isort..."
+isort --settings-path pyproject.toml .
+
+echo "  Running autopep8..."
+autopep8 --in-place --recursive --aggressive --aggressive .
+
+echo "✅ Code formatting complete!"
+EOF
+
+# Code linting script
+RUN cat > /usr/local/bin/quality-scripts/lint.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "🔍 Running code linting..."
+
+echo "  Running Flake8..."
+flake8 --config setup.cfg . || echo "❌ Flake8 found issues"
+
+echo "  Running Pylint..."
+pylint --rcfile pyproject.toml openwebui_installer/ || echo "❌ Pylint found issues"
+
+echo "  Running Ruff..."
+ruff check . || echo "❌ Ruff found issues"
+
+echo "  Running pydocstyle..."
+pydocstyle --config pyproject.toml . || echo "❌ Pydocstyle found issues"
+
+echo "✅ Linting complete!"
+EOF
+
+# Type checking script
+RUN cat > /usr/local/bin/quality-scripts/typecheck.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "🔎 Running type checking..."
+
+echo "  Running MyPy..."
+mypy --config-file pyproject.toml . || echo "❌ MyPy found type issues"
+
+echo "✅ Type checking complete!"
+EOF
+
+# Security analysis script
+RUN cat > /usr/local/bin/quality-scripts/security.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "🔒 Running security analysis..."
+
+echo "  Running Bandit..."
+bandit -r . -f json -o bandit-report.json || echo "❌ Bandit found security issues"
+
+echo "  Running Safety..."
+safety check --json --output safety-report.json || echo "❌ Safety found vulnerable dependencies"
+
+echo "  Running pip-audit..."
+pip-audit --format=json --output=pip-audit-report.json || echo "❌ pip-audit found vulnerabilities"
+
+echo "  Running Semgrep..."
+semgrep --config=auto --json --output=semgrep-report.json . || echo "❌ Semgrep found issues"
+
+echo "✅ Security analysis complete!"
+EOF
+
+# Code complexity analysis script
+RUN cat > /usr/local/bin/quality-scripts/complexity.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "📊 Running complexity analysis..."
+
+echo "  Running Radon (Cyclomatic Complexity)..."
+radon cc . -s -j > radon-cc-report.json || echo "❌ High complexity detected"
+
+echo "  Running Radon (Maintainability Index)..."
+radon mi . -s -j > radon-mi-report.json || echo "❌ Low maintainability detected"
+
+echo "  Running Xenon..."
+xenon --max-absolute B --max-modules A --max-average A . || echo "❌ Code complexity too high"
+
+echo "✅ Complexity analysis complete!"
+EOF
+
+# Full quality check script
+RUN cat > /usr/local/bin/quality-scripts/check-all.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "🚀 Running full code quality analysis..."
+echo "================================================"
+
+/usr/local/bin/quality-scripts/format.sh
+echo ""
+/usr/local/bin/quality-scripts/lint.sh
+echo ""
+/usr/local/bin/quality-scripts/typecheck.sh
+echo ""
+/usr/local/bin/quality-scripts/security.sh
+echo ""
+/usr/local/bin/quality-scripts/complexity.sh
+
+echo ""
+echo "================================================"
+echo "✅ Full quality analysis complete!"
+echo ""
+echo "📊 Generated Reports:"
+echo "  - bandit-report.json (Security)"
+echo "  - safety-report.json (Dependencies)"
+echo "  - pip-audit-report.json (Vulnerabilities)"
+echo "  - semgrep-report.json (Code patterns)"
+echo "  - radon-cc-report.json (Cyclomatic complexity)"
+echo "  - radon-mi-report.json (Maintainability index)"
+EOF
+
+# Test running script
+RUN cat > /usr/local/bin/quality-scripts/test.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "🧪 Running tests with coverage..."
+
+pytest \
+    --cov=openwebui_installer \
+    --cov-report=term-missing \
+    --cov-report=html:htmlcov \
+    --cov-report=json:coverage.json \
+    --cov-report=xml:coverage.xml \
+    --junit-xml=pytest-report.xml \
+    -v \
+    tests/
+
+echo "✅ Tests complete!"
+echo "📊 Coverage reports generated:"
+echo "  - htmlcov/ (HTML)"
+echo "  - coverage.json (JSON)"
+echo "  - coverage.xml (XML)"
+echo "  - pytest-report.xml (JUnit)"
+EOF
+
+# Documentation generation script
+RUN cat > /usr/local/bin/quality-scripts/docs.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "📚 Generating documentation..."
+
+if [ -f "docs/conf.py" ]; then
+    cd docs
+    sphinx-build -b html . _build/html
+    cd ..
+    echo "✅ Sphinx documentation generated in docs/_build/html/"
+else
+    echo "⚠️  No Sphinx configuration found, skipping documentation generation"
+fi
+
+echo "  Generating README documentation check..."
+markdownlint README.md || echo "❌ README.md has formatting issues"
+
+echo "✅ Documentation check complete!"
+EOF
+
+# CI/CD pipeline script
+RUN cat > /usr/local/bin/quality-scripts/ci.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "🔄 Running CI/CD quality pipeline..."
+echo "================================================"
+
+# Exit on first failure for CI
+set -e
+
+# Format check (don't auto-format in CI)
+echo "🎨 Checking code formatting..."
+black --check --config pyproject.toml .
+isort --check-only --settings-path pyproject.toml .
+
+# Linting
+echo "🔍 Running linting..."
+flake8 --config setup.cfg .
+ruff check .
+
+# Type checking
+echo "🔎 Running type checking..."
+mypy --config-file pyproject.toml .
+
+# Security
+echo "🔒 Running security checks..."
+bandit -r . -ll
+safety check
+pip-audit
+
+# Tests with coverage
+echo "🧪 Running tests..."
+pytest --cov=openwebui_installer --cov-fail-under=80 tests/
+
+echo "================================================"
+echo "✅ CI/CD pipeline complete!"
+EOF
+
+# Make all scripts executable
+RUN chmod +x /usr/local/bin/quality-scripts/*.sh
+
+# Create shortcuts in PATH
+RUN ln -s /usr/local/bin/quality-scripts/format.sh /usr/local/bin/format \
+    && ln -s /usr/local/bin/quality-scripts/lint.sh /usr/local/bin/lint \
+    && ln -s /usr/local/bin/quality-scripts/typecheck.sh /usr/local/bin/typecheck \
+    && ln -s /usr/local/bin/quality-scripts/security.sh /usr/local/bin/security \
+    && ln -s /usr/local/bin/quality-scripts/complexity.sh /usr/local/bin/complexity \
+    && ln -s /usr/local/bin/quality-scripts/check-all.sh /usr/local/bin/check-all \
+    && ln -s /usr/local/bin/quality-scripts/test.sh /usr/local/bin/test-coverage \
+    && ln -s /usr/local/bin/quality-scripts/docs.sh /usr/local/bin/docs \
+    && ln -s /usr/local/bin/quality-scripts/ci.sh /usr/local/bin/ci
+
+# Create quality configuration template
+RUN cat > /workspace/quality-config-template.toml << 'EOF'
+# Code Quality Configuration Template
+# Copy this to your project root and customize as needed
+
+[tool.black]
+line-length = 100
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # Directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --cov=openwebui_installer --cov-report=term-missing"
+testpaths = ["tests"]
+EOF
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python --version && black --version && flake8 --version || exit 1
+
+# Default command shows available quality tools
+CMD echo "🔧 Code Quality Tools Available:" && \
+    echo "  format      - Format code with Black, isort, autopep8" && \
+    echo "  lint        - Run linting with Flake8, Pylint, Ruff" && \
+    echo "  typecheck   - Run type checking with MyPy" && \
+    echo "  security    - Run security analysis" && \
+    echo "  complexity  - Analyze code complexity" && \
+    echo "  test-coverage - Run tests with coverage" && \
+    echo "  docs        - Generate documentation" && \
+    echo "  check-all   - Run all quality checks" && \
+    echo "  ci          - Run CI/CD pipeline checks" && \
+    echo "" && \
+    echo "💡 Usage: docker-compose run code-quality <command>" && \
+    echo "🔧 Example: docker-compose run code-quality check-all"

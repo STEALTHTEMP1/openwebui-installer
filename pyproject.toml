@@ -32,8 +32,12 @@ warn_unreachable = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-ra -q --cov=openwebui_installer --cov-report=term-missing"
+addopts = "-ra -q --cov=openwebui_installer --cov-report=term-missing --ignore=tests/test_gui.py"
 testpaths = ["tests"]
+markers = [
+    "gui: marks tests as GUI tests (skipped in containers)",
+    "integration: marks tests as integration tests",
+]
 
 [tool.coverage.run]
 branch = true
@@ -52,4 +56,4 @@ exclude_lines = [
 
 [tool.bandit]
 exclude_dirs = ["tests"]
-skips = ["B101"] 
+skips = ["B101"]
