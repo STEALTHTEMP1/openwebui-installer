@@ -16,7 +16,7 @@ openwebui-installer/
 │   ├── cli.py                   # Click-based CLI
 │   ├── gui.py                   # GUI components (unused)
 │   └── installer.py             # Core Docker management
-├── install.py                   # Simple entry point script
+├── install.py                   # Wrapper invoking openwebui_installer CLI
 ├── setup.sh                     # Bash-based setup script
 ├── .github/workflows/release.yml # Automated releases
 ├── scripts/test_installation.sh # Testing framework
