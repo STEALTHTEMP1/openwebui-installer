@@ -36,9 +36,20 @@ class Installer:
 
     def _check_system_requirements(self):
         """Validate system requirements."""
-        # Check macOS
-        if platform.system() != "Darwin":
-            raise SystemRequirementsError("This installer only supports macOS")
+        system = platform.system()
+
+        # Allow macOS and Linux natively. On Windows, require WSL.
+        if system == "Windows":
+            # Detect WSL via environment variables or kernel release string
+            if (
+                "WSL_DISTRO_NAME" not in os.environ
+                and "microsoft" not in platform.release().lower()
+            ):
+                raise SystemRequirementsError("Windows is only supported via WSL")
+        elif system not in ("Darwin", "Linux"):
+            raise SystemRequirementsError(
+                f"Unsupported operating system: {system}"
+            )
 
         # Check Python version (aligned with setup.py)
         if sys.version_info < (3, 9):
