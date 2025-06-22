@@ -214,3 +214,51 @@ docker run -d \\
             pass
 
         return status
+
+    def start(self):
+        """Start the Open WebUI container."""
+        status = self.get_status()
+        if not status["installed"]:
+            raise InstallerError("Open WebUI is not installed")
+
+        try:
+            container = self.docker_client.containers.get("open-webui")
+            container.start()
+            return
+        except docker.errors.NotFound:
+            pass
+
+        # Container does not exist, recreate it using stored config
+        config_file = os.path.join(self.config_dir, "config.json")
+        with open(config_file) as f:
+            config = json.load(f)
+
+        image = config.get("image", self.webui_image)
+        port = config.get("port", 3000)
+
+        self.docker_client.containers.run(
+            image,
+            name="open-webui",
+            ports={"8080/tcp": port},
+            volumes={"open-webui": {"bind": "/app/backend/data", "mode": "rw"}},
+            environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
+            extra_hosts={"host.docker.internal": "host-gateway"},
+            detach=True,
+            restart_policy={"Name": "unless-stopped"},
+        )
+
+    def stop(self):
+        """Stop the Open WebUI container."""
+        try:
+            container = self.docker_client.containers.get("open-webui")
+            container.stop()
+        except docker.errors.NotFound:
+            raise InstallerError("Open WebUI is not running")
+
+    def restart(self):
+        """Restart the Open WebUI container."""
+        try:
+            container = self.docker_client.containers.get("open-webui")
+            container.restart()
+        except docker.errors.NotFound:
+            raise InstallerError("Open WebUI is not running")

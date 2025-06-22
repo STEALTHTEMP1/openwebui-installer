@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch, Mock
 import pytest
 from click.testing import CliRunner
 
-from openwebui_installer.cli import cli, install, uninstall, status
+from openwebui_installer.cli import cli, install, uninstall, status, start, stop, restart
 from openwebui_installer.installer import InstallerError, SystemRequirementsError
 
 @pytest.fixture
@@ -234,3 +234,39 @@ class TestCLI:
             force=False,       # Default from CLI
             image='custom/image:tag' # Provided in test
         )
+
+    def test_start_command(self, runner, mock_installer):
+        """Test start command"""
+        result = runner.invoke(start)
+        assert result.exit_code == 0
+        mock_installer.start.assert_called_once()
+
+        mock_installer.start.reset_mock()
+        mock_installer.start.side_effect = InstallerError('start failed')
+        result = runner.invoke(start)
+        assert result.exit_code == 1
+        assert 'start failed' in result.output
+
+    def test_stop_command(self, runner, mock_installer):
+        """Test stop command"""
+        result = runner.invoke(stop)
+        assert result.exit_code == 0
+        mock_installer.stop.assert_called_once()
+
+        mock_installer.stop.reset_mock()
+        mock_installer.stop.side_effect = InstallerError('stop failed')
+        result = runner.invoke(stop)
+        assert result.exit_code == 1
+        assert 'stop failed' in result.output
+
+    def test_restart_command(self, runner, mock_installer):
+        """Test restart command"""
+        result = runner.invoke(restart)
+        assert result.exit_code == 0
+        mock_installer.restart.assert_called_once()
+
+        mock_installer.restart.reset_mock()
+        mock_installer.restart.side_effect = InstallerError('restart failed')
+        result = runner.invoke(restart)
+        assert result.exit_code == 1
+        assert 'restart failed' in result.output

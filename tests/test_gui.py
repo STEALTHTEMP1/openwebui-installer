@@ -4,6 +4,7 @@ Tests for the GUI module
 import sys
 from unittest.mock import patch, MagicMock
 import pytest
+pytest.importorskip("PyQt6.QtWidgets", reason="PyQt6 not available")
 from PyQt6.QtWidgets import QApplication, QMessageBox
 from openwebui_installer.gui import MainWindow
 from openwebui_installer import __version__

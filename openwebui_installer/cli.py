@@ -107,6 +107,42 @@ def status():
         sys.exit(1)
 
 
+@cli.command()
+def start():
+    """Start the Open WebUI service."""
+    try:
+        installer = Installer()
+        installer.start()
+        console.print("[green]✓[/green] Open WebUI started")
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {str(e)}")
+        sys.exit(1)
+
+
+@cli.command()
+def stop():
+    """Stop the Open WebUI service."""
+    try:
+        installer = Installer()
+        installer.stop()
+        console.print("[green]✓[/green] Open WebUI stopped")
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {str(e)}")
+        sys.exit(1)
+
+
+@cli.command()
+def restart():
+    """Restart the Open WebUI service."""
+    try:
+        installer = Installer()
+        installer.restart()
+        console.print("[green]✓[/green] Open WebUI restarted")
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {str(e)}")
+        sys.exit(1)
+
+
 def main():
     """Main entry point for the CLI."""
     cli()

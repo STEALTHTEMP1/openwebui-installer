@@ -65,6 +65,15 @@ docker start open-webui
 docker rm open-webui
 ```
 
+### Using the CLI
+
+```bash
+openwebui-installer start   # Start the service
+openwebui-installer stop    # Stop the service
+openwebui-installer restart # Restart the service
+openwebui-installer status  # Check service status
+```
+
 ## 📖 Documentation
 
 - [Working Setup Guide](WORKING_SETUP.md) - Detailed troubleshooting and setup notes

@@ -138,15 +138,13 @@ jobs:
           openwebui-installer stop        # Stop the service
           openwebui-installer restart     # Restart the service
           openwebui-installer status      # Check service status
-          openwebui-installer update      # Update Open WebUI
           openwebui-installer uninstall   # Remove Open WebUI
-          openwebui-installer logs        # View service logs
           openwebui-installer --help      # Show all commands
           openwebui-installer --version   # Show version info
           ```
 
           ### 🔧 Troubleshooting
-          - **Service won't start?** Check logs with `openwebui-installer logs`
+          - **Service won't start?** Check logs with `docker logs open-webui`
           - **Port conflicts?** Use `openwebui-installer config` to change ports
           - **Docker issues?** Ensure Docker is running and accessible
           - **Permission errors?** Try running with appropriate permissions
