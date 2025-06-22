@@ -46,6 +46,22 @@ brew install openwebui-installer
 openwebui-installer install
 ```
 
+### Method 3: Docker Compose
+
+Download the preconfigured compose file and start the stack:
+
+```bash
+curl -O https://raw.githubusercontent.com/STEALTHTEMP1/openwebui-installer/main/docker-compose.working.yml
+docker-compose -f docker-compose.working.yml up -d
+```
+
+The compose file contains a single **open-webui** service that exposes the UI on
+port `3000` and connects to your local Ollama instance via the
+`OLLAMA_BASE_URL` environment variable. Use the optional `WEBUI_SECRET_KEY`
+variable to require a password for the web UI. Data is stored in the
+`open-webui` volume and the container restarts automatically if it stops. A
+simple health check verifies that the service is reachable on startup.
+
 ## 🔧 Container Management
 
 ```bash
