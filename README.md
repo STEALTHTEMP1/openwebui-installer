@@ -21,6 +21,7 @@ Then access: **http://localhost:3000**
 
 - Docker Desktop installed and running
 - Web browser
+- macOS or Linux system (Windows users can run within WSL)
 
 ## 🚀 Installation Methods
 
