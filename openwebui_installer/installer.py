@@ -36,9 +36,11 @@ class Installer:
 
     def _check_system_requirements(self):
         """Validate system requirements."""
-        # Check macOS
-        if platform.system() != "Darwin":
-            raise SystemRequirementsError("This installer only supports macOS")
+        # Check supported operating systems
+        if platform.system() not in {"Darwin", "Linux"}:
+            raise SystemRequirementsError(
+                "This installer only supports macOS and Linux"
+            )
 
         # Check Python version (aligned with setup.py)
         if sys.version_info < (3, 9):
@@ -98,16 +100,21 @@ class Installer:
 
             # Create launch script
             launch_script = os.path.join(self.config_dir, "launch-openwebui.sh")
+            host_extra = (
+                "    --add-host host.docker.internal:host-gateway \
+"                if platform.system() == "Linux" else ""
+            )
             with open(launch_script, "w") as f:
-                f.write(f"""#!/bin/bash
-docker run -d \\
-    --name open-webui \\
-    -p {port}:8080 \\
-    -v open-webui:/app/backend/data \\
-    -e OLLAMA_API_BASE_URL=http://host.docker.internal:11434/api \\
-    --add-host host.docker.internal:host-gateway \\
-    {current_webui_image}
-""")
+                f.write(
+                    f"""#!/bin/bash
+docker run -d \
+    --name open-webui \
+    -p {port}:8080 \
+    -v open-webui:/app/backend/data \
+    -e OLLAMA_API_BASE_URL=http://host.docker.internal:11434/api \
+{host_extra}    {current_webui_image}
+"""
+                )
             os.chmod(launch_script, 0o755)
 
             # Create configuration file
@@ -140,7 +147,8 @@ docker run -d \\
                     environment={
                         "OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"
                     },
-                    extra_hosts={"host.docker.internal": "host-gateway"},
+                    extra_hosts={"host.docker.internal": "host-gateway"}
+                    if platform.system() == "Linux" else None,
                     detach=True,
                     restart_policy={"Name": "unless-stopped"}
                 )
