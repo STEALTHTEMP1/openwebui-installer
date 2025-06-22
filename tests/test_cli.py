@@ -234,3 +234,36 @@ class TestCLI:
             force=False,       # Default from CLI
             image='custom/image:tag' # Provided in test
         )
+
+    def test_start_command(self, runner, mock_installer):
+        """Test start command"""
+        result = runner.invoke(cli, ["start"])
+        assert result.exit_code == 0
+        mock_installer.start.assert_called_once()
+
+        mock_installer.start.side_effect = InstallerError("Start failed")
+        result = runner.invoke(cli, ["start"])
+        assert result.exit_code == 1
+        assert "Start failed" in result.output
+
+    def test_stop_command(self, runner, mock_installer):
+        """Test stop command"""
+        result = runner.invoke(cli, ["stop"])
+        assert result.exit_code == 0
+        mock_installer.stop.assert_called_once()
+
+        mock_installer.stop.side_effect = InstallerError("Stop failed")
+        result = runner.invoke(cli, ["stop"])
+        assert result.exit_code == 1
+        assert "Stop failed" in result.output
+
+    def test_restart_command(self, runner, mock_installer):
+        """Test restart command"""
+        result = runner.invoke(cli, ["restart"])
+        assert result.exit_code == 0
+        mock_installer.restart.assert_called_once()
+
+        mock_installer.restart.side_effect = InstallerError("Restart failed")
+        result = runner.invoke(cli, ["restart"])
+        assert result.exit_code == 1
+        assert "Restart failed" in result.output

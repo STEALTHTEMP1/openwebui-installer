@@ -107,6 +107,75 @@ def status():
         sys.exit(1)
 
 
+@cli.command()
+def start():
+    """Start Open WebUI."""
+    try:
+        if not validate_system():
+            sys.exit(1)
+
+        installer = Installer()
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+        ) as progress:
+            task = progress.add_task("Starting Open WebUI...", total=None)
+            installer.start()
+            progress.update(task, completed=True)
+
+        console.print("[green]✓[/green] Open WebUI started!")
+
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {str(e)}")
+        sys.exit(1)
+
+
+@cli.command()
+def stop():
+    """Stop Open WebUI."""
+    try:
+        installer = Installer()
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+        ) as progress:
+            task = progress.add_task("Stopping Open WebUI...", total=None)
+            installer.stop()
+            progress.update(task, completed=True)
+
+        console.print("[green]✓[/green] Open WebUI stopped!")
+
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {str(e)}")
+        sys.exit(1)
+
+
+@cli.command()
+def restart():
+    """Restart Open WebUI."""
+    try:
+        if not validate_system():
+            sys.exit(1)
+
+        installer = Installer()
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+        ) as progress:
+            task = progress.add_task("Restarting Open WebUI...", total=None)
+            installer.restart()
+            progress.update(task, completed=True)
+
+        console.print("[green]✓[/green] Open WebUI restarted!")
+
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {str(e)}")
+        sys.exit(1)
+
+
 def main():
     """Main entry point for the CLI."""
     cli()

@@ -65,6 +65,17 @@ docker start open-webui
 docker rm open-webui
 ```
 
+### CLI Management
+
+The installer provides commands to control the container without using raw Docker commands:
+
+```bash
+openwebui-installer start      # Start Open WebUI
+openwebui-installer stop       # Stop the container
+openwebui-installer restart    # Restart the container
+openwebui-installer status     # Show current status
+```
+
 ## 📖 Documentation
 
 - [Working Setup Guide](WORKING_SETUP.md) - Detailed troubleshooting and setup notes
