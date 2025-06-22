@@ -1,0 +1,21 @@
+name: PR Branch Check
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  enforce-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify branch source
+        run: |
+          echo "Base branch: ${{ github.base_ref }}"
+          echo "Head branch: ${{ github.head_ref }}"
+          if [[ "${{ github.head_ref }}" =~ ^develop$ || "${{ github.head_ref }}" =~ ^phase.* ]]; then
+            echo "PR from allowed branch."
+          else
+            echo "Error: Pull requests to main must come from develop or a phase branch." >&2
+            exit 1
+          fi
+
