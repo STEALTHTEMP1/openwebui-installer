@@ -6,7 +6,7 @@ import os
 import platform
 import subprocess
 import sys
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import docker
 import requests
@@ -28,20 +28,21 @@ class SystemRequirementsError(InstallerError):
 class Installer:
     """Main installer class for Open WebUI."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the installer."""
         self.docker_client = docker.from_env()
         self.webui_image = "ghcr.io/open-webui/open-webui:main"  # Default image
         self.config_dir = os.path.expanduser("~/.openwebui")
 
-    def _check_system_requirements(self):
+    def _check_system_requirements(self) -> None:
         """Validate system requirements."""
         # Check macOS
         if platform.system() != "Darwin":
             raise SystemRequirementsError("This installer only supports macOS")
 
         # Check Python version (aligned with setup.py)
-        if sys.version_info < (3, 9):
+        version_info = sys.version_info
+        if version_info < (3, 9):
             raise SystemRequirementsError("Python 3.9 or higher is required")
 
         # Check Docker
@@ -60,11 +61,11 @@ class Installer:
         except Exception:
             raise SystemRequirementsError("Ollama is not installed or not running")
 
-    def _ensure_config_dir(self):
+    def _ensure_config_dir(self) -> None:
         """Ensure configuration directory exists."""
         os.makedirs(self.config_dir, exist_ok=True)
 
-    def install(self, model: str = "llama2", port: int = 3000, force: bool = False, image: Optional[str] = None):
+    def install(self, model: str = "llama2", port: int = 3000, force: bool = False, image: Optional[str] = None) -> None:
         """Install Open WebUI."""
         try:
             # Check if already installed
@@ -132,7 +133,7 @@ docker run -d \\
                     pass
 
                 # Start new container
-                container = self.docker_client.containers.run(
+                container = self.docker_client.containers.run(  # type: ignore[call-overload]
                     current_webui_image,
                     name="open-webui",
                     ports={'8080/tcp': port},
@@ -152,7 +153,7 @@ docker run -d \\
         except Exception as e:
             raise InstallerError(f"Installation failed: {str(e)}")
 
-    def uninstall(self):
+    def uninstall(self) -> None:
         """Uninstall Open WebUI."""
         try:
             # Stop and remove container if running
@@ -178,7 +179,7 @@ docker run -d \\
         except Exception as e:
             raise InstallerError(f"Uninstallation failed: {str(e)}")
 
-    def get_status(self) -> Dict:
+    def get_status(self) -> Dict[str, Any]:
         """Get installation status."""
         status = {
             "installed": False,
