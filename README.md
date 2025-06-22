@@ -69,6 +69,7 @@ docker rm open-webui
 
 - [Working Setup Guide](WORKING_SETUP.md) - Detailed troubleshooting and setup notes
 - [Release Notes](CHANGELOG.md) - Version history and changes
+- [Codex Setup](CODEX_SETUP.md) - Prepare the environment for automated tests
 
 ---
 
