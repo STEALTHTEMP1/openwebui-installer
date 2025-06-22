@@ -4,7 +4,7 @@
 
 Create the **easiest possible installation experience** for Open WebUI on macOS, targeting **novice users** who want AI functionality without technical complexity.
 
-**Vision**: Download one file, double-click, and have Open WebUI running in under 2 minutes.
+**Vision**: Download one file, double-click, and have Open WebUI running in under 30 seconds with **Level 3 Complete Abstraction** - making Docker completely invisible to users.
 
 ## 👥 Target User Profile
 
@@ -19,10 +19,12 @@ Create the **easiest possible installation experience** for Open WebUI on macOS,
 - ✅ **No Terminal usage** required
 - ✅ **Single file download** from website
 - ✅ **Double-click to install** (like any Mac app)
-- ✅ **Automatic dependency handling** (Docker, etc.)
+- ✅ **Zero Docker knowledge** required (completely abstracted)
+- ✅ **No Docker Desktop installation** needed
+- ✅ **Instant startup** like native Mac apps
 - ✅ **Browser opens automatically** to Open WebUI
 - ✅ **Dock integration** for easy access
-- ✅ **Clear error messages** if something goes wrong
+- ✅ **Intelligent error recovery** with user-friendly messages
 
 ## 📋 Core Requirements
 
@@ -36,10 +38,11 @@ Create the **easiest possible installation experience** for Open WebUI on macOS,
 5. **Ready**: Browser opens to Open WebUI interface
 
 #### Dependencies Management
-- **Docker Desktop**: Auto-detect, prompt to install if missing
-- **System Requirements**: Check macOS version compatibility
-- **Permissions**: Request necessary system permissions upfront
-- **Network**: Verify internet connection for Docker pulls
+- **Container Runtime**: Bundled lightweight runtime (Podman, ~30MB) - no Docker Desktop required
+- **Open WebUI Image**: Pre-bundled container image (~80MB compressed) included in app
+- **System Requirements**: Check macOS version compatibility (10.15+)
+- **Permissions**: Request minimal system permissions for container management
+- **Network**: Optional - app works offline after initial setup
 
 #### User Experience
 - **Progress Indicators**: Show installation/setup progress
@@ -49,19 +52,19 @@ Create the **easiest possible installation experience** for Open WebUI on macOS,
 
 ### 🎨 User Interface Requirements
 
-#### Installation Flow
+#### Installation Flow (Level 3 Complete Abstraction)
 ```
-1. Download OneClickOpenWebUI.dmg
+1. Download OpenWebUI.dmg (~200MB total)
    ↓
 2. Open DMG → Drag app to Applications
    ↓
 3. Launch app from Applications/Dock
    ↓
-4. Welcome screen with "Install Open WebUI" button
+4. App extracts bundled runtime (first launch only, ~10 seconds)
    ↓
-5. Auto-setup (Docker check, container pull, etc.)
+5. Container starts automatically in background
    ↓
-6. Success! Browser opens to http://localhost:3000
+6. Success! Native window opens with Open WebUI interface
 ```
 
 #### App Interface Options
@@ -71,21 +74,25 @@ Create the **easiest possible installation experience** for Open WebUI on macOS,
 
 ## 🛠️ Technical Implementation Options
 
-### Option 1: Native macOS App (.app bundle)
+### Option 1: Native macOS App with Bundled Runtime (.app bundle) ⭐ UPDATED
 **Advantages:**
 - ✅ Most native Mac experience
 - ✅ Can be notarized and distributed safely
 - ✅ Full access to macOS APIs
 - ✅ Dock integration, native notifications
-- ✅ Can handle system permissions properly
+- ✅ **No Docker Desktop dependency**
+- ✅ **Complete offline capability**
+- ✅ **Instant startup after first run**
 
 **Technology Stack:**
 - **Swift/SwiftUI** for modern UI
-- **Shell scripting** for Docker commands
+- **Bundled Podman runtime** (~30MB) for container management
+- **Pre-packaged Open WebUI image** (~80MB compressed)
+- **WKWebView** for embedding Open WebUI interface
 - **Cocoa** for system integration
 
 **Distribution:**
-- `.dmg` file with drag-to-Applications
+- `.dmg` file (~200MB total) with drag-to-Applications
 - Mac App Store (if approved)
 - Direct download from website
 
@@ -125,19 +132,21 @@ Create the **easiest possible installation experience** for Open WebUI on macOS,
 
 ## 📱 Recommended App Features
 
-### Core Features (MVP)
-- **Install Open WebUI**: One-click setup
-- **Launch Open WebUI**: Open browser to interface
-- **Status Check**: Show if Open WebUI is running
-- **Quit**: Stop Open WebUI container
+### Core Features (MVP) - Level 3 Complete Abstraction
+- **Instant Launch**: App starts immediately like any native Mac app
+- **Embedded Interface**: Open WebUI loads in native window (no browser required)
+- **Auto-Recovery**: Intelligent error handling and automatic restarts
+- **Background Management**: Container lifecycle completely hidden from user
+- **Native Integration**: Dock status, notifications, menu bar access
 
 ### Advanced Features (Future)
-- **Menu Bar Icon**: Quick access and status
+- **Menu Bar Icon**: Quick access and status indicators
 - **Auto-Start**: Launch Open WebUI on Mac startup
-- **Update Management**: Check for and install updates
-- **Model Management**: Download/manage AI models
-- **Settings Panel**: Configure ports, models, etc.
-- **Uninstaller**: Complete removal of all components
+- **Background Updates**: Silent updates with notification when complete
+- **Model Management**: Download/manage AI models through native interface
+- **Performance Optimization**: Battery-aware and resource-optimized operation
+- **File Integration**: Drag & drop files, Spotlight integration
+- **Complete Uninstaller**: One-click removal of all components
 
 ## 🔐 Security & Permissions
 
@@ -196,13 +205,13 @@ Create the **easiest possible installation experience** for Open WebUI on macOS,
 
 ## 🚀 Implementation Phases
 
-### Phase 1: MVP (Minimum Viable Product)
-- Native macOS app (.app bundle)
-- Basic UI with "Install" button
-- Docker detection and setup
-- Open WebUI container deployment
-- Browser launch to interface
-- Basic error handling
+### Phase 1: MVP (Level 3 Complete Abstraction)
+- Native macOS app with bundled container runtime
+- Automatic runtime extraction on first launch
+- Pre-bundled Open WebUI image (no downloads)
+- Embedded WKWebView interface (no browser required)
+- Intelligent error recovery and user-friendly messages
+- Native window with Open WebUI interface
 
 ### Phase 2: Enhanced Experience
 - Menu bar integration
@@ -251,11 +260,13 @@ Create the **easiest possible installation experience** for Open WebUI on macOS,
 
 ## 🎯 Success Definition
 
-**A successful one-click installer means:**
+**A successful Level 3 Complete Abstraction installer means:**
 - A complete novice can download one file
 - Double-click to install like any Mac app  
-- Click one button to have Open WebUI running
-- Be chatting with AI within 2 minutes
-- Never need to open Terminal or see command lines
+- App launches instantly like any native Mac app
+- Be chatting with AI within 30 seconds
+- Never know Docker exists or need any technical knowledge
+- Works completely offline after installation
+- Automatic error recovery and updates
 
-This represents a **10x improvement** in user experience over current installation methods.
+This represents a **100x improvement** in user experience over current installation methods, transforming Open WebUI from a "developer tool" into a "consumer app."
