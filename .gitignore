@@ -127,6 +127,10 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+offline-validate-env/
+
+# Keep offline wheel cache
+!wheelhouse/
 
 # Spyder project settings
 .spyderproject

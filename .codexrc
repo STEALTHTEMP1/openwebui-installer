@@ -1,0 +1,4 @@
+{
+  "setup_script": "./scripts/setup-test-env-offline.sh",
+  "test_command": "pytest -q"
+}

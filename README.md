@@ -230,6 +230,23 @@ The workflow works with any project structure. It automatically includes all fil
 - **Homebrew issues**: Test with `brew audit --strict`
 - **General questions**: Create issues in your repository
 
+## 🚧 Offline Development & Testing
+
+The repository includes helper scripts for working without internet access.
+
+```bash
+# Download dependency wheels and generate offline requirement files
+./scripts/create-offline-bundle.sh
+
+# Set up a virtual environment using the local wheel cache
+./scripts/setup-test-env-offline.sh
+
+# Validate that the offline bundle installs correctly
+./scripts/validate-offline-readiness.sh
+```
+
+For normal development with network access use `./scripts/setup-test-env.sh`.
+
 ## 🎯 Next Steps
 
 1. **Set up the workflow** (run `./setup.sh`)
