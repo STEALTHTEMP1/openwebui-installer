@@ -22,6 +22,18 @@ Then access: **http://localhost:3000**
 - Docker Desktop installed and running
 - Web browser
 
+## ⚠️ Important Note About Large Files
+
+**Bundled Runtime Components**: The native macOS app includes large bundled runtime files (Podman binary ~41MB, OpenWebUI container image ~1.5GB) that are **not included in this git repository** due to GitHub's 100MB file size limit.
+
+**To build the native app, you must run:**
+```bash
+cd OpenWebUI-Desktop/Scripts
+./bundle-resources.sh
+```
+
+This will download the required runtime components locally before building.
+
 ## 🚀 Installation Methods
 
 ### Method 1: Direct Docker (Recommended - Verified Working)
