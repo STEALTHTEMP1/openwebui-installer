@@ -1,12 +1,16 @@
-"""
-Tests for the GUI module
-"""
+"""Tests for the GUI module."""
 import sys
 from unittest.mock import patch, MagicMock
+
 import pytest
-from PyQt6.QtWidgets import QApplication, QMessageBox
-from openwebui_installer.gui import MainWindow
-from openwebui_installer import __version__
+from openwebui_installer.gui import PYQT_AVAILABLE
+
+pytestmark = pytest.mark.skipif(not PYQT_AVAILABLE, reason="PyQt6 not available")
+
+if PYQT_AVAILABLE:  # Only import when available to avoid ImportError
+    from PyQt6.QtWidgets import QApplication, QMessageBox
+    from openwebui_installer.gui import MainWindow
+    from openwebui_installer import __version__
 
 @pytest.fixture
 def window(qapp):
