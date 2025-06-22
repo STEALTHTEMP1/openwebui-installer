@@ -1,28 +1,31 @@
 """
 GUI interface for Open WebUI Installer
 """
+
 import sys
 
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtWidgets import (
     QApplication,
-    QMainWindow,
-    QWidget,
-    QVBoxLayout,
+    QComboBox,
     QHBoxLayout,
     QLabel,
-    QComboBox,
+    QMainWindow,
+    QMessageBox,
+    QProgressBar,
     QPushButton,
     QSpinBox,
-    QProgressBar,
-    QMessageBox,
+    QVBoxLayout,
+    QWidget,
 )
 
 from . import __version__
 from .installer import Installer
 
+
 class InstallerThread(QThread):
     """Thread for running installation process."""
+
     progress = pyqtSignal(str)
     error = pyqtSignal(str)
     finished = pyqtSignal()
@@ -44,13 +47,14 @@ class InstallerThread(QThread):
             self.installer.install(
                 model=self.model,
                 port=self.port,
-                force=self.force
+                force=self.force,
             )
 
             self.finished.emit()
 
         except Exception as e:
             self.error.emit(str(e))
+
 
 class MainWindow(QMainWindow):
     """Main window for the installer GUI."""
@@ -140,7 +144,11 @@ class MainWindow(QMainWindow):
                 self.uninstall_button.setEnabled(False)
 
         except Exception as e:
-            QMessageBox.warning(self, "Error", f"Failed to get status: {str(e)}")
+            QMessageBox.warning(
+                self,
+                "Error",
+                f"Failed to get status: {str(e)}",
+            )
 
     def start_installation(self):
         """Start the installation process."""
@@ -153,7 +161,7 @@ class MainWindow(QMainWindow):
         self.installer_thread = InstallerThread(
             model=self.model_combo.currentText(),
             port=self.port_spin.value(),
-            force=True if self.install_button.text() == "Reinstall" else False
+            force=True if self.install_button.text() == "Reinstall" else False,
         )
         self.installer_thread.progress.connect(self.update_progress)
         self.installer_thread.error.connect(self.handle_error)
@@ -173,10 +181,18 @@ class MainWindow(QMainWindow):
             try:
                 installer = Installer()
                 installer.uninstall()
-                QMessageBox.information(self, "Success", "Open WebUI has been uninstalled.")
+                QMessageBox.information(
+                    self,
+                    "Success",
+                    "Open WebUI has been uninstalled.",
+                )
                 self.update_status()
             except Exception as e:
-                QMessageBox.warning(self, "Error", f"Failed to uninstall: {str(e)}")
+                QMessageBox.warning(
+                    self,
+                    "Error",
+                    f"Failed to uninstall: {str(e)}",
+                )
                 self.update_status()
 
     def update_progress(self, message: str):
@@ -199,9 +215,13 @@ class MainWindow(QMainWindow):
         QMessageBox.information(
             self,
             "Installation Complete",
-            f"Open WebUI has been installed and is available at:\nhttp://localhost:{self.port_spin.value()}"
+            (
+                "Open WebUI has been installed and is available at:\n"
+                f"http://localhost:{self.port_spin.value()}"
+            ),
         )
         self.update_status()
+
 
 def main():
     """Main entry point for the GUI."""
