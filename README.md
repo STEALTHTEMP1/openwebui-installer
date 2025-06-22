@@ -17,6 +17,16 @@ docker run -d -p 3000:8080 \
 
 Then access: **http://localhost:3000**
 
+## ⚙️ Environment Configuration
+
+Copy `.env.example` to `.env` and update the variables:
+
+```bash
+cp .env.example .env
+# Edit .env and set OLLAMA_BASE_URL, OLLAMA_API_BASE_URL,
+# WEBUI_SECRET_KEY and DEBUG
+```
+
 ## 📋 Prerequisites
 
 - Docker Desktop installed and running
