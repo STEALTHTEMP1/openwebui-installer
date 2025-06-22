@@ -50,19 +50,16 @@ openwebui-installer install
 
 ```bash
 # Check status
-docker ps | grep open-webui
+openwebui-installer status
 
-# View logs
-docker logs open-webui
+# Start service
+openwebui-installer start
 
-# Stop container
-docker stop open-webui
+# Stop service
+openwebui-installer stop
 
-# Start container
-docker start open-webui
-
-# Remove container
-docker rm open-webui
+# Restart service
+openwebui-installer restart
 ```
 
 ## 📖 Documentation
