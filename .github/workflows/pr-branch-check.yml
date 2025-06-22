@@ -1,0 +1,23 @@
+name: Validate PR source branch
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  enforce-source-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check that PR originates from develop or phase branch
+        run: |
+          echo "Base branch: $GITHUB_BASE_REF"
+          echo "Head branch: $GITHUB_HEAD_REF"
+          if [[ "$GITHUB_BASE_REF" == "main" ]]; then
+            if [[ "$GITHUB_HEAD_REF" =~ ^develop$ || "$GITHUB_HEAD_REF" =~ ^phase[-0-9a-zA-Z_]+$ ]]; then
+              echo "Branch is valid"
+            else
+              echo "Pull requests to main must come from develop or a phase branch." >&2
+              exit 1
+            fi
+          fi
