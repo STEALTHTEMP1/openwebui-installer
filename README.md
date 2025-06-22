@@ -1,3 +1,77 @@
+# Open WebUI Installer
+
+Easy installer and manager for Open WebUI - User-friendly AI Interface
+
+## 🎯 WORKING SETUP (Verified ✅)
+
+**Quick Start - Direct Docker Method:**
+
+```bash
+docker run -d -p 3000:8080 \
+  -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+  -v open-webui:/app/backend/data \
+  --name open-webui \
+  --restart always \
+  ghcr.io/open-webui/open-webui:main
+```
+
+Then access: **http://localhost:3000**
+
+## 📋 Prerequisites
+
+- Docker Desktop installed and running
+- Web browser
+
+## 🚀 Installation Methods
+
+### Method 1: Direct Docker (Recommended - Verified Working)
+
+```bash
+# Install Open WebUI directly
+docker run -d -p 3000:8080 \
+  -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+  -v open-webui:/app/backend/data \
+  --name open-webui \
+  --restart always \
+  ghcr.io/open-webui/open-webui:main
+```
+
+**✅ Result**: Open WebUI accessible at http://localhost:3000
+
+### Method 2: Homebrew (Experimental)
+
+```bash
+brew tap stealthtemp1/openwebui-installer
+brew install openwebui-installer
+openwebui-installer install
+```
+
+## 🔧 Container Management
+
+```bash
+# Check status
+docker ps | grep open-webui
+
+# View logs
+docker logs open-webui
+
+# Stop container
+docker stop open-webui
+
+# Start container
+docker start open-webui
+
+# Remove container
+docker rm open-webui
+```
+
+## 📖 Documentation
+
+- [Working Setup Guide](WORKING_SETUP.md) - Detailed troubleshooting and setup notes
+- [Release Notes](CHANGELOG.md) - Version history and changes
+
+---
+
 # Private Repository Setup for Open WebUI Installer
 
 This directory contains everything you need to set up automated releases for your private Open WebUI Installer repository.
