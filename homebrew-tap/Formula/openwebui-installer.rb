@@ -5,7 +5,13 @@ class OpenwebuiInstaller < Formula
   homepage "https://github.com/open-webui/openwebui-installer"
   url "https://github.com/open-webui/openwebui-installer/archive/refs/tags/v0.1.0.tar.gz"
   sha256 "placeholder" # Will be updated by CI
+  version "0.1.0"
   license "MIT"
+
+  livecheck do
+    url :stable
+    strategy :github_latest
+  end
 
   depends_on "python@3.9"
 

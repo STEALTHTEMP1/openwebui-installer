@@ -20,6 +20,15 @@ Then install the desired formula:
 brew install openwebui-installer
 ```
 
+### Upgrading
+
+To upgrade `openwebui-installer` to the latest release, run:
+
+```bash
+brew update
+brew upgrade openwebui-installer
+```
+
 ## Development
 
 The formulae in this tap are automatically updated by GitHub Actions when new releases are published.
