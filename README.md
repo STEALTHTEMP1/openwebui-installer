@@ -58,23 +58,24 @@ brew install openwebui-installer
 openwebui-installer install
 ```
 
-## 🔧 Container Management
+## 🔧 CLI Usage
 
 ```bash
-# Check status
-docker ps | grep open-webui
+# Install or update
+openwebui-installer install
+openwebui-installer update
 
-# View logs
-docker logs open-webui
+# Service management
+openwebui-installer start
+openwebui-installer stop
+openwebui-installer restart
 
-# Stop container
-docker stop open-webui
+# Get status or logs
+openwebui-installer status
+openwebui-installer logs
 
-# Start container
-docker start open-webui
-
-# Remove container
-docker rm open-webui
+# Remove installation
+openwebui-installer uninstall
 ```
 
 ## 📖 Documentation
