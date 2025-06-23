@@ -21,6 +21,7 @@ Then access: **http://localhost:3000**
 
 - Docker Desktop installed and running
 - Web browser
+- Optional for running tests: `docker` and `requests` Python packages (`pip install docker requests`)
 
 ## ⚠️ Important Note About Large Files
 

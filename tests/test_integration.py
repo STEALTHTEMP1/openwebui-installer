@@ -5,8 +5,8 @@ Integration tests for Open WebUI Installer
 import os
 import subprocess
 import pytest
-import docker
-import requests
+docker = pytest.importorskip("docker")
+requests = pytest.importorskip("requests")
 from pathlib import Path
 from openwebui_installer.installer import Installer
 from unittest.mock import patch, Mock, MagicMock # Added MagicMock
