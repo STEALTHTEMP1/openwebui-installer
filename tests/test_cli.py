@@ -6,7 +6,15 @@ from unittest.mock import MagicMock, patch, Mock
 import pytest
 from click.testing import CliRunner
 
-from openwebui_installer.cli import cli, install, uninstall, status
+from openwebui_installer.cli import (
+    cli,
+    install,
+    uninstall,
+    status,
+    start,
+    stop,
+    update,
+)
 from openwebui_installer.installer import InstallerError, SystemRequirementsError
 
 @pytest.fixture
@@ -234,3 +242,27 @@ class TestCLI:
             force=False,       # Default from CLI
             image='custom/image:tag' # Provided in test
         )
+
+    def test_start_command(self, runner, mock_installer):
+        """Test start command"""
+        result = runner.invoke(cli, ['start'])
+        assert result.exit_code == 0
+        mock_installer.start.assert_called_once()
+
+    def test_stop_command(self, runner, mock_installer):
+        """Test stop command"""
+        result = runner.invoke(cli, ['stop'])
+        assert result.exit_code == 0
+        mock_installer.stop.assert_called_once()
+
+    def test_update_command(self, runner, mock_installer):
+        """Test update command"""
+        result = runner.invoke(cli, ['update'])
+        assert result.exit_code == 0
+        mock_installer.update.assert_called_once_with(image=None)
+
+    def test_update_with_image(self, runner, mock_installer):
+        """Test update command with custom image"""
+        result = runner.invoke(cli, ['update', '--image', 'img:tag'])
+        assert result.exit_code == 0
+        mock_installer.update.assert_called_once_with(image='img:tag')

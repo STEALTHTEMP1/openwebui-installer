@@ -253,6 +253,42 @@ class TestInstallerSuite:
         mock_container.stop.assert_called_once()
         mock_container.remove.assert_called_once()
 
+    def test_start_method(self, installer, mocker):
+        """Test starting the container."""
+        mock_container = MagicMock()
+        installer.docker_client.containers.get.return_value = mock_container
+
+        installer.start()
+
+        installer.docker_client.containers.get.assert_called_once_with("open-webui")
+        mock_container.start.assert_called_once()
+
+    def test_start_container_missing(self, installer, mocker):
+        """Ensure start raises error if container is missing."""
+        installer.docker_client.containers.get.side_effect = docker.errors.NotFound("not found")
+        with pytest.raises(InstallerError):
+            installer.start()
+
+    def test_stop_method(self, installer, mocker):
+        """Test stopping the container."""
+        mock_container = MagicMock()
+        installer.docker_client.containers.get.return_value = mock_container
+
+        installer.stop()
+
+        installer.docker_client.containers.get.assert_called_once_with("open-webui")
+        mock_container.stop.assert_called_once()
+
+    def test_update_method(self, installer, mocker):
+        """Test update uses install with force."""
+        status = {"installed": True, "port": 3000, "model": "llama2", "image": "img"}
+        mocker.patch.object(installer, "get_status", return_value=status)
+        mock_install = mocker.patch.object(installer, "install")
+
+        installer.update()
+
+        mock_install.assert_called_once_with(model="llama2", port=3000, force=True, image="img")
+
     # def test_is_open_webui_running(self, installer, mocker):
     #     """Test checking if open webui is running."""
     #     # installer.docker_client is already a MagicMock

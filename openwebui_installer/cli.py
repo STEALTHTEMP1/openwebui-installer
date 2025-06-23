@@ -107,6 +107,43 @@ def status():
         sys.exit(1)
 
 
+@cli.command()
+def start():
+    """Start the Open WebUI service."""
+    try:
+        installer = Installer()
+        installer.start()
+        console.print("[green]✓[/green] Open WebUI started!")
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {str(e)}")
+        sys.exit(1)
+
+
+@cli.command()
+def stop():
+    """Stop the Open WebUI service."""
+    try:
+        installer = Installer()
+        installer.stop()
+        console.print("[green]✓[/green] Open WebUI stopped!")
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {str(e)}")
+        sys.exit(1)
+
+
+@cli.command()
+@click.option('--image', help='Custom Open WebUI image to use')
+def update(image: Optional[str]):
+    """Update Open WebUI to the latest version."""
+    try:
+        installer = Installer()
+        installer.update(image=image)
+        console.print("[green]✓[/green] Update complete!")
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {str(e)}")
+        sys.exit(1)
+
+
 def main():
     """Main entry point for the CLI."""
     cli()

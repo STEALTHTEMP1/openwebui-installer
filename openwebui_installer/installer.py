@@ -185,6 +185,7 @@ docker run -d \\
             "version": None,
             "port": None,
             "model": None,
+            "image": None,
             "running": False,
         }
 
@@ -202,6 +203,7 @@ docker run -d \\
                     "version": config.get("version"),
                     "port": config.get("port"),
                     "model": config.get("model"),
+                    "image": config.get("image"),
                 })
         except Exception:
             return status
@@ -214,3 +216,40 @@ docker run -d \\
             pass
 
         return status
+
+    def start(self):
+        """Start the Open WebUI container."""
+        try:
+            container = self.docker_client.containers.get("open-webui")
+            container.start()
+        except docker.errors.NotFound:
+            raise InstallerError("Open WebUI is not installed")
+        except Exception as e:
+            raise InstallerError(f"Failed to start Open WebUI: {str(e)}")
+
+    def stop(self):
+        """Stop the Open WebUI container."""
+        try:
+            container = self.docker_client.containers.get("open-webui")
+            container.stop()
+        except docker.errors.NotFound:
+            raise InstallerError("Open WebUI is not installed or not running")
+        except Exception as e:
+            raise InstallerError(f"Failed to stop Open WebUI: {str(e)}")
+
+    def update(self, image: Optional[str] = None):
+        """Update Open WebUI by reinstalling with the latest image."""
+        try:
+            status = self.get_status()
+            if not status["installed"]:
+                raise InstallerError("Open WebUI is not installed")
+
+            current_image = image if image else status.get("image", self.webui_image)
+            self.install(
+                model=status.get("model", "llama2"),
+                port=status.get("port", 3000),
+                force=True,
+                image=current_image,
+            )
+        except Exception as e:
+            raise InstallerError(f"Update failed: {str(e)}")
