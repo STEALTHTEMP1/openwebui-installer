@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import QApplication, QMessageBox
 from openwebui_installer.gui import MainWindow
 from openwebui_installer import __version__
 
+@pytest.mark.gui
 @pytest.fixture
 def window(qapp):
     """Create a MainWindow instance for testing, ensuring it's closed after."""
