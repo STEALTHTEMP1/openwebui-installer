@@ -143,32 +143,32 @@ class TestCLI:
         result = runner.invoke(cli, ['install'])
         assert result.exit_code == 0
         assert "Installation complete!" in result.output
-        
+
         # mock_installer._check_system_requirements.assert_called_once() # This is an internal call of the real Installer.install, not directly by CLI
         mock_installer.install.assert_called_once()
-        
+
         # Test installation failure
         mock_installer.install.side_effect = InstallerError("Installation failed")
         result = runner.invoke(cli, ['install'])
         assert result.exit_code == 1
         assert "Error: Installation failed" in result.output
-        
+
     def test_uninstall_command(self, runner, mock_installer):
         """Test uninstall command"""
         # Test successful uninstallation
         result = runner.invoke(cli, ['uninstall'], input="y\n")
         assert result.exit_code == 0
         assert "Uninstallation complete!" in result.output
-        
+
         mock_installer.uninstall.assert_called_once() # Changed from cleanup
-        
+
         # Test uninstallation failure
         mock_installer.uninstall.reset_mock() # Reset mock
         mock_installer.uninstall.side_effect = InstallerError("Uninstallation failed")
         result = runner.invoke(cli, ['uninstall'], input="y\n")
         assert result.exit_code == 1
         assert "Error: Uninstallation failed" in result.output
-        
+
     def test_status_command(self, runner, mock_installer):
         """Test status command"""
         # Test when Open WebUI is running
@@ -196,38 +196,38 @@ class TestCLI:
         result = runner.invoke(cli, ['status'])
         assert result.exit_code == 1
         assert "Error: Status check failed" in result.output
-        
+
     def test_version_option(self, runner):
         """Test --version option"""
         from openwebui_installer import __version__ # Import to use in test
         result = runner.invoke(cli, ['--version'])
         assert result.exit_code == 0
         assert f"cli, version {__version__}" in result.output # New
-        
+
     def test_help_option(self, runner):
         """Test --help option"""
         result = runner.invoke(cli, ['--help'])
         assert result.exit_code == 0
         assert 'Usage:' in result.output
         assert 'Options:' in result.output
-        
+
     def test_install_with_port_option(self, runner, mock_installer):
         """Test install command with custom port"""
         result = runner.invoke(cli, ['install', '--port', '3001'])
         assert result.exit_code == 0
-        
+
         mock_installer.install.assert_called_once_with(
             model='llama2', # Default from CLI
             port=3001,      # Provided in test
             force=False,    # Default from CLI
             image=None      # Added
         )
-        
+
     def test_install_with_image_option(self, runner, mock_installer):
         """Test install command with custom image"""
         result = runner.invoke(cli, ['install', '--image', 'custom/image:tag'])
         assert result.exit_code == 0
-        
+
         mock_installer.install.assert_called_once_with(
             model='llama2',      # Default from CLI
             port=3000,         # Default from CLI
@@ -235,7 +235,6 @@ class TestCLI:
             image='custom/image:tag' # Provided in test
         )
 
-<<<<<<< HEAD
     def test_runtime_option_podman(self, runner):
         """Installer is created with the selected runtime"""
         with patch("openwebui_installer.cli.Installer") as mock_cls:
@@ -244,7 +243,7 @@ class TestCLI:
             result = runner.invoke(cli, ['--runtime', 'podman', 'install'])
             assert result.exit_code == 0
             mock_cls.assert_any_call(runtime='podman')
-=======
+
     def test_start_command(self, runner, mock_installer):
         """Test start command"""
         result = runner.invoke(cli, ["start"])
@@ -277,4 +276,3 @@ class TestCLI:
         result = runner.invoke(cli, ["restart"])
         assert result.exit_code == 1
         assert "Restart failed" in result.output
->>>>>>> origin/codex/add-start,-stop,-restart-methods-to-installer

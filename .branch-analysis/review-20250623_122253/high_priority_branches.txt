@@ -1,0 +1,13 @@
+# High Priority Branches - Review First
+# These branches contain critical functionality or dependency updates
+
+codex/consolidate-installation-steps-in-documentation # installer,        1 commits,        5 files, conflicts
+codex/create-setup-and-offline-scripts # installer,        1 commits,        9 files, conflicts
+codex/evaluate-one-click-open-webui-for-mac # cli,        1 commits,        1 files, conflicts
+codex/investigate-empty-openwebui-installer-folder # installer,        1 commits,        1 files, clean
+codex/set-up-development-team-for-open-webui-one-click-installer # cli,        1 commits,        1 files, conflicts
+codex/update-installer-for-linux-compatibility # installer,        1 commits,        2 files, conflicts
+codex/update-installer.py-for-linux-support # installer,        1 commits,        2 files, conflicts
+dependabot/github_actions/actions/setup-python-5 # installer,        1 commits,        1 files, clean
+gi6los-codex/update-installer-for-linux-compatibility # installer,        1 commits,        2 files, conflicts
+l1qs6b-codex/implement-or-remove-cli-commands-in-openwebui_installer # cli,        1 commits,        5 files, conflicts

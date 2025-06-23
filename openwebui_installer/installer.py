@@ -91,7 +91,7 @@ class Installer:
 
     def close(self):
         """Close any resources held by the installer."""
-        if hasattr(self, 'docker_client'):
+        if hasattr(self, 'docker_client') and self.docker_client:
             try:
                 self.docker_client.close()
             except Exception:
@@ -133,11 +133,17 @@ class Installer:
         try:
             # Try to connect to Podman socket
             import docker
-            return docker.DockerClient(base_url='unix:///tmp/podman.sock')
+            client = docker.DockerClient(base_url='unix:///tmp/podman.sock')
+            # Test the connection
+            client.ping()
+            return client
         except Exception:
             # Fallback to default Docker client
             try:
-                return docker.from_env()
+                import docker
+                client = docker.from_env()
+                client.ping()
+                return client
             except Exception:
                 return None
 
@@ -158,6 +164,12 @@ class Installer:
             raise SystemRequirementsError("Python 3.9 or higher is required")
 
         # Check container runtime
+        if not self.docker_client:
+            if self.runtime == "podman":
+                raise SystemRequirementsError("Podman is not available or not installed")
+            else:
+                raise SystemRequirementsError("Docker is not available or not installed")
+
         try:
             self.docker_client.ping()
         except Exception as e:
@@ -187,6 +199,9 @@ class Installer:
 
     def _pull_webui_image(self, image: str) -> None:
         """Pull the Open WebUI Docker image."""
+        if not self.docker_client:
+            raise InstallerError("Docker client not available")
+
         try:
             if self.verbose:
                 logger.info(f"Pulling Docker image: {image}")
@@ -250,6 +265,9 @@ class Installer:
 
     def _stop_existing_container(self) -> None:
         """Stop and remove existing Open WebUI container."""
+        if not self.docker_client:
+            raise InstallerError("Docker client not available")
+
         try:
             container = self.docker_client.containers.get("open-webui")
             if container.status == "running":
@@ -262,6 +280,9 @@ class Installer:
 
     def _start_container(self, port: int, image: str) -> None:
         """Start Open WebUI container."""
+        if not self.docker_client:
+            raise InstallerError("Docker client not available")
+
         try:
             # Environment variables
             env_vars = {
@@ -343,6 +364,9 @@ class Installer:
 
     def uninstall(self):
         """Uninstall Open WebUI."""
+        if not self.docker_client:
+            raise InstallerError("Docker client not available")
+
         try:
             if self.verbose:
                 logger.info("Starting uninstallation")
@@ -388,11 +412,15 @@ class Installer:
 
             # Check if container is running
             running = False
-            try:
-                container = self.docker_client.containers.get("open-webui")
-                running = container.status == "running"
-            except docker.errors.NotFound:
-                pass
+            if self.docker_client:
+                try:
+                    container = self.docker_client.containers.get("open-webui")
+                    running = container.status == "running"
+                except docker.errors.NotFound:
+                    pass
+                except Exception:
+                    # If Docker client fails, assume not running
+                    pass
 
             return {
                 "installed": True,
@@ -417,6 +445,9 @@ class Installer:
 
     def start(self):
         """Start Open WebUI container."""
+        if not self.docker_client:
+            raise InstallerError("Docker client not available")
+
         try:
             container = self.docker_client.containers.get("open-webui")
             if container.status != "running":
@@ -427,9 +458,14 @@ class Installer:
                 console.print("Open WebUI is already running")
         except docker.errors.NotFound:
             raise InstallerError("Open WebUI container not found. Please install first.")
+        except Exception as e:
+            raise InstallerError(f"Failed to start container: {e}")
 
     def stop(self):
         """Stop Open WebUI container."""
+        if not self.docker_client:
+            raise InstallerError("Docker client not available")
+
         try:
             container = self.docker_client.containers.get("open-webui")
             if container.status == "running":
@@ -440,9 +476,14 @@ class Installer:
                 console.print("Open WebUI is not running")
         except docker.errors.NotFound:
             raise InstallerError("Open WebUI container not found")
+        except Exception as e:
+            raise InstallerError(f"Failed to stop container: {e}")
 
     def restart(self):
         """Restart Open WebUI container."""
+        if not self.docker_client:
+            raise InstallerError("Docker client not available")
+
         try:
             container = self.docker_client.containers.get("open-webui")
             container.restart()
@@ -450,6 +491,8 @@ class Installer:
                 logger.info("Restarted Open WebUI container")
         except docker.errors.NotFound:
             raise InstallerError("Open WebUI container not found")
+        except Exception as e:
+            raise InstallerError(f"Failed to restart container: {e}")
 
     def update(self, image: Optional[str] = None):
         """Update Open WebUI to latest version."""
@@ -491,16 +534,19 @@ class Installer:
                 logger.error(f"Update failed: {str(e)}")
             raise InstallerError(f"Update failed: {str(e)}")
 
-    def show_logs(self, lines: int = 50, follow: bool = False):
+    def show_logs(self, tail: int = 50, follow: bool = False):
         """Show Open WebUI container logs."""
+        if not self.docker_client:
+            raise InstallerError("Docker client not available")
+
         try:
             container = self.docker_client.containers.get("open-webui")
 
             if follow:
-                for line in container.logs(stream=True, follow=True, tail=lines):
-                    console.print(line.decode().strip())
+                for log in container.logs(stream=True, follow=True, tail=tail):
+                    console.print(log.decode("utf-8").strip())
             else:
-                logs = container.logs(tail=lines).decode()
+                logs = container.logs(tail=tail).decode("utf-8")
                 console.print(logs)
 
         except docker.errors.NotFound:

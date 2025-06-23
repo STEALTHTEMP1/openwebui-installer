@@ -1,0 +1,186 @@
+name: Branch Cleanup
+
+on:
+  schedule:
+    # Run weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+    # Allow manual trigger
+    inputs:
+      dry_run:
+        description: 'Dry run (don\'t actually delete branches)'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+      pull-requests: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Update Remote References
+        run: git remote update origin --prune
+
+      - name: Identify Merged Branches
+        id: identify
+        run: |
+          echo "🔍 Identifying merged branches..."
+
+          # Get merged branches (excluding main/master and protected branches)
+          MERGED_BRANCHES=$(git branch -r --merged main | grep -v 'main\|master\|HEAD' | sed 's/origin\///' | tr -d ' ')
+
+          # Filter for safe-to-delete patterns
+          SAFE_BRANCHES=""
+          for branch in $MERGED_BRANCHES; do
+            if [[ "$branch" =~ ^(codex/|dependabot/|feature/|bugfix/|hotfix/|[a-z0-9]+-codex/) ]]; then
+              # Additional safety check - ensure branch is actually merged
+              if git merge-base --is-ancestor "origin/$branch" HEAD 2>/dev/null; then
+                SAFE_BRANCHES="$SAFE_BRANCHES $branch"
+              fi
+            fi
+          done
+
+          echo "Found merged branches to delete:"
+          echo "$SAFE_BRANCHES" | tr ' ' '\n' | sort
+
+          # Count branches
+          BRANCH_COUNT=$(echo "$SAFE_BRANCHES" | wc -w)
+          echo "branch_count=$BRANCH_COUNT" >> $GITHUB_OUTPUT
+          echo "branches<<EOF" >> $GITHUB_OUTPUT
+          echo "$SAFE_BRANCHES" | tr ' ' '\n' | sort >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Delete Merged Branches
+        if: steps.identify.outputs.branch_count > 0
+        run: |
+          echo "🗑️ Deleting ${{ steps.identify.outputs.branch_count }} merged branches..."
+
+          DELETED_COUNT=0
+          FAILED_COUNT=0
+          FAILED_BRANCHES=""
+
+          while IFS= read -r branch; do
+            if [[ -z "$branch" ]]; then
+              continue
+            fi
+
+            echo "Processing: $branch"
+
+            if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+              echo "🧪 DRY RUN: Would delete $branch"
+              DELETED_COUNT=$((DELETED_COUNT + 1))
+            else
+              # Delete remote branch
+              if git push origin --delete "$branch" 2>/dev/null; then
+                echo "✅ Deleted: $branch"
+                DELETED_COUNT=$((DELETED_COUNT + 1))
+              else
+                echo "❌ Failed to delete: $branch"
+                FAILED_COUNT=$((FAILED_COUNT + 1))
+                FAILED_BRANCHES="$FAILED_BRANCHES $branch"
+              fi
+            fi
+          done <<< "${{ steps.identify.outputs.branches }}"
+
+          echo "📊 Cleanup Summary:"
+          echo "==================="
+          echo "✅ Successfully deleted: $DELETED_COUNT"
+          echo "❌ Failed to delete: $FAILED_COUNT"
+
+          if [[ $FAILED_COUNT -gt 0 ]]; then
+            echo "Failed branches: $FAILED_BRANCHES"
+          fi
+
+          # Set outputs for summary
+          echo "deleted_count=$DELETED_COUNT" >> $GITHUB_OUTPUT
+          echo "failed_count=$FAILED_COUNT" >> $GITHUB_OUTPUT
+
+      - name: Create Cleanup Report
+        if: steps.identify.outputs.branch_count > 0
+        run: |
+          REPORT_FILE="branch_cleanup_report_$(date +%Y%m%d_%H%M%S).md"
+
+          cat > "$REPORT_FILE" << EOF
+          # Automated Branch Cleanup Report
+
+          **Date**: $(date)
+          **Workflow**: ${{ github.workflow }}
+          **Run ID**: ${{ github.run_id }}
+          **Triggered by**: ${{ github.event_name }}
+
+          ## Summary
+
+          - **Branches Identified**: ${{ steps.identify.outputs.branch_count }}
+          - **Successfully Deleted**: ${{ steps.delete.outputs.deleted_count || 0 }}
+          - **Failed to Delete**: ${{ steps.delete.outputs.failed_count || 0 }}
+          - **Dry Run**: ${{ inputs.dry_run || 'false' }}
+
+          ## Deleted Branches
+
+          EOF
+
+          # Add list of branches
+          while IFS= read -r branch; do
+            if [[ -n "$branch" ]]; then
+              echo "- \`$branch\`" >> "$REPORT_FILE"
+            fi
+          done <<< "${{ steps.identify.outputs.branches }}"
+
+          echo "📄 Report created: $REPORT_FILE"
+          cat "$REPORT_FILE"
+
+      - name: Summary
+        run: |
+          if [[ "${{ steps.identify.outputs.branch_count }}" == "0" ]]; then
+            echo "✨ No merged branches found to delete"
+          else
+            echo "🎉 Branch cleanup completed"
+            echo "Processed ${{ steps.identify.outputs.branch_count }} branches"
+          fi
+
+          echo ""
+          echo "Repository status:"
+          git branch -r | wc -l | xargs echo "Remote branches remaining:"
+
+          # Check for any remaining stale branches
+          STALE_BRANCHES=$(git for-each-ref --format='%(refname:short) %(committerdate:relative)' refs/remotes/origin | grep -E '(months?|years?) ago' | head -5 || echo "")
+          if [[ -n "$STALE_BRANCHES" ]]; then
+            echo ""
+            echo "⚠️ Stale branches detected (consider manual review):"
+            echo "$STALE_BRANCHES"
+          fi
+
+      - name: Notify on Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🚨 Branch cleanup workflow failed';
+            const body = `
+            The automated branch cleanup workflow failed.
+
+            **Workflow**: ${context.workflow}
+            **Run ID**: ${context.runId}
+            **Date**: ${new Date().toISOString()}
+
+            Please check the workflow logs and resolve any issues.
+            `;
+
+            // Note: This would create an issue, but requires additional permissions
+            console.log(title);
+            console.log(body);

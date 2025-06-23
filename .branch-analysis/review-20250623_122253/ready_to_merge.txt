@@ -1,0 +1,7 @@
+# Ready to Merge - Low Risk
+# These branches have no conflicts and contain safe changes
+
+codex/add-trailing-newline-to-files # newlines,        1 commits,       14 files
+codex/add-trailing-newline-to-multiple-files # newlines,        1 commits,       14 files
+codex/format-python-files-with-black-and-isort # formatting,        1 commits,       10 files
+codex/run-isort-and-black-on-openwebui_installer-and-tests # formatting,        1 commits,        9 files
