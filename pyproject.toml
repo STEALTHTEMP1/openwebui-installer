@@ -32,7 +32,7 @@ warn_unreachable = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-ra -q --cov=openwebui_installer --cov-report=term-missing --ignore=tests/test_gui.py"
+addopts = "-ra -q -m 'not gui' --cov=openwebui_installer --cov-report=term-missing"
 testpaths = ["tests"]
 markers = [
     "gui: marks tests as GUI tests (skipped in containers)",
