@@ -1,0 +1,35 @@
+# Default values for Open WebUI Helm chart.
+# These can be overridden with --set or a custom values file.
+
+image:
+  repository: ghcr.io/open-webui/open-webui
+  tag: main
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+# Base URL for connecting to Ollama
+ollama:
+  baseUrl: http://host.docker.internal:11434/api
+
+# Persistent volume configuration for user data
+persistence:
+  enabled: true
+  storageClass: ""  # e.g. "gp2" or "standard"
+  accessMode: ReadWriteOnce
+  size: 1Gi
+
+# Optional secret to pass additional environment variables
+secret:
+  create: false
+  name: openwebui-secret
+  annotations: {}
+  data: {}
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

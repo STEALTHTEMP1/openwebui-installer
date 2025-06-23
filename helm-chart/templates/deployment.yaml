@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "openwebui.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "openwebui.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "openwebui.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "openwebui.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: openwebui
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+          env:
+            - name: OLLAMA_API_BASE_URL
+              value: {{ .Values.ollama.baseUrl | quote }}
+{{- if .Values.secret.name }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.secret.name }}
+{{- end }}
+{{- if .Values.persistence.enabled }}
+          volumeMounts:
+            - name: data
+              mountPath: /app/backend/data
+{{- end }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+{{- if .Values.persistence.enabled }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "openwebui.fullname" . }}-data
+{{- end }}
+{{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+{{- end }}
+{{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+{{- end }}
+{{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+{{- end }}
