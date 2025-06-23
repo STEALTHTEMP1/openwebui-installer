@@ -1,0 +1,22 @@
+FROM python:3.11-slim
+
+# Environment setup
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Install build essentials for Python packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+
+# Install Sphinx and theme for documentation generation
+RUN pip install --no-cache-dir \
+        sphinx>=6.0.0 \
+        sphinx-rtd-theme>=1.2.0
+
+EXPOSE 8080
+
+# Build and serve documentation
+CMD bash -c "sphinx-build -b html docs docs/_build/html && python -m http.server 8080 --directory docs/_build/html"
