@@ -199,7 +199,10 @@ class MainWindow(QMainWindow):
         QMessageBox.information(
             self,
             "Installation Complete",
-            f"Open WebUI has been installed and is available at:\nhttp://localhost:{self.port_spin.value()}"
+            (
+                "Open WebUI has been installed and is available at:\n"
+                f"http://localhost:{self.port_spin.value()}"
+            ),
         )
         self.update_status()
 
