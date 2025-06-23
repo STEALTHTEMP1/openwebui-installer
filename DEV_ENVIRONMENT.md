@@ -159,6 +159,17 @@ black --check .
 # Rebuild automatically
 ```
 
+### 5. Production Monitoring
+
+Use the production monitoring stack to observe running containers.
+
+```bash
+# Start Prometheus and Grafana
+docker-compose -f docker-compose.monitoring.yml up -d
+```
+Grafana will be available at http://localhost:3001 (admin/admin). Prometheus is
+accessible at http://localhost:9090.
+
 ## Service URLs
 
 When the development environment is running:
@@ -168,6 +179,7 @@ When the development environment is running:
 - **AI Jupyter**: http://localhost:8889 (with `--profile ai`)
 - **Documentation**: http://localhost:8080 (with `--profile docs`)
 - **Monitoring**: http://localhost:3000 (with `--profile monitoring`)
+- **Prod Grafana**: http://localhost:3001 (from `docker-compose.monitoring.yml`)
 - **Database**: localhost:5432
 - **Redis**: localhost:6379
 
