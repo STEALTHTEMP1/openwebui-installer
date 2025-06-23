@@ -240,3 +240,5 @@ internal/
 
 # Local snapshots
 .snapshots/
+!scripts/lib/
+!scripts/lib/**
