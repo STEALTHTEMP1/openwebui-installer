@@ -81,6 +81,7 @@ docker rm open-webui
 
 - [Working Setup Guide](WORKING_SETUP.md) - Detailed troubleshooting and setup notes
 - [Release Notes](CHANGELOG.md) - Version history and changes
+- [Requirements](REQUIREMENTS.md) - Universal installer design
 
 ---
 
