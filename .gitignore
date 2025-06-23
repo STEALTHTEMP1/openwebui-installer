@@ -191,3 +191,4 @@ Temporary Items
 # Application-specific
 .openwebui/
 launch-openwebui.sh
+.DS_Store
