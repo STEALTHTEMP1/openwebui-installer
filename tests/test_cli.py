@@ -6,15 +6,7 @@ from unittest.mock import MagicMock, patch, Mock
 import pytest
 from click.testing import CliRunner
 
-from openwebui_installer.cli import (
-    cli,
-    install,
-    uninstall,
-    status,
-    start,
-    stop,
-    update,
-)
+from openwebui_installer.cli import cli, install, uninstall, status, start, stop, update
 from openwebui_installer.installer import InstallerError, SystemRequirementsError
 
 @pytest.fixture
@@ -244,25 +236,37 @@ class TestCLI:
         )
 
     def test_start_command(self, runner, mock_installer):
-        """Test start command"""
-        result = runner.invoke(cli, ['start'])
+        """Test starting the container"""
+        result = runner.invoke(start)
         assert result.exit_code == 0
-        mock_installer.start.assert_called_once()
+        mock_installer.start_container.assert_called_once_with(port=None)
+
+        mock_installer.start_container.reset_mock()
+        mock_installer.start_container.side_effect = InstallerError("start fail")
+        result = runner.invoke(start)
+        assert result.exit_code == 1
+        assert "start fail" in result.output
 
     def test_stop_command(self, runner, mock_installer):
-        """Test stop command"""
-        result = runner.invoke(cli, ['stop'])
+        """Test stopping the container"""
+        result = runner.invoke(stop, ["--remove"])
         assert result.exit_code == 0
-        mock_installer.stop.assert_called_once()
+        mock_installer.stop_container.assert_called_once_with(remove=True)
+
+        mock_installer.stop_container.reset_mock()
+        mock_installer.stop_container.side_effect = InstallerError("stop fail")
+        result = runner.invoke(stop)
+        assert result.exit_code == 1
+        assert "stop fail" in result.output
 
     def test_update_command(self, runner, mock_installer):
-        """Test update command"""
-        result = runner.invoke(cli, ['update'])
+        """Test updating the container"""
+        result = runner.invoke(update, ["--image", "new:image"])
         assert result.exit_code == 0
-        mock_installer.update.assert_called_once_with(image=None)
+        mock_installer.update.assert_called_once_with(image="new:image")
 
-    def test_update_with_image(self, runner, mock_installer):
-        """Test update command with custom image"""
-        result = runner.invoke(cli, ['update', '--image', 'img:tag'])
-        assert result.exit_code == 0
-        mock_installer.update.assert_called_once_with(image='img:tag')
+        mock_installer.update.reset_mock()
+        mock_installer.update.side_effect = InstallerError("update fail")
+        result = runner.invoke(update)
+        assert result.exit_code == 1
+        assert "update fail" in result.output

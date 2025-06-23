@@ -302,6 +302,7 @@ def status(ctx: click.Context):
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 @cli.command()
 def start():
 <<<<<<< HEAD
@@ -345,12 +346,23 @@ def start():
         installer.start()
         console.print("[green]✓[/green] Open WebUI started!")
 >>>>>>> origin/codex/replace-placeholder-commands-in-install.py
+=======
+@cli.command()
+@click.option('--port', '-p', type=int, help='Port to run Open WebUI on')
+def start(port: Optional[int]):
+    """Start the Open WebUI container."""
+    try:
+        installer = Installer()
+        installer.start_container(port=port)
+        console.print("[green]✓[/green] Open WebUI started")
+>>>>>>> origin/codex/implement-start,-stop,-and-update-commands
     except Exception as e:
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
 
 
 @cli.command()
+<<<<<<< HEAD
 def stop():
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -389,12 +401,22 @@ def stop():
         installer.stop()
         console.print("[green]✓[/green] Open WebUI stopped!")
 >>>>>>> origin/codex/replace-placeholder-commands-in-install.py
+=======
+@click.option('--remove', '-r', is_flag=True, help='Remove container after stopping')
+def stop(remove: bool):
+    """Stop the Open WebUI container."""
+    try:
+        installer = Installer()
+        installer.stop_container(remove=remove)
+        console.print("[green]✓[/green] Open WebUI stopped")
+>>>>>>> origin/codex/implement-start,-stop,-and-update-commands
     except Exception as e:
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
 
 
 @cli.command()
+<<<<<<< HEAD
 <<<<<<< HEAD
 def restart():
 <<<<<<< HEAD
@@ -440,6 +462,11 @@ def update(image: Optional[str]):
 def update(image: Optional[str]):
     """Update Open WebUI Docker image."""
 >>>>>>> origin/codex/add-cli-methods-and-update-tests
+=======
+@click.option('--image', help='Docker image to use for update')
+def update(image: Optional[str]):
+    """Update the Open WebUI container image."""
+>>>>>>> origin/codex/implement-start,-stop,-and-update-commands
     try:
         installer = Installer()
         installer.update(image=image)
@@ -449,6 +476,7 @@ def update(image: Optional[str]):
         sys.exit(1)
 
 
+<<<<<<< HEAD
 @cli.command()
 <<<<<<< HEAD
 @click.option("--tail", default=100, help="Number of log lines to display", type=int)
@@ -491,6 +519,8 @@ def update(image: Optional[str]):
         sys.exit(1)
 
 
+=======
+>>>>>>> origin/codex/implement-start,-stop,-and-update-commands
 def main():
     """Main entry point for the CLI."""
     cli()
