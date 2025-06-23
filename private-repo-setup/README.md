@@ -2,6 +2,8 @@
 
 This directory contains everything you need to set up automated releases for your private Open WebUI Installer repository.
 
+> **Note**: The installer is now part of the broader **Universal Container App Store** project, but these instructions remain valid for Open WebUI deployments.
+
 ## 🚀 Quick Setup
 
 ### Option 1: Automated Setup (Recommended)
