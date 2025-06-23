@@ -141,10 +141,14 @@ class Installer:
         force: bool = False,
         image: Optional[str] = None,
 <<<<<<< HEAD
+<<<<<<< HEAD
     ) -> None:
 =======
     ):
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
+=======
+    ):
+>>>>>>> origin/codex/extend-installer-with-container-management-methods
         """Install Open WebUI."""
         try:
             # Check if already installed
@@ -180,9 +184,12 @@ class Installer:
             launch_script = os.path.join(self.config_dir, "launch-openwebui.sh")
             with open(launch_script, "w") as f:
 <<<<<<< HEAD
+<<<<<<< HEAD
                 f.write(f"""#!/bin/bash
 {self.runtime} run -d \\
 =======
+=======
+>>>>>>> origin/codex/extend-installer-with-container-management-methods
                 f.write(
                     f"""#!/bin/bash
 docker run -d \\
@@ -233,10 +240,14 @@ docker run -d \\
                     ports={"8080/tcp": port},
                     volumes={"open-webui": {"bind": "/app/backend/data", "mode": "rw"}},
 <<<<<<< HEAD
+<<<<<<< HEAD
                     environment=env_vars,
 =======
                     environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
+=======
+                    environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
+>>>>>>> origin/codex/extend-installer-with-container-management-methods
                     extra_hosts={"host.docker.internal": "host-gateway"},
                     detach=True,
                     restart_policy={"Name": "unless-stopped"},
@@ -265,7 +276,10 @@ docker run -d \\
 =======
             import shutil
 
+<<<<<<< HEAD
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
+=======
+>>>>>>> origin/codex/extend-installer-with-container-management-methods
             if os.path.exists(self.config_dir):
                 shutil.rmtree(self.config_dir)
 
@@ -318,6 +332,7 @@ docker run -d \\
 
         return status
 
+<<<<<<< HEAD
     def start(self):
 <<<<<<< HEAD
         """Start the Open WebUI container."""
@@ -346,11 +361,28 @@ docker run -d \\
 
         port = status["port"]
         image = status.get("image", self.webui_image)
+=======
+    def _load_config(self) -> Dict:
+        """Load configuration from disk."""
+        config_file = os.path.join(self.config_dir, "config.json")
+        with open(config_file) as f:
+            return json.load(f)
+
+    def start(self):
+        """Start the Open WebUI Docker container."""
+        if not self.get_status()["installed"]:
+            raise InstallerError("Open WebUI is not installed")
+
+        config = self._load_config()
+        image = config.get("image", self.webui_image)
+        port = config.get("port", 3000)
+>>>>>>> origin/codex/extend-installer-with-container-management-methods
 
         try:
             container = self.docker_client.containers.get("open-webui")
             if container.status != "running":
                 container.start()
+<<<<<<< HEAD
                 console.print(f"✓ Container started with ID: {container.short_id}")
         except docker.errors.NotFound:
             try:
@@ -383,15 +415,33 @@ docker run -d \\
                 console.print(f"✓ Container started with ID: {container.short_id}")
             except docker.errors.APIError as e:
                 raise InstallerError(f"Failed to start Open WebUI container: {str(e)}")
+=======
+        except docker.errors.NotFound:
+            self.docker_client.containers.run(
+                image,
+                name="open-webui",
+                ports={"8080/tcp": port},
+                volumes={"open-webui": {"bind": "/app/backend/data", "mode": "rw"}},
+                environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
+                extra_hosts={"host.docker.internal": "host-gateway"},
+                detach=True,
+                restart_policy={"Name": "unless-stopped"},
+            )
+>>>>>>> origin/codex/extend-installer-with-container-management-methods
         except docker.errors.APIError as e:
             raise InstallerError(f"Failed to start Open WebUI container: {str(e)}")
 
     def stop(self):
+<<<<<<< HEAD
         """Stop the Open WebUI container."""
+=======
+        """Stop the Open WebUI Docker container."""
+>>>>>>> origin/codex/extend-installer-with-container-management-methods
         try:
             container = self.docker_client.containers.get("open-webui")
             container.stop()
         except docker.errors.NotFound:
+<<<<<<< HEAD
             raise InstallerError("Open WebUI container not found.")
         except docker.errors.APIError as e:
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
@@ -439,11 +489,79 @@ docker run -d \\
 
     def logs(self, tail: int = 100) -> str:
         """Return logs from the Open WebUI container."""
+=======
+            raise InstallerError("Open WebUI container is not running")
+        except docker.errors.APIError as e:
+            raise InstallerError(f"Failed to stop Open WebUI container: {str(e)}")
+
+    def restart(self):
+        """Restart the Open WebUI Docker container."""
+        try:
+            container = self.docker_client.containers.get("open-webui")
+            container.restart()
+        except docker.errors.NotFound:
+            raise InstallerError("Open WebUI container is not running")
+        except docker.errors.APIError as e:
+            raise InstallerError(f"Failed to restart Open WebUI container: {str(e)}")
+
+    def update(self):
+        """Update the Open WebUI Docker image and restart the container."""
+        if not self.get_status()["installed"]:
+            raise InstallerError("Open WebUI is not installed")
+
+        config = self._load_config()
+        image = config.get("image", self.webui_image)
+
+        try:
+            self.docker_client.images.pull(image)
+            self.restart()
+        except docker.errors.APIError as e:
+            raise InstallerError(f"Failed to update Open WebUI container: {str(e)}")
+
+    def logs(self, tail: int = 100) -> str:
+        """Retrieve logs from the Open WebUI Docker container."""
+>>>>>>> origin/codex/extend-installer-with-container-management-methods
         try:
             container = self.docker_client.containers.get("open-webui")
             return container.logs(tail=tail).decode()
         except docker.errors.NotFound:
+<<<<<<< HEAD
             raise InstallerError("Open WebUI container not found.")
         except docker.errors.APIError as e:
             raise InstallerError(f"Failed to get logs: {str(e)}")
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
+=======
+            raise InstallerError("Open WebUI container not found")
+
+    def enable_autostart(self) -> str:
+        """Enable autostart on macOS using launchd."""
+        if platform.system() != "Darwin":
+            raise InstallerError("Autostart is only supported on macOS")
+
+        plist_dir = os.path.expanduser("~/Library/LaunchAgents")
+        os.makedirs(plist_dir, exist_ok=True)
+        plist_path = os.path.join(plist_dir, "com.openwebui.autostart.plist")
+        launch_script = os.path.join(self.config_dir, "launch-openwebui.sh")
+        plist_content = f"""<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
+<plist version=\"1.0\">
+<dict>
+    <key>Label</key>
+    <string>com.openwebui</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>{launch_script}</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+</dict>
+</plist>
+"""
+        with open(plist_path, "w") as f:
+            f.write(plist_content)
+        try:
+            subprocess.run(["launchctl", "load", "-w", plist_path], check=True)
+        except subprocess.CalledProcessError as e:
+            raise InstallerError(f"Failed to enable autostart: {str(e)}")
+        return plist_path
+>>>>>>> origin/codex/extend-installer-with-container-management-methods

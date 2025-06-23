@@ -266,6 +266,71 @@ class TestInstallerSuite:
         mock_container.stop.assert_called_once()
         mock_container.remove.assert_called_once()
 
+    def test_start_existing_container(self, installer, mocker):
+        """Start should start existing container if not running."""
+        mocker.patch.object(installer, "get_status", return_value={"installed": True})
+        mock_container = MagicMock(status="exited")
+        installer.docker_client.containers.get.return_value = mock_container
+        mocker.patch.object(installer, "_load_config", return_value={"image": "img", "port": 1234})
+        installer.start()
+        mock_container.start.assert_called_once()
+
+    def test_start_new_container_when_missing(self, installer, mocker):
+        """Start should run container if none exists."""
+        mocker.patch.object(installer, "get_status", return_value={"installed": True})
+        installer.docker_client.containers.get.side_effect = docker.errors.NotFound("not found")
+        installer.docker_client.containers.run.return_value = MagicMock()
+        mocker.patch.object(installer, "_load_config", return_value={"image": "img", "port": 1234})
+        installer.start()
+        installer.docker_client.containers.run.assert_called_once()
+
+    def test_stop_container(self, installer, mocker):
+        """Stop should stop running container."""
+        mock_container = MagicMock()
+        installer.docker_client.containers.get.return_value = mock_container
+        installer.stop()
+        mock_container.stop.assert_called_once()
+
+    def test_restart_container(self, installer, mocker):
+        """Restart should restart running container."""
+        mock_container = MagicMock()
+        installer.docker_client.containers.get.return_value = mock_container
+        installer.restart()
+        mock_container.restart.assert_called_once()
+
+    def test_update_pulls_image_and_restarts(self, installer, mocker):
+        """Update should pull image and restart container."""
+        mocker.patch.object(installer, "get_status", return_value={"installed": True})
+        mocker.patch.object(installer, "_load_config", return_value={"image": "img"})
+        mock_restart = mocker.patch.object(installer, "restart")
+        installer.update()
+        installer.docker_client.images.pull.assert_called_once_with("img")
+        mock_restart.assert_called_once()
+
+    def test_logs_returns_string(self, installer, mocker):
+        """Logs should return decoded string."""
+        mock_container = MagicMock()
+        mock_container.logs.return_value = b"hello"
+        installer.docker_client.containers.get.return_value = mock_container
+        output = installer.logs()
+        assert output == "hello"
+
+    def test_enable_autostart_creates_plist(self, installer, mocker, tmp_path):
+        """Enable autostart should write plist on macOS."""
+        mocker.patch("platform.system", return_value="Darwin")
+        plist_dir = tmp_path / "Library" / "LaunchAgents"
+        mocker.patch(
+            "os.path.expanduser",
+            side_effect=lambda p: str(plist_dir.parent) if p.startswith("~/") else p,
+        )
+        mocker.patch("os.makedirs")
+        mock_run = mocker.patch("subprocess.run")
+        plist_path = plist_dir / "com.openwebui.autostart.plist"
+        mock_open_file = mocker.patch("builtins.open", mock_open())
+        result = installer.enable_autostart()
+        assert result.endswith("com.openwebui.autostart.plist")
+        mock_run.assert_called_once()
+
     # def test_is_open_webui_running(self, installer, mocker):
     #     """Test checking if open webui is running."""
     #     # installer.docker_client is already a MagicMock
