@@ -243,3 +243,21 @@ class TestCLI:
             result = runner.invoke(cli, ['--runtime', 'podman', 'install'])
             assert result.exit_code == 0
             mock_cls.assert_any_call(runtime='podman')
+
+    def test_start_command(self, runner, mock_installer):
+        """Test start command"""
+        result = runner.invoke(cli, ["start"])
+        assert result.exit_code == 0
+        mock_installer.start.assert_called_once()
+
+    def test_stop_command(self, runner, mock_installer):
+        """Test stop command"""
+        result = runner.invoke(cli, ["stop"])
+        assert result.exit_code == 0
+        mock_installer.stop.assert_called_once()
+
+    def test_restart_command(self, runner, mock_installer):
+        """Test restart command"""
+        result = runner.invoke(cli, ["restart"])
+        assert result.exit_code == 0
+        mock_installer.restart.assert_called_once()

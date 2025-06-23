@@ -263,6 +263,71 @@ class TestInstallerSuite:
         mock_container.stop.assert_called_once()
         mock_container.remove.assert_called_once()
 
+    def test_start_existing_container(self, installer, mocker):
+        """Start should start existing container"""
+        mocker.patch.object(installer, '_check_system_requirements')
+        config = '{"port": 3000, "image": "img"}'
+        mocker.patch('builtins.open', mock_open(read_data=config))
+        mocker.patch('os.path.exists', return_value=True)
+        mock_container = MagicMock()
+        installer.docker_client.containers.get.return_value = mock_container
+
+        installer.start()
+
+        mock_container.start.assert_called_once()
+        installer.docker_client.containers.run.assert_not_called()
+
+    def test_start_creates_container_when_missing(self, installer, mocker):
+        """Start should create container if not present"""
+        mocker.patch.object(installer, '_check_system_requirements')
+        config = '{"port": 1234, "image": "custom"}'
+        mocker.patch('builtins.open', mock_open(read_data=config))
+        mocker.patch('os.path.exists', return_value=True)
+        installer.docker_client.containers.get.side_effect = docker.errors.NotFound("missing")
+
+        installer.start()
+
+        installer.docker_client.containers.run.assert_called_once_with(
+            'custom',
+            name='open-webui',
+            ports={'8080/tcp': 1234},
+            volumes={'open-webui': {'bind': '/app/backend/data', 'mode': 'rw'}},
+            environment={'OLLAMA_API_BASE_URL': 'http://host.docker.internal:11434/api'},
+            extra_hosts={'host.docker.internal': 'host-gateway'},
+            detach=True,
+            restart_policy={'Name': 'unless-stopped'},
+        )
+
+    def test_start_without_installation(self, installer, mocker):
+        """Start should fail when not installed"""
+        mocker.patch.object(installer, '_check_system_requirements')
+        mocker.patch('os.path.exists', return_value=False)
+        with pytest.raises(InstallerError, match="Open WebUI is not installed"):
+            installer.start()
+
+    def test_stop_success(self, installer, mocker):
+        """Stop container when running"""
+        mock_container = MagicMock()
+        installer.docker_client.containers.get.return_value = mock_container
+
+        installer.stop()
+
+        mock_container.stop.assert_called_once()
+
+    def test_stop_not_running(self, installer, mocker):
+        """Stop should succeed if container not found"""
+        installer.docker_client.containers.get.side_effect = docker.errors.NotFound("missing")
+        # Should not raise
+        installer.stop()
+
+    def test_restart_calls_start_and_stop(self, installer, mocker):
+        """Restart should invoke stop and start"""
+        mocker.patch.object(installer, 'start')
+        mocker.patch.object(installer, 'stop')
+        installer.restart()
+        installer.stop.assert_called_once()
+        installer.start.assert_called_once()
+
     # def test_is_open_webui_running(self, installer, mocker):
     #     """Test checking if open webui is running."""
     #     # installer.docker_client is already a MagicMock

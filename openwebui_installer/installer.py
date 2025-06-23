@@ -265,3 +265,55 @@ class Installer:
             pass
 
         return status
+
+    def start(self):
+        """Start the Open WebUI container."""
+        try:
+            self._check_system_requirements()
+
+            config_path = os.path.join(self.config_dir, "config.json")
+            if not os.path.exists(config_path):
+                raise InstallerError("Open WebUI is not installed")
+
+            with open(config_path) as f:
+                config = json.load(f)
+
+            image = config.get("image", self.webui_image)
+            port = config.get("port", 3000)
+
+            try:
+                container = self.docker_client.containers.get("open-webui")
+                container.start()
+            except docker.errors.NotFound:
+                container = self.docker_client.containers.run(
+                    image,
+                    name="open-webui",
+                    ports={"8080/tcp": port},
+                    volumes={"open-webui": {"bind": "/app/backend/data", "mode": "rw"}},
+                    environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
+                    extra_hosts={"host.docker.internal": "host-gateway"},
+                    detach=True,
+                    restart_policy={"Name": "unless-stopped"},
+                )
+            return container
+        except Exception as e:
+            raise InstallerError(f"Failed to start Open WebUI container: {str(e)}")
+
+    def stop(self):
+        """Stop the Open WebUI container if it is running."""
+        try:
+            try:
+                container = self.docker_client.containers.get("open-webui")
+                container.stop()
+            except docker.errors.NotFound:
+                return
+        except Exception as e:
+            raise InstallerError(f"Failed to stop Open WebUI container: {str(e)}")
+
+    def restart(self):
+        """Restart the Open WebUI container."""
+        try:
+            self.stop()
+            self.start()
+        except Exception as e:
+            raise InstallerError(f"Failed to restart Open WebUI container: {str(e)}")
