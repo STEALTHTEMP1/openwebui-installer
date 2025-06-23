@@ -1,0 +1,7 @@
+aws_region      = "us-east-1"
+cluster_name     = "openwebui-cluster"
+vpc_cidr         = "10.0.0.0/16"
+public_subnets   = ["10.0.1.0/24", "10.0.2.0/24"]
+container_image  = "ghcr.io/open-webui/open-webui:main"
+container_port   = 3000
+desired_count    = 1
