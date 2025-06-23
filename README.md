@@ -82,6 +82,15 @@ docker rm open-webui
 - [Working Setup Guide](WORKING_SETUP.md) - Detailed troubleshooting and setup notes
 - [Release Notes](CHANGELOG.md) - Version history and changes
 
+## 🛠 Development Setup
+
+Install `pre-commit` to automatically run linters and formatters before each commit:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
 ---
 
 # Private Repository Setup for Open WebUI Installer
