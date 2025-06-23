@@ -165,6 +165,7 @@ done
 
 # Detect duplicates by purpose
 echo "🔍 Detecting duplicates..."
+DUPLICATES=()
 if [[ -f "$REVIEW_DIR/purpose_groups.tmp" ]]; then
     # Group branches by purpose and find duplicates
     sort "$REVIEW_DIR/purpose_groups.tmp" | uniq -c | while read count purpose_branch; do
@@ -176,12 +177,22 @@ if [[ -f "$REVIEW_DIR/purpose_groups.tmp" ]]; then
         fi
     done
 
-    # Read duplicates from file
     if [[ -f "$REVIEW_DIR/duplicates.tmp" ]]; then
         while read -r branch; do
             [[ -n "$branch" ]] && DUPLICATES+=("$branch")
         done < "$REVIEW_DIR/duplicates.tmp"
     fi
+fi
+
+# Use DUPLICATES safely
+if [[ ${#DUPLICATES[@]} -gt 0 ]]; then
+    echo "Processing duplicate branches:"
+    for branch in "${DUPLICATES[@]}"; do
+        echo "Handling duplicate branch: $branch"
+        # Logic to handle duplicates, e.g., decide which branch to keep
+    done
+else
+    echo "No duplicate branches found."
 fi
 
 # Write categorized files
@@ -226,16 +237,20 @@ echo "📝 Writing categorized branch lists..."
     echo "# Potential Duplicate Branches"
     echo "# These branches may have overlapping functionality"
     echo ""
-    for branch in "${DUPLICATES[@]}"; do
-        # Get analysis from temp file
-        analysis_line=$(grep "^$branch:" "$REVIEW_DIR/branch_analysis.tmp" 2>/dev/null || echo "")
-        if [[ -n "$analysis_line" ]]; then
-            IFS=':' read -r _ commits files insertions deletions conflicts purpose <<< "$analysis_line"
-            echo "$branch # $purpose, $commits commits, compare with other $purpose branches"
-        else
-            echo "$branch # analysis not available"
-        fi
-    done
+    if [[ ${#DUPLICATES[@]} -gt 0 ]]; then
+        for branch in "${DUPLICATES[@]}"; do
+            # Get analysis from temp file
+            analysis_line=$(grep "^$branch:" "$REVIEW_DIR/branch_analysis.tmp" 2>/dev/null || echo "")
+            if [[ -n "$analysis_line" ]]; then
+                IFS=':' read -r _ commits files insertions deletions conflicts purpose <<< "$analysis_line"
+                echo "$branch # $purpose, $commits commits, compare with other $purpose branches"
+            else
+                echo "$branch # analysis not available"
+            fi
+        done
+    else
+        echo "# No duplicate branches found"
+    fi
 } > "$DUPLICATE_FILE"
 
 # Needs manual review
@@ -275,7 +290,7 @@ if [[ -f "$REVIEW_DIR/purpose_groups.tmp" ]]; then
     sort "$REVIEW_DIR/purpose_groups.tmp" | cut -d: -f1 | uniq | while read purpose; do
         branches=($(grep "^$purpose:" "$REVIEW_DIR/purpose_groups.tmp" | cut -d: -f2))
         cat >> "$REPORT_FILE" << EOF
-### ${purpose^} Branches (${#branches[@]})
+### ${purpose} Branches (${#branches[@]})
 $(printf '- `%s`\n' "${branches[@]}")
 
 EOF
@@ -326,20 +341,24 @@ Choose the best version from each group and close the others:
 
 EOF
 
-current_purpose=""
-for branch in "${DUPLICATES[@]}"; do
-    # Get analysis from temp file
-    analysis_line=$(grep "^$branch:" "$REVIEW_DIR/branch_analysis.tmp" 2>/dev/null || echo "")
-    if [[ -n "$analysis_line" ]]; then
-        IFS=':' read -r _ commits files insertions deletions conflicts purpose <<< "$analysis_line"
-        if [[ "$purpose" != "$current_purpose" ]]; then
-            echo "" >> "$REPORT_FILE"
-            echo "**$purpose branches:**" >> "$REPORT_FILE"
-            current_purpose="$purpose"
+if [[ ${#DUPLICATES[@]} -gt 0 ]]; then
+    current_purpose=""
+    for branch in "${DUPLICATES[@]}"; do
+        # Get analysis from temp file
+        analysis_line=$(grep "^$branch:" "$REVIEW_DIR/branch_analysis.tmp" 2>/dev/null || echo "")
+        if [[ -n "$analysis_line" ]]; then
+            IFS=':' read -r _ commits files insertions deletions conflicts purpose <<< "$analysis_line"
+            if [[ "$purpose" != "$current_purpose" ]]; then
+                echo "" >> "$REPORT_FILE"
+                echo "**$purpose branches:**" >> "$REPORT_FILE"
+                current_purpose="$purpose"
+            fi
+            echo "- \`$branch\` ($commits commits, $files files)" >> "$REPORT_FILE"
         fi
-        echo "- \`$branch\` ($commits commits, $files files)" >> "$REPORT_FILE"
-    fi
-done
+    done
+else
+    echo "No duplicate branches detected." >> "$REPORT_FILE"
+fi
 
 cat >> "$REPORT_FILE" << EOF
 
