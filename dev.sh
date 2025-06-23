@@ -3,7 +3,7 @@
 # dev.sh - Development Environment Management Script
 # This script manages the complete development environment for the Open WebUI Installer project
 
-set -e
+set -euo pipefail
 
 # Colors for output
 RED='\033[0;31m'
