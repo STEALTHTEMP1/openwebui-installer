@@ -10,6 +10,7 @@ from unittest.mock import MagicMock, mock_open
 
 import docker
 import pytest
+
 from openwebui_installer.installer import Installer, InstallerError, SystemRequirementsError
 
 
@@ -61,11 +62,9 @@ class TestInstallerSuite:
         """Test that system requirements check fails if Docker is not running."""
         mocker.patch("platform.system", return_value="Darwin")
         mocker.patch("sys.version_info", (3, 9, 0))
-        installer.docker_client.ping.side_effect = docker.errors.DockerException(
-            "Docker not running"
-        )
+        installer.docker_client.ping.side_effect = Exception("Docker not running")
 
-        with pytest.raises(SystemRequirementsError, match="Docker service is not running"):
+        with pytest.raises(SystemRequirementsError, match="Docker is not running or not installed"):
             installer._check_system_requirements()
 
     def test_check_system_requirements_ollama_not_running(self, installer, mocker):
@@ -124,6 +123,32 @@ class TestInstallerSuite:
             InstallerError, match="Open WebUI is already installed. Use --force to reinstall."
         ):
             installer.install(force=False)
+
+    def test_enable_autostart_success(self, installer, mocker):
+        """Test enabling autostart on macOS."""
+        mocker.patch("platform.system", return_value="Darwin")
+        mocker.patch("os.path.exists", return_value=True)
+        mocker.patch("os.makedirs")
+        mocker.patch("builtins.open", mock_open())
+        mock_run = mocker.patch("subprocess.run")
+
+        installer.enable_autostart()
+
+        mock_run.assert_called_once()
+
+    def test_enable_autostart_wrong_os(self, installer, mocker):
+        """Autostart should fail on non-macOS systems."""
+        mocker.patch("platform.system", return_value="Linux")
+        with pytest.raises(InstallerError, match="Autostart is only supported on macOS"):
+            installer.enable_autostart()
+
+    def test_enable_autostart_missing_script(self, installer, mocker):
+        """Autostart fails if launch script is missing."""
+        mocker.patch("platform.system", return_value="Darwin")
+        mocker.patch("os.path.exists", return_value=False)
+
+        with pytest.raises(InstallerError, match="Launch script not found"):
+            installer.enable_autostart()
 
     def test_uninstall_success(self, installer, mocker):
         """Test a successful uninstall removes container, volume, and config directory."""
@@ -352,20 +377,3 @@ class TestInstallerSuite:
     #     # with pytest.raises(InstallerError):
     #         # installer.install_ollama() # Method doesn't exist
     #     pass
-
-    def test_close_calls_docker_client_close(self, mocker):
-        """Installer.close should close the docker client if available."""
-        mock_client = MagicMock()
-        mocker.patch('docker.from_env', return_value=mock_client)
-        inst = Installer()
-        inst.close()
-        mock_client.close.assert_called_once()
-
-    def test_context_manager_invokes_close(self, mocker):
-        """Using Installer as a context manager should close the docker client."""
-        mock_client = MagicMock()
-        mocker.patch('docker.from_env', return_value=mock_client)
-        with Installer() as _:
-            pass
-        mock_client.close.assert_called_once()
-

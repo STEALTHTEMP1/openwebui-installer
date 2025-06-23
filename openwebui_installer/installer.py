@@ -202,6 +202,7 @@ class Installer:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     ) -> None:
 =======
     ):
@@ -215,6 +216,9 @@ class Installer:
 =======
     ):
 >>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
+=======
+    ):
+>>>>>>> origin/codex/implement-macos-autostart-feature
         """Install Open WebUI."""
         try:
             logger.debug("Starting installation")
@@ -254,6 +258,7 @@ class Installer:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 f.write(f"""#!/bin/bash
 {self.runtime} run -d \\
 =======
@@ -263,6 +268,8 @@ class Installer:
 >>>>>>> origin/codex/add-cli-methods-and-update-tests
 =======
 >>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
+=======
+>>>>>>> origin/codex/implement-macos-autostart-feature
                 f.write(
                     f"""#!/bin/bash
 docker run -d \\
@@ -316,6 +323,7 @@ docker run -d \\
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     environment=env_vars,
 =======
                     environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
@@ -329,6 +337,9 @@ docker run -d \\
 =======
                     environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
 >>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
+=======
+                    environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
+>>>>>>> origin/codex/implement-macos-autostart-feature
                     extra_hosts={"host.docker.internal": "host-gateway"},
                     detach=True,
                     restart_policy={"Name": "unless-stopped"},
@@ -361,6 +372,7 @@ docker run -d \\
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
 =======
 >>>>>>> origin/codex/extend-installer-with-container-management-methods
@@ -368,6 +380,8 @@ docker run -d \\
 >>>>>>> origin/codex/add-cli-methods-and-update-tests
 =======
 >>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
+=======
+>>>>>>> origin/codex/implement-macos-autostart-feature
             if os.path.exists(self.config_dir):
                 shutil.rmtree(self.config_dir)
 
@@ -420,6 +434,7 @@ docker run -d \\
 
         return status
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     def start(self):
@@ -711,12 +726,36 @@ docker run -d \\
 <dict>
     <key>Label</key>
     <string>com.openwebui</string>
+=======
+    def enable_autostart(self):
+        """Configure macOS to launch Open WebUI at login."""
+        if platform.system() != "Darwin":
+            raise InstallerError("Autostart is only supported on macOS")
+
+        launch_script = os.path.join(self.config_dir, "launch-openwebui.sh")
+        if not os.path.exists(launch_script):
+            raise InstallerError(
+                "Launch script not found. Please run 'openwebui-installer install' first."
+            )
+
+        plist_dir = os.path.expanduser("~/Library/LaunchAgents")
+        os.makedirs(plist_dir, exist_ok=True)
+        plist_path = os.path.join(plist_dir, "com.openwebui.openwebui.plist")
+
+        plist_contents = f"""<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.openwebui.openwebui</string>
+>>>>>>> origin/codex/implement-macos-autostart-feature
     <key>ProgramArguments</key>
     <array>
         <string>{launch_script}</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
+<<<<<<< HEAD
 </dict>
 </plist>
 """
@@ -743,3 +782,19 @@ docker run -d \\
         except docker.errors.APIError as e:
             raise InstallerError(f"Failed to fetch logs: {str(e)}")
 >>>>>>> origin/codex/add-cli-methods-and-update-tests
+=======
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>{os.path.join(self.config_dir, 'openwebui.log')}</string>
+    <key>StandardErrorPath</key>
+    <string>{os.path.join(self.config_dir, 'openwebui.err')}</string>
+</dict>
+</plist>
+"""
+
+        with open(plist_path, "w") as plist_file:
+            plist_file.write(plist_contents)
+
+        subprocess.run(["launchctl", "load", "-w", plist_path], check=True)
+>>>>>>> origin/codex/implement-macos-autostart-feature

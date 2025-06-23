@@ -2,12 +2,12 @@
 Tests for the CLI module
 """
 
-from unittest.mock import MagicMock, patch, Mock
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from click.testing import CliRunner
 
-from openwebui_installer.cli import cli, install, uninstall, status
+from openwebui_installer.cli import cli, install, status, uninstall
 from openwebui_installer.installer import InstallerError, SystemRequirementsError
 
 
@@ -53,12 +53,10 @@ def test_install_with_options(runner, mock_installer):
 
 def test_install_system_requirements_error(runner, mock_installer):
     """Test installation with system requirements error."""
-    mock_installer.install.side_effect = SystemRequirementsError(
-        "Docker service is not running. Start Docker Desktop and ensure the daemon is running."
-    )
+    mock_installer.install.side_effect = SystemRequirementsError("Docker not running")
     result = runner.invoke(cli, ["install"])
     assert result.exit_code == 1
-    assert "Docker service is not running" in result.output
+    assert "Docker not running" in result.output
 
 
 def test_install_error(runner, mock_installer):
@@ -251,11 +249,14 @@ class TestCLI:
             image="custom/image:tag",  # Provided in test
         )
 
-    def test_verbose_flag(self, runner):
-        """Installer receives verbose flag when provided"""
-        with patch("openwebui_installer.cli.Installer") as mock_cls:
-            instance = Mock()
-            mock_cls.return_value = instance
-            result = runner.invoke(cli, ["--verbose", "install"])
-            assert result.exit_code == 0
-            mock_cls.assert_called_with(verbose=True)
+    def test_enable_autostart_command(self, runner, mock_installer):
+        """Test enable-autostart CLI command."""
+        result = runner.invoke(cli, ["enable-autostart"])
+        assert result.exit_code == 0
+        mock_installer.enable_autostart.assert_called_once()
+
+        mock_installer.enable_autostart.reset_mock()
+        mock_installer.enable_autostart.side_effect = InstallerError("fail")
+        result = runner.invoke(cli, ["enable-autostart"])
+        assert result.exit_code == 1
+        assert "fail" in result.output

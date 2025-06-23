@@ -56,6 +56,7 @@ def cli(ctx, runtime):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 @click.option('--model', '-m', help='Ollama model to install', default='llama2')
 @click.option('--port', '-p', help='Port to run Open WebUI on', default=3000, type=int)
 @click.option('--force', '-f', is_flag=True, help='Force installation even if already installed')
@@ -77,11 +78,16 @@ def cli(ctx: click.Context, verbose: bool):
 
 @cli.command()
 >>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
+=======
+>>>>>>> origin/codex/implement-macos-autostart-feature
 @click.option("--model", "-m", help="Ollama model to install", default="llama2")
 @click.option("--port", "-p", help="Port to run Open WebUI on", default=3000, type=int)
 @click.option("--force", "-f", is_flag=True, help="Force installation even if already installed")
 @click.option("--image", help="Custom Open WebUI image to use")
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/codex/implement-macos-autostart-feature
 def install(model: str, port: int, force: bool, image: Optional[str]):
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
     """Install Open WebUI and configure Ollama integration."""
@@ -276,7 +282,10 @@ def status(ctx: click.Context):
         installer = Installer(verbose=verbose)
         status = installer.get_status()
 
+<<<<<<< HEAD
 >>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
+=======
+>>>>>>> origin/codex/implement-macos-autostart-feature
         if status["installed"]:
             console.print("[green]✓[/green] Open WebUI is installed")
             console.print(f"Version: {status['version']}")
@@ -291,6 +300,7 @@ def status(ctx: click.Context):
         sys.exit(1)
 
 
+<<<<<<< HEAD
 @cli.command()
 def start():
 <<<<<<< HEAD
@@ -439,6 +449,15 @@ def logs(lines: int):
         output = installer.logs(tail=lines)
         console.print(output)
 >>>>>>> origin/codex/add-cli-methods-and-update-tests
+=======
+@cli.command(name="enable-autostart")
+def enable_autostart_cmd():
+    """Configure macOS to start Open WebUI automatically at login."""
+    try:
+        installer = Installer()
+        installer.enable_autostart()
+        console.print("[green]✓[/green] Autostart enabled")
+>>>>>>> origin/codex/implement-macos-autostart-feature
     except Exception as e:
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
