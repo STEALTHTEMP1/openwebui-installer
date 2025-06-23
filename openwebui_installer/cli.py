@@ -4,6 +4,8 @@ Command-line interface for Open WebUI Installer
 
 import logging
 import sys
+import logging
+from pathlib import Path
 from typing import Optional
 
 import click
@@ -14,6 +16,8 @@ from . import __version__
 from .installer import Installer
 
 console = Console()
+logger = logging.getLogger("openwebui_installer.cli")
+logging.basicConfig(level=logging.INFO)
 
 
 <<<<<<< HEAD
@@ -35,6 +39,7 @@ def validate_system(verbose: bool = False) -> bool:
 >>>>>>> origin/codex/add-context-manager-and-close-method
         return True
     except Exception as e:
+        logger.error("System validation failed: %s", str(e))
         console.print(f"[red]System validation failed:[/red] {str(e)}")
         if verbose:
             console.print_exception()
@@ -53,6 +58,7 @@ def cli(ctx, runtime):
 
 
 @cli.command()
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -80,19 +86,29 @@ def cli(ctx: click.Context, verbose: bool):
 >>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
 =======
 >>>>>>> origin/codex/implement-macos-autostart-feature
+=======
+>>>>>>> origin/codex/integrate-logging-module-and-add-cli-command
 @click.option("--model", "-m", help="Ollama model to install", default="llama2")
 @click.option("--port", "-p", help="Port to run Open WebUI on", default=3000, type=int)
 @click.option("--force", "-f", is_flag=True, help="Force installation even if already installed")
 @click.option("--image", help="Custom Open WebUI image to use")
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> origin/codex/implement-macos-autostart-feature
+=======
+>>>>>>> origin/codex/integrate-logging-module-and-add-cli-command
 def install(model: str, port: int, force: bool, image: Optional[str]):
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
     """Install Open WebUI and configure Ollama integration."""
     try:
+<<<<<<< HEAD
         if not validate_system(ctx.obj['runtime']):
+=======
+        logger.info("CLI install command invoked")
+        if not validate_system():
+>>>>>>> origin/codex/integrate-logging-module-and-add-cli-command
             sys.exit(1)
 
 <<<<<<< HEAD
@@ -129,9 +145,11 @@ def install(ctx: click.Context, model: str, port: int, force: bool, image: Optio
 >>>>>>> origin/codex/add-context-manager-and-close-method
 
         console.print("[green]✓[/green] Installation complete!")
+        logger.info("Installation command completed")
         console.print(f"\nOpen WebUI is now available at: http://localhost:{port}")
 
     except Exception as e:
+        logger.error("Installation command failed: %s", str(e))
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
 
@@ -146,8 +164,10 @@ def uninstall(ctx: click.Context):
     """Uninstall Open WebUI."""
     if not click.confirm("Are you sure you want to uninstall Open WebUI?", default=False):
         console.print("Uninstallation aborted.")
+        logger.info("Uninstallation aborted by user")
         return
     try:
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         installer = Installer(runtime=ctx.obj['runtime'])
@@ -155,6 +175,10 @@ def uninstall(ctx: click.Context):
         verbose = ctx.obj.get("verbose", False)
         installer = Installer(verbose=verbose)
 >>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
+=======
+        logger.info("CLI uninstall command invoked")
+        installer = Installer()
+>>>>>>> origin/codex/integrate-logging-module-and-add-cli-command
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -176,8 +200,10 @@ def uninstall(ctx: click.Context):
 >>>>>>> origin/codex/add-context-manager-and-close-method
 
         console.print("[green]✓[/green] Uninstallation complete!")
+        logger.info("Uninstallation command completed")
 
     except Exception as e:
+        logger.error("Uninstallation command failed: %s", str(e))
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
 
@@ -204,6 +230,7 @@ def start():
 def stop():
     """Stop the Open WebUI container."""
     try:
+        logger.info("CLI status command invoked")
         installer = Installer()
         installer.stop()
         console.print("[green]✓[/green] Open WebUI stopped")
@@ -283,9 +310,12 @@ def status(ctx: click.Context):
         status = installer.get_status()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
 =======
 >>>>>>> origin/codex/implement-macos-autostart-feature
+=======
+>>>>>>> origin/codex/integrate-logging-module-and-add-cli-command
         if status["installed"]:
             console.print("[green]✓[/green] Open WebUI is installed")
             console.print(f"Version: {status['version']}")
@@ -296,10 +326,12 @@ def status(ctx: click.Context):
             console.print("[yellow]![/yellow] Open WebUI is not installed")
 
     except Exception as e:
+        logger.error("Status command failed: %s", str(e))
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
 
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -544,6 +576,32 @@ def update(image: Optional[str]):
 >>>>>>> origin/codex/implement-start,-stop,-and-update-commands
 =======
 >>>>>>> origin/codex/implement-or-remove-cli-commands-in-openwebui_installer
+=======
+@cli.command()
+@click.option("--tail", type=int, default=20, help="Show last N lines of the log file")
+@click.option("--export", "export_path", type=click.Path(), help="Export log file to destination")
+def logs(tail: int, export_path: Optional[str]):
+    """View or export installer logs."""
+    installer = Installer()
+    log_file = installer.log_file
+    installer._setup_logger()
+
+    if export_path:
+        dest = Path(export_path)
+        dest.write_bytes(Path(log_file).read_bytes())
+        console.print(f"Logs exported to: {dest}")
+        return
+
+    try:
+        with open(log_file, "r") as f:
+            lines = f.readlines()[-tail:]
+            for line in lines:
+                click.echo(line.rstrip())
+    except FileNotFoundError:
+        console.print("Log file not found.")
+
+
+>>>>>>> origin/codex/integrate-logging-module-and-add-cli-command
 def main():
     """Main entry point for the CLI."""
     cli()

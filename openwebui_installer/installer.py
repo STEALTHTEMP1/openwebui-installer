@@ -3,12 +3,17 @@ Core installer functionality for Open WebUI
 """
 
 import json
+import logging
 import os
 import platform
 import shutil
 import subprocess
 import sys
+<<<<<<< HEAD
 import shutil
+=======
+from logging.handlers import RotatingFileHandler
+>>>>>>> origin/codex/integrate-logging-module-and-add-cli-command
 from typing import Dict, Optional
 
 import docker
@@ -18,6 +23,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 console = Console()
+logger = logging.getLogger("openwebui_installer")
 
 # Secrets that can be provided via environment variables or Docker secrets
 SECRET_ENV_VARS = [
@@ -78,6 +84,22 @@ class Installer:
 >>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
         self.webui_image = "ghcr.io/open-webui/open-webui:main"  # Default image
         self.config_dir = os.path.expanduser("~/.openwebui")
+        self._setup_logger()
+
+    def _setup_logger(self) -> None:
+        """Configure logging with rotation under the config directory."""
+        self.log_dir = os.path.join(self.config_dir, "logs")
+        os.makedirs(self.log_dir, exist_ok=True)
+        self.log_file = os.path.join(self.log_dir, "openwebui_installer.log")
+
+        if not any(
+            isinstance(h, RotatingFileHandler) and h.baseFilename == self.log_file
+            for h in logger.handlers
+        ):
+            handler = RotatingFileHandler(self.log_file, maxBytes=5 * 1024 * 1024, backupCount=3)
+            handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+            logger.setLevel(logging.INFO)
+            logger.addHandler(handler)
 
 <<<<<<< HEAD
     def _podman_available(self) -> bool:
@@ -130,6 +152,7 @@ class Installer:
     def _check_system_requirements(self):
         """Validate system requirements."""
 <<<<<<< HEAD
+<<<<<<< HEAD
         # Check supported operating systems (macOS and Linux)
         system = platform.system()
         if system not in ("Darwin", "Linux"):
@@ -138,6 +161,9 @@ class Installer:
             )
 =======
         logger.debug("Validating system requirements")
+=======
+        logger.info("Validating system requirements")
+>>>>>>> origin/codex/integrate-logging-module-and-add-cli-command
         # Check macOS
         if platform.system() != "Darwin":
             raise SystemRequirementsError("This installer only supports macOS")
@@ -192,6 +218,7 @@ class Installer:
         """Ensure configuration directory exists."""
         os.makedirs(self.config_dir, exist_ok=True)
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
     def _pull_webui_image(self, image: str) -> None:
@@ -269,12 +296,15 @@ docker run -d \
             raise InstallerError(f"Failed to start Open WebUI container: {str(e)}")
 
 >>>>>>> origin/codex/add-private-helper-functions-in-installer.py
+=======
+>>>>>>> origin/codex/integrate-logging-module-and-add-cli-command
     def install(
         self,
         model: str = "llama2",
         port: int = 3000,
         force: bool = False,
         image: Optional[str] = None,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -303,8 +333,16 @@ docker run -d \
         """Install Open WebUI."""
         try:
             logger.debug("Starting installation")
+=======
+    ):
+        """Install Open WebUI."""
+        try:
+            logger.info("Starting installation")
+            self._setup_logger()
+>>>>>>> origin/codex/integrate-logging-module-and-add-cli-command
             # Check if already installed
             if not force and self.get_status()["installed"]:
+                logger.warning("Installation aborted: already installed")
                 raise InstallerError("Open WebUI is already installed. Use --force to reinstall.")
 
             # Validate system
@@ -319,6 +357,7 @@ docker run -d \
 <<<<<<< HEAD
             # Pull Docker image
             console.print(f"Pulling Open WebUI image: {current_webui_image}...")
+            logger.info("Pulling Docker image %s", current_webui_image)
             try:
                 self.docker_client.images.pull(current_webui_image)
             except docker.errors.APIError as e:
@@ -326,6 +365,7 @@ docker run -d \
 
             # Pull Ollama model
             console.print(f"Pulling Ollama model: {model}...")
+            logger.info("Pulling Ollama model %s", model)
             try:
                 subprocess.run(["ollama", "pull", model], check=True, timeout=300)
             except subprocess.TimeoutExpired:
@@ -336,6 +376,7 @@ docker run -d \
             # Create launch script
             launch_script = os.path.join(self.config_dir, "launch-openwebui.sh")
             with open(launch_script, "w") as f:
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -352,6 +393,8 @@ docker run -d \
 >>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
 =======
 >>>>>>> origin/codex/implement-macos-autostart-feature
+=======
+>>>>>>> origin/codex/integrate-logging-module-and-add-cli-command
                 f.write(
                     f"""#!/bin/bash
 docker run -d \\
@@ -378,6 +421,10 @@ docker run -d \\
             # Start the container after installation
             console.print("Starting Open WebUI container...")
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+            logger.info("Starting Open WebUI container")
+>>>>>>> origin/codex/integrate-logging-module-and-add-cli-command
             try:
                 # Stop and remove existing container if it exists
                 try:
@@ -406,6 +453,7 @@ docker run -d \\
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     environment=env_vars,
 =======
                     environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
@@ -422,11 +470,15 @@ docker run -d \\
 =======
                     environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
 >>>>>>> origin/codex/implement-macos-autostart-feature
+=======
+                    environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
+>>>>>>> origin/codex/integrate-logging-module-and-add-cli-command
                     extra_hosts={"host.docker.internal": "host-gateway"},
                     detach=True,
                     restart_policy={"Name": "unless-stopped"},
                 )
                 console.print(f"✓ Container started with ID: {container.short_id}")
+                logger.info("Container started with ID %s", container.short_id)
 
             except docker.errors.APIError as e:
                 raise InstallerError(f"Failed to start Open WebUI container: {str(e)}")
@@ -436,12 +488,20 @@ docker run -d \\
 >>>>>>> origin/codex/add-private-helper-functions-in-installer.py
 
         except Exception as e:
+            logger.error("Installation failed: %s", str(e))
             raise InstallerError(f"Installation failed: {str(e)}")
+        else:
+            logger.info("Installation complete")
 
     def uninstall(self):
         """Uninstall Open WebUI."""
         try:
+<<<<<<< HEAD
             logger.debug("Starting uninstallation")
+=======
+            logger.info("Starting uninstallation")
+            self._setup_logger()
+>>>>>>> origin/codex/integrate-logging-module-and-add-cli-command
             # Stop and remove container if running
             try:
                 container = self.docker_client.containers.get("open-webui")
@@ -460,6 +520,7 @@ docker run -d \\
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
 =======
 >>>>>>> origin/codex/extend-installer-with-container-management-methods
@@ -471,6 +532,8 @@ docker run -d \\
 >>>>>>> origin/codex/implement-macos-autostart-feature
 =======
 >>>>>>> origin/codex/add-private-helper-functions-in-installer.py
+=======
+>>>>>>> origin/codex/integrate-logging-module-and-add-cli-command
             if os.path.exists(self.config_dir):
                 shutil.rmtree(self.config_dir)
 
@@ -482,10 +545,15 @@ docker run -d \\
                 pass
 
         except Exception as e:
+            logger.error("Uninstallation failed: %s", str(e))
             raise InstallerError(f"Uninstallation failed: {str(e)}")
+        else:
+            logger.info("Uninstallation complete")
 
     def get_status(self) -> Dict:
         """Get installation status."""
+        self._setup_logger()
+        logger.info("Checking installation status")
         status = {
             "installed": False,
             "version": None,
@@ -505,6 +573,9 @@ docker run -d \\
             with open(config_file) as f:
                 config = json.load(f)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/codex/integrate-logging-module-and-add-cli-command
                 status.update(
                     {
                         "installed": True,
@@ -513,6 +584,7 @@ docker run -d \\
                         "model": config.get("model"),
                     }
                 )
+<<<<<<< HEAD
 =======
                 status.update({
                     "installed": True,
@@ -522,6 +594,8 @@ docker run -d \\
                     "image": config.get("image"),
                 })
 >>>>>>> origin/codex/replace-placeholder-commands-in-install.py
+=======
+>>>>>>> origin/codex/integrate-logging-module-and-add-cli-command
         except Exception:
             return status
 
@@ -532,6 +606,7 @@ docker run -d \\
         except docker.errors.NotFound:
             pass
 
+        logger.info("Status retrieved: %s", status)
         return status
 
 <<<<<<< HEAD
