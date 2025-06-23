@@ -124,13 +124,14 @@ class MainWindow(QMainWindow):
             status = installer.get_status()
 
             if status["installed"]:
-                self.status_label.setText(
-                    f"Open WebUI is installed\n"
-                    f"Version: {status['version']}\n"
-                    f"Port: {status['port']}\n"
-                    f"Model: {status['model']}\n"
-                    f"Status: {'Running' if status['running'] else 'Stopped'}"
-                )
+                status_text = "\n".join([
+                    "Open WebUI is installed",
+                    f"Version: {status['version']}",
+                    f"Port: {status['port']}",
+                    f"Model: {status['model']}",
+                    f"Status: {'Running' if status['running'] else 'Stopped'}",
+                ])
+                self.status_label.setText(status_text)
                 self.status_label.show()
                 self.install_button.setText("Reinstall")
                 self.uninstall_button.setEnabled(True)

@@ -19,8 +19,7 @@ def validate_system() -> bool:
     """Validate system requirements."""
     try:
         installer = Installer()
-        installer._check_system_requirements()
-        return True
+        return installer.validate_system()
     except Exception as e:
         console.print(f"[red]System validation failed:[/red] {str(e)}")
         return False
