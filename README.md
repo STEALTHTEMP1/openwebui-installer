@@ -100,6 +100,7 @@ docker rm open-webui
 
 - [Working Setup Guide](WORKING_SETUP.md) - Detailed troubleshooting and setup notes
 - [Release Notes](CHANGELOG.md) - Version history and changes
+- [Codex Setup](CODEX_SETUP.md) - Local development environment instructions
 
 ---
 
@@ -182,6 +183,7 @@ After each release, you'll need to update your public Homebrew tap:
 
 - **`.github/workflows/release.yml`** - Automated release workflow
 - **`setup.sh`** - Interactive setup script
+- **`codex-setup.sh`** - Headless testing and dependency setup for Codex
 - **`README.md`** - This file
 - **Sample files** - Created if not present (README.md, install.py, LICENSE)
 
