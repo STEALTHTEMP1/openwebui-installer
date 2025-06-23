@@ -237,3 +237,6 @@ internal/
 **/proprietary*
 **/patent*
 **/trade-secret*
+
+# Local snapshots
+.snapshots/
