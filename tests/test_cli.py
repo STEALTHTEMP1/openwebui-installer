@@ -140,7 +140,7 @@ class TestCLI:
     def test_install_command(self, runner, mock_installer):
         """Test install command"""
         # Test successful installation
-        result = runner.invoke(install)
+        result = runner.invoke(cli, ['install'])
         assert result.exit_code == 0
         assert "Installation complete!" in result.output
         
@@ -149,14 +149,14 @@ class TestCLI:
         
         # Test installation failure
         mock_installer.install.side_effect = InstallerError("Installation failed")
-        result = runner.invoke(install)
+        result = runner.invoke(cli, ['install'])
         assert result.exit_code == 1
         assert "Error: Installation failed" in result.output
         
     def test_uninstall_command(self, runner, mock_installer):
         """Test uninstall command"""
         # Test successful uninstallation
-        result = runner.invoke(uninstall, input="y\n") # Added input
+        result = runner.invoke(cli, ['uninstall'], input="y\n")
         assert result.exit_code == 0
         assert "Uninstallation complete!" in result.output
         
@@ -165,7 +165,7 @@ class TestCLI:
         # Test uninstallation failure
         mock_installer.uninstall.reset_mock() # Reset mock
         mock_installer.uninstall.side_effect = InstallerError("Uninstallation failed")
-        result = runner.invoke(uninstall, input="y\n") # Added input
+        result = runner.invoke(cli, ['uninstall'], input="y\n")
         assert result.exit_code == 1
         assert "Error: Uninstallation failed" in result.output
         
@@ -176,7 +176,7 @@ class TestCLI:
             "installed": True, "version": "0.1.0", "port": 3000,
             "model": "test", "running": True
         }
-        result = runner.invoke(status)
+        result = runner.invoke(cli, ['status'])
         assert result.exit_code == 0
         assert "Open WebUI is installed" in result.output
         assert "Status: Running" in result.output
@@ -186,14 +186,14 @@ class TestCLI:
             "installed": True, "version": "0.1.0", "port": 3000,
             "model": "test", "running": False
         }
-        result = runner.invoke(status)
+        result = runner.invoke(cli, ['status'])
         assert result.exit_code == 0
         assert "Open WebUI is installed" in result.output
         assert "Status: Stopped" in result.output
 
         # Test status check failure
         mock_installer.get_status.side_effect = InstallerError("Status check failed") # Use get_status
-        result = runner.invoke(status)
+        result = runner.invoke(cli, ['status'])
         assert result.exit_code == 1
         assert "Error: Status check failed" in result.output
         
@@ -213,7 +213,7 @@ class TestCLI:
         
     def test_install_with_port_option(self, runner, mock_installer):
         """Test install command with custom port"""
-        result = runner.invoke(install, ['--port', '3001'])
+        result = runner.invoke(cli, ['install', '--port', '3001'])
         assert result.exit_code == 0
         
         mock_installer.install.assert_called_once_with(
@@ -225,7 +225,7 @@ class TestCLI:
         
     def test_install_with_image_option(self, runner, mock_installer):
         """Test install command with custom image"""
-        result = runner.invoke(install, ['--image', 'custom/image:tag'])
+        result = runner.invoke(cli, ['install', '--image', 'custom/image:tag'])
         assert result.exit_code == 0
         
         mock_installer.install.assert_called_once_with(
@@ -234,3 +234,12 @@ class TestCLI:
             force=False,       # Default from CLI
             image='custom/image:tag' # Provided in test
         )
+
+    def test_runtime_option_podman(self, runner):
+        """Installer is created with the selected runtime"""
+        with patch("openwebui_installer.cli.Installer") as mock_cls:
+            instance = Mock()
+            mock_cls.return_value = instance
+            result = runner.invoke(cli, ['--runtime', 'podman', 'install'])
+            assert result.exit_code == 0
+            mock_cls.assert_any_call(runtime='podman')

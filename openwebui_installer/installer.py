@@ -6,6 +6,7 @@ import os
 import platform
 import subprocess
 import sys
+import shutil
 from typing import Dict, Optional
 
 import docker
@@ -28,11 +29,46 @@ class SystemRequirementsError(InstallerError):
 class Installer:
     """Main installer class for Open WebUI."""
 
-    def __init__(self):
-        """Initialize the installer."""
-        self.docker_client = docker.from_env()
+    def __init__(self, runtime: str = "docker"):
+        """Initialize the installer.
+
+        Parameters
+        ----------
+        runtime: str
+            Container runtime to use. Either ``docker`` or ``podman``. If
+            ``docker`` is selected but unavailable, the installer will attempt
+            to fall back to Podman if it is detected.
+        """
+
+        self.runtime = runtime
+        try:
+            self.docker_client = docker.from_env()
+        except Exception:
+            if runtime == "docker" and self._podman_available():
+                self.runtime = "podman"
+                self.docker_client = self._get_podman_client()
+            else:
+                raise
+
+        if runtime == "podman" and self.runtime != "podman":
+            # Caller explicitly requested podman but we didn't switch
+            self.runtime = "podman"
+            self.docker_client = self._get_podman_client()
+
         self.webui_image = "ghcr.io/open-webui/open-webui:main"  # Default image
         self.config_dir = os.path.expanduser("~/.openwebui")
+
+    def _podman_available(self) -> bool:
+        """Check if Podman is installed."""
+        return shutil.which("podman") is not None
+
+    def _get_podman_client(self) -> docker.DockerClient:
+        """Return a DockerClient instance configured for Podman."""
+        base_url = os.environ.get("DOCKER_HOST")
+        if not base_url:
+            uid = os.getuid()
+            base_url = f"unix:///run/user/{uid}/podman/podman.sock"
+        return docker.DockerClient(base_url=base_url)
 
     def _check_system_requirements(self):
         """Validate system requirements."""
@@ -44,10 +80,16 @@ class Installer:
         if sys.version_info < (3, 9):
             raise SystemRequirementsError("Python 3.9 or higher is required")
 
-        # Check Docker
+        # Check container runtime
         try:
             self.docker_client.ping()
         except Exception:
+            if self.runtime == "podman":
+                raise SystemRequirementsError("Podman is not running or not installed")
+            if self._podman_available():
+                raise SystemRequirementsError(
+                    "Docker is not running or not installed. Podman detected; use --runtime podman"
+                )
             raise SystemRequirementsError("Docker is not running or not installed")
 
         # Check Ollama with timeout
@@ -100,7 +142,7 @@ class Installer:
             launch_script = os.path.join(self.config_dir, "launch-openwebui.sh")
             with open(launch_script, "w") as f:
                 f.write(f"""#!/bin/bash
-docker run -d \\
+{self.runtime} run -d \\
     --name open-webui \\
     -p {port}:8080 \\
     -v open-webui:/app/backend/data \\
