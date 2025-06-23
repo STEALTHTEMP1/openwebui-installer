@@ -38,6 +38,7 @@ def cli(ctx, runtime):
 @cli.command()
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 @click.option('--model', '-m', help='Ollama model to install', default='llama2')
 @click.option('--port', '-p', help='Port to run Open WebUI on', default=3000, type=int)
 @click.option('--force', '-f', is_flag=True, help='Force installation even if already installed')
@@ -47,6 +48,8 @@ def install(ctx, model: str, port: int, force: bool, image: Optional[str]):
 =======
 =======
 >>>>>>> origin/codex/extend-installer-with-container-management-methods
+=======
+>>>>>>> origin/codex/add-cli-methods-and-update-tests
 @click.option("--model", "-m", help="Ollama model to install", default="llama2")
 @click.option("--port", "-p", help="Port to run Open WebUI on", default=3000, type=int)
 @click.option("--force", "-f", is_flag=True, help="Force installation even if already installed")
@@ -203,6 +206,7 @@ def status():
 @cli.command()
 def start():
 <<<<<<< HEAD
+<<<<<<< HEAD
     """Start Open WebUI."""
     try:
         if not validate_system():
@@ -222,11 +226,17 @@ def start():
 
 =======
     """Start the Open WebUI container."""
+=======
+    """Start Open WebUI container."""
+>>>>>>> origin/codex/add-cli-methods-and-update-tests
     try:
         installer = Installer()
         installer.start()
         console.print("[green]✓[/green] Open WebUI started")
+<<<<<<< HEAD
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
+=======
+>>>>>>> origin/codex/add-cli-methods-and-update-tests
     except Exception as e:
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
@@ -234,6 +244,7 @@ def start():
 
 @cli.command()
 def stop():
+<<<<<<< HEAD
 <<<<<<< HEAD
     """Stop Open WebUI."""
     try:
@@ -251,11 +262,17 @@ def stop():
 
 =======
     """Stop the Open WebUI container."""
+=======
+    """Stop Open WebUI container."""
+>>>>>>> origin/codex/add-cli-methods-and-update-tests
     try:
         installer = Installer()
         installer.stop()
         console.print("[green]✓[/green] Open WebUI stopped")
+<<<<<<< HEAD
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
+=======
+>>>>>>> origin/codex/add-cli-methods-and-update-tests
     except Exception as e:
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
@@ -263,6 +280,7 @@ def stop():
 
 @cli.command()
 def restart():
+<<<<<<< HEAD
 <<<<<<< HEAD
     """Restart Open WebUI."""
     try:
@@ -283,6 +301,9 @@ def restart():
 
 =======
     """Restart the Open WebUI container."""
+=======
+    """Restart Open WebUI container."""
+>>>>>>> origin/codex/add-cli-methods-and-update-tests
     try:
         installer = Installer()
         installer.restart()
@@ -293,9 +314,15 @@ def restart():
 
 
 @cli.command()
+<<<<<<< HEAD
 @click.option("--image", help="Docker image to use when updating")
 def update(image: Optional[str]):
     """Update the Open WebUI Docker image and restart."""
+=======
+@click.option("--image", help="Custom Open WebUI image to use")
+def update(image: Optional[str]):
+    """Update Open WebUI Docker image."""
+>>>>>>> origin/codex/add-cli-methods-and-update-tests
     try:
         installer = Installer()
         installer.update(image=image)
@@ -306,6 +333,7 @@ def update(image: Optional[str]):
 
 
 @cli.command()
+<<<<<<< HEAD
 @click.option("--tail", default=100, help="Number of log lines to display", type=int)
 def logs(tail: int):
     """Show logs from the Open WebUI container."""
@@ -314,6 +342,15 @@ def logs(tail: int):
         output = installer.logs(tail=tail)
         console.print(output)
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
+=======
+@click.option("--lines", "-n", default=100, help="Number of log lines to show")
+def logs(lines: int):
+    """Show Open WebUI container logs."""
+    try:
+        installer = Installer()
+        output = installer.logs(tail=lines)
+        console.print(output)
+>>>>>>> origin/codex/add-cli-methods-and-update-tests
     except Exception as e:
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)

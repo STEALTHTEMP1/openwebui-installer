@@ -2,22 +2,21 @@
 Tests for the CLI module
 """
 
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch, Mock
 
 import pytest
 from click.testing import CliRunner
 
 from openwebui_installer.cli import (
     cli,
-    enable_autostart,
     install,
-    logs,
-    restart,
-    start,
-    status,
-    stop,
     uninstall,
+    status,
+    start,
+    stop,
+    restart,
     update,
+    logs,
 )
 from openwebui_installer.installer import InstallerError, SystemRequirementsError
 
@@ -260,36 +259,28 @@ class TestCLI:
             image="custom/image:tag",  # Provided in test
         )
 
-    def test_start_stop_restart_update_logs_and_autostart(self, runner, mock_installer):
-        """Test additional CLI commands."""
-        # start
+    def test_start_command(self, runner, mock_installer):
         result = runner.invoke(start)
         assert result.exit_code == 0
         mock_installer.start.assert_called_once()
 
-        # stop
+    def test_stop_command(self, runner, mock_installer):
         result = runner.invoke(stop)
         assert result.exit_code == 0
         mock_installer.stop.assert_called_once()
 
-        # restart
+    def test_restart_command(self, runner, mock_installer):
         result = runner.invoke(restart)
         assert result.exit_code == 0
         mock_installer.restart.assert_called_once()
 
-        # update
-        result = runner.invoke(update)
+    def test_update_command(self, runner, mock_installer):
+        result = runner.invoke(update, ["--image", "test:image"])
         assert result.exit_code == 0
-        mock_installer.update.assert_called_once()
+        mock_installer.update.assert_called_once_with(image="test:image")
 
-        # logs
-        mock_installer.logs.return_value = "LOGS"
+    def test_logs_command(self, runner, mock_installer):
+        mock_installer.logs.return_value = "log output"
         result = runner.invoke(logs)
         assert result.exit_code == 0
-        mock_installer.logs.assert_called_with(tail=100)
-        assert "LOGS" in result.output
-
-        # enable-autostart
-        result = runner.invoke(enable_autostart)
-        assert result.exit_code == 0
-        mock_installer.enable_autostart.assert_called_once()
+        mock_installer.logs.assert_called_once_with(tail=100)

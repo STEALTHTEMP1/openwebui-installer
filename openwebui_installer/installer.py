@@ -142,6 +142,7 @@ class Installer:
         image: Optional[str] = None,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     ) -> None:
 =======
     ):
@@ -149,6 +150,9 @@ class Installer:
 =======
     ):
 >>>>>>> origin/codex/extend-installer-with-container-management-methods
+=======
+    ):
+>>>>>>> origin/codex/add-cli-methods-and-update-tests
         """Install Open WebUI."""
         try:
             # Check if already installed
@@ -185,11 +189,14 @@ class Installer:
             with open(launch_script, "w") as f:
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 f.write(f"""#!/bin/bash
 {self.runtime} run -d \\
 =======
 =======
 >>>>>>> origin/codex/extend-installer-with-container-management-methods
+=======
+>>>>>>> origin/codex/add-cli-methods-and-update-tests
                 f.write(
                     f"""#!/bin/bash
 docker run -d \\
@@ -241,6 +248,7 @@ docker run -d \\
                     volumes={"open-webui": {"bind": "/app/backend/data", "mode": "rw"}},
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     environment=env_vars,
 =======
                     environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
@@ -248,6 +256,9 @@ docker run -d \\
 =======
                     environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
 >>>>>>> origin/codex/extend-installer-with-container-management-methods
+=======
+                    environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
+>>>>>>> origin/codex/add-cli-methods-and-update-tests
                     extra_hosts={"host.docker.internal": "host-gateway"},
                     detach=True,
                     restart_policy={"Name": "unless-stopped"},
@@ -277,9 +288,12 @@ docker run -d \\
             import shutil
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
 =======
 >>>>>>> origin/codex/extend-installer-with-container-management-methods
+=======
+>>>>>>> origin/codex/add-cli-methods-and-update-tests
             if os.path.exists(self.config_dir):
                 shutil.rmtree(self.config_dir)
 
@@ -332,6 +346,7 @@ docker run -d \\
 
         return status
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     def start(self):
 <<<<<<< HEAD
@@ -388,6 +403,23 @@ docker run -d \\
             try:
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
                 container = self.docker_client.containers.run(
+=======
+    def start(self):
+        """Start Open WebUI container."""
+        try:
+            container = self.docker_client.containers.get("open-webui")
+            container.start()
+        except docker.errors.NotFound:
+            config_file = os.path.join(self.config_dir, "config.json")
+            if not os.path.exists(config_file):
+                raise InstallerError("Open WebUI is not installed")
+            with open(config_file) as f:
+                config = json.load(f)
+            image = config.get("image", self.webui_image)
+            port = config.get("port", 3000)
+            try:
+                self.docker_client.containers.run(
+>>>>>>> origin/codex/add-cli-methods-and-update-tests
                     image,
                     name="open-webui",
                     ports={"8080/tcp": port},
@@ -397,6 +429,7 @@ docker run -d \\
                     detach=True,
                     restart_policy={"Name": "unless-stopped"},
                 )
+<<<<<<< HEAD
 <<<<<<< HEAD
             return container
         except Exception as e:
@@ -421,12 +454,68 @@ docker run -d \\
                 image,
                 name="open-webui",
                 ports={"8080/tcp": port},
+=======
+            except docker.errors.APIError as e:
+                raise InstallerError(f"Failed to start Open WebUI container: {str(e)}")
+        except docker.errors.APIError as e:
+            raise InstallerError(f"Failed to start Open WebUI container: {str(e)}")
+
+    def stop(self):
+        """Stop Open WebUI container."""
+        try:
+            container = self.docker_client.containers.get("open-webui")
+            container.stop()
+        except docker.errors.NotFound:
+            raise InstallerError("Open WebUI container is not running")
+        except docker.errors.APIError as e:
+            raise InstallerError(f"Failed to stop Open WebUI container: {str(e)}")
+
+    def restart(self):
+        """Restart Open WebUI container."""
+        try:
+            container = self.docker_client.containers.get("open-webui")
+            container.restart()
+        except docker.errors.NotFound:
+            raise InstallerError("Open WebUI container is not running")
+        except docker.errors.APIError as e:
+            raise InstallerError(f"Failed to restart Open WebUI container: {str(e)}")
+
+    def update(self, image: Optional[str] = None):
+        """Update Open WebUI Docker image and restart the container."""
+        try:
+            status = self.get_status()
+            if not status["installed"]:
+                raise InstallerError("Open WebUI is not installed")
+
+            new_image = image if image else self.webui_image
+            self.docker_client.images.pull(new_image)
+
+            config_file = os.path.join(self.config_dir, "config.json")
+            with open(config_file) as f:
+                config = json.load(f)
+            config["image"] = new_image
+            with open(config_file, "w") as f:
+                json.dump(config, f, indent=2)
+
+            try:
+                container = self.docker_client.containers.get("open-webui")
+                container.stop()
+                container.remove()
+            except docker.errors.NotFound:
+                pass
+
+            self.docker_client.containers.run(
+                new_image,
+                name="open-webui",
+                ports={"8080/tcp": config.get("port", 3000)},
+>>>>>>> origin/codex/add-cli-methods-and-update-tests
                 volumes={"open-webui": {"bind": "/app/backend/data", "mode": "rw"}},
                 environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
                 extra_hosts={"host.docker.internal": "host-gateway"},
                 detach=True,
                 restart_policy={"Name": "unless-stopped"},
             )
+<<<<<<< HEAD
 >>>>>>> origin/codex/extend-installer-with-container-management-methods
         except docker.errors.APIError as e:
             raise InstallerError(f"Failed to start Open WebUI container: {str(e)}")
@@ -565,3 +654,18 @@ docker run -d \\
             raise InstallerError(f"Failed to enable autostart: {str(e)}")
         return plist_path
 >>>>>>> origin/codex/extend-installer-with-container-management-methods
+=======
+        except Exception as e:
+            raise InstallerError(f"Update failed: {str(e)}")
+
+    def logs(self, tail: int = 100) -> str:
+        """Return logs from the Open WebUI container."""
+        try:
+            container = self.docker_client.containers.get("open-webui")
+            output = container.logs(tail=tail)
+            return output.decode("utf-8") if isinstance(output, bytes) else str(output)
+        except docker.errors.NotFound:
+            raise InstallerError("Open WebUI container not found")
+        except docker.errors.APIError as e:
+            raise InstallerError(f"Failed to fetch logs: {str(e)}")
+>>>>>>> origin/codex/add-cli-methods-and-update-tests
