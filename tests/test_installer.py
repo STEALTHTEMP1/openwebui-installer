@@ -13,19 +13,17 @@ from openwebui_installer.installer import (Installer, InstallerError,
                                            SystemRequirementsError)
 
 
-@pytest.fixture
-def installer(tmp_path, mocker): # Added mocker
+@pytest.fixture(params=["docker", "podman"])
+def installer(tmp_path, mocker, request):
     """Fixture to create a test installer instance with a mocked config directory."""
     config_dir = tmp_path / "openwebui"
     config_dir.mkdir()
 
-    # Patch docker.from_env() before Installer is instantiated
     mock_docker_client = MagicMock()
     mocker.patch('docker.from_env', return_value=mock_docker_client)
 
-    installer_instance = Installer()
+    installer_instance = Installer(runtime=request.param)
     installer_instance.config_dir = str(config_dir)
-    # Ensure the mock was effective
     assert installer_instance.docker_client == mock_docker_client
     return installer_instance
 
@@ -63,7 +61,8 @@ class TestInstallerSuite:
         mocker.patch('sys.version_info', (3, 9, 0))
         installer.docker_client.ping.side_effect = Exception("Docker not running")
 
-        with pytest.raises(SystemRequirementsError, match="Docker is not running or not installed"):
+        expected_msg = "Podman is not running or not installed" if installer.runtime == "podman" else "Docker is not running or not installed"
+        with pytest.raises(SystemRequirementsError, match=expected_msg):
             installer._check_system_requirements()
 
     def test_check_system_requirements_ollama_not_running(self, installer, mocker):

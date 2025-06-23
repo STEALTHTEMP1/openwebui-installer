@@ -15,10 +15,10 @@ from .installer import Installer
 console = Console()
 
 
-def validate_system() -> bool:
+def validate_system(runtime: str) -> bool:
     """Validate system requirements."""
     try:
-        installer = Installer()
+        installer = Installer(runtime=runtime)
         installer._check_system_requirements()
         return True
     except Exception as e:
@@ -28,9 +28,11 @@ def validate_system() -> bool:
 
 @click.group()
 @click.version_option(version=__version__)
-def cli():
+@click.option('--runtime', type=click.Choice(['docker', 'podman']), default='docker', help='Container runtime to use')
+@click.pass_context
+def cli(ctx, runtime):
     """Open WebUI Installer - Install and manage Open WebUI with Ollama integration."""
-    pass
+    ctx.obj = {'runtime': runtime}
 
 
 @cli.command()
@@ -38,13 +40,14 @@ def cli():
 @click.option('--port', '-p', help='Port to run Open WebUI on', default=3000, type=int)
 @click.option('--force', '-f', is_flag=True, help='Force installation even if already installed')
 @click.option('--image', help='Custom Open WebUI image to use')
-def install(model: str, port: int, force: bool, image: Optional[str]):
+@click.pass_context
+def install(ctx, model: str, port: int, force: bool, image: Optional[str]):
     """Install Open WebUI and configure Ollama integration."""
     try:
-        if not validate_system():
+        if not validate_system(ctx.obj['runtime']):
             sys.exit(1)
 
-        installer = Installer()
+        installer = Installer(runtime=ctx.obj['runtime'])
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -63,13 +66,14 @@ def install(model: str, port: int, force: bool, image: Optional[str]):
 
 
 @cli.command()
-def uninstall():
+@click.pass_context
+def uninstall(ctx):
     """Uninstall Open WebUI."""
     if not click.confirm("Are you sure you want to uninstall Open WebUI?", default=False):
         console.print("Uninstallation aborted.")
         return
     try:
-        installer = Installer()
+        installer = Installer(runtime=ctx.obj['runtime'])
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -87,10 +91,11 @@ def uninstall():
 
 
 @cli.command()
-def status():
+@click.pass_context
+def status(ctx):
     """Check Open WebUI installation status."""
     try:
-        installer = Installer()
+        installer = Installer(runtime=ctx.obj['runtime'])
         status = installer.get_status()
 
         if status['installed']:
