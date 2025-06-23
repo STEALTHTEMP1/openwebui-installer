@@ -82,6 +82,23 @@ docker rm open-webui
 - [Working Setup Guide](WORKING_SETUP.md) - Detailed troubleshooting and setup notes
 - [Release Notes](CHANGELOG.md) - Version history and changes
 
+
+## 🛠 Pre-commit Hooks
+
+This project uses [pre-commit](https://pre-commit.com) to run formatting and security checks.
+Install the tool and set up the git hooks with:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+Run all checks manually using:
+
+```bash
+pre-commit run --all-files
+```
+
 ---
 
 # Private Repository Setup for Open WebUI Installer

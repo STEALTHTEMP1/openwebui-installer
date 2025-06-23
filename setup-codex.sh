@@ -220,6 +220,12 @@ setup_python_environment() {
 setup_development_tools() {
     log_step "Setting up development tools..."
 
+    # Ensure pre-commit is installed
+    if ! command -v pre-commit >/dev/null 2>&1; then
+        log_info "Installing pre-commit..."
+        pip install pre-commit
+    fi
+
     # Create development configuration files
     log_info "Setting up development configuration..."
 
