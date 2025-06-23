@@ -264,6 +264,9 @@ pytest -v
 
 # With coverage report
 pytest --cov=openwebui_installer --cov-report=html
+
+# Integration tests only (requires Docker)
+pytest -m integration
 ```
 
 ### Test Structure

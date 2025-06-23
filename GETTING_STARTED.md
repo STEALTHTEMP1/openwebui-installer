@@ -249,13 +249,17 @@ ANTHROPIC_API_KEY=your_key_here
    ./dev.sh test
    ```
 
-3. **Make your first change**:
+3. **Run integration tests only**:
+   ```bash
+   ./dev.sh exec "pytest -m integration"
+   ```
+4. **Make your first change**:
    - Edit a file
    - Run tests: `./dev.sh exec "python -m pytest tests/"`
    - Format code: `./dev.sh format`
    - Check quality: `./dev.sh lint`
 
-4. **Commit your changes**:
+5. **Commit your changes**:
    ```bash
    git add .
    git commit -m "feat: your change description"
