@@ -1,6 +1,7 @@
 services:
   # Main development environment
   dev-environment:
+    image: ghcr.io/stealthtemp1/openwebui-installer-dev:latest
     build:
       context: .
       dockerfile: Dockerfile.dev

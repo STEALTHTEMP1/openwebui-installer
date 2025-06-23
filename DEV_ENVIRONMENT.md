@@ -36,6 +36,7 @@ This guide helps you set up and use the complete development environment for the
 - **AI development container** with Jupyter Lab
 - **Documentation server** (Sphinx + HTTP server)
 - **Monitoring stack** (Prometheus + Grafana)
+- **Prebuilt dev image** from GitHub Container Registry
 
 ## Setup Scripts
 
@@ -133,6 +134,17 @@ mypy .
 python install.py --help
 pytest tests/
 black --check .
+```
+
+### GitHub Container Registry
+
+The development image is built by CI and published to GHCR as
+`ghcr.io/stealthtemp1/openwebui-installer-dev:latest`. The compose file pulls
+this image automatically, so the environment starts quickly without a local
+build.
+
+```bash
+docker compose -f docker-compose.dev.yml pull dev-environment
 ```
 
 ### 3. AI-Assisted Development
