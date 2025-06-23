@@ -185,7 +185,7 @@ After each release, you'll need to update your public Homebrew tap:
 - **`setup.sh`** - Interactive setup script
 - **`codex-setup.sh`** - Headless testing and dependency setup for Codex
 - **`README.md`** - This file
-- **Sample files** - Created if not present (README.md, install.py, LICENSE)
+- **`install.py`** - Compatibility wrapper that calls `openwebui-installer`
 
 ## 🔧 Workflow Features
 
