@@ -491,6 +491,7 @@ docker run -d \\
             "version": None,
             "port": None,
             "model": None,
+            "image": None,
             "running": False,
         }
 
@@ -503,6 +504,7 @@ docker run -d \\
         try:
             with open(config_file) as f:
                 config = json.load(f)
+<<<<<<< HEAD
                 status.update(
                     {
                         "installed": True,
@@ -511,6 +513,15 @@ docker run -d \\
                         "model": config.get("model"),
                     }
                 )
+=======
+                status.update({
+                    "installed": True,
+                    "version": config.get("version"),
+                    "port": config.get("port"),
+                    "model": config.get("model"),
+                    "image": config.get("image"),
+                })
+>>>>>>> origin/codex/replace-placeholder-commands-in-install.py
         except Exception:
             return status
 
@@ -523,6 +534,7 @@ docker run -d \\
 
         return status
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -640,10 +652,25 @@ docker run -d \\
 
     def stop(self):
         """Stop Open WebUI container."""
+=======
+    def start(self):
+        """Start the Open WebUI container."""
+        try:
+            container = self.docker_client.containers.get("open-webui")
+            container.start()
+        except docker.errors.NotFound:
+            raise InstallerError("Open WebUI is not installed")
+        except Exception as e:
+            raise InstallerError(f"Failed to start Open WebUI: {str(e)}")
+
+    def stop(self):
+        """Stop the Open WebUI container."""
+>>>>>>> origin/codex/replace-placeholder-commands-in-install.py
         try:
             container = self.docker_client.containers.get("open-webui")
             container.stop()
         except docker.errors.NotFound:
+<<<<<<< HEAD
             raise InstallerError("Open WebUI container is not running")
         except docker.errors.APIError as e:
             raise InstallerError(f"Failed to stop Open WebUI container: {str(e)}")
@@ -660,11 +687,20 @@ docker run -d \\
 
     def update(self, image: Optional[str] = None):
         """Update Open WebUI Docker image and restart the container."""
+=======
+            raise InstallerError("Open WebUI is not installed or not running")
+        except Exception as e:
+            raise InstallerError(f"Failed to stop Open WebUI: {str(e)}")
+
+    def update(self, image: Optional[str] = None):
+        """Update Open WebUI by reinstalling with the latest image."""
+>>>>>>> origin/codex/replace-placeholder-commands-in-install.py
         try:
             status = self.get_status()
             if not status["installed"]:
                 raise InstallerError("Open WebUI is not installed")
 
+<<<<<<< HEAD
             new_image = image if image else self.webui_image
             self.docker_client.images.pull(new_image)
 
@@ -887,3 +923,14 @@ docker run -d \\
 
         subprocess.run(["launchctl", "load", "-w", plist_path], check=True)
 >>>>>>> origin/codex/implement-macos-autostart-feature
+=======
+            current_image = image if image else status.get("image", self.webui_image)
+            self.install(
+                model=status.get("model", "llama2"),
+                port=status.get("port", 3000),
+                force=True,
+                image=current_image,
+            )
+        except Exception as e:
+            raise InstallerError(f"Update failed: {str(e)}")
+>>>>>>> origin/codex/replace-placeholder-commands-in-install.py

@@ -301,6 +301,7 @@ def status(ctx: click.Context):
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 @cli.command()
 def start():
 <<<<<<< HEAD
@@ -335,6 +336,15 @@ def start():
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
 =======
 >>>>>>> origin/codex/add-cli-methods-and-update-tests
+=======
+@cli.command()
+def start():
+    """Start the Open WebUI service."""
+    try:
+        installer = Installer()
+        installer.start()
+        console.print("[green]✓[/green] Open WebUI started!")
+>>>>>>> origin/codex/replace-placeholder-commands-in-install.py
     except Exception as e:
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
@@ -342,6 +352,7 @@ def start():
 
 @cli.command()
 def stop():
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     """Stop Open WebUI."""
@@ -371,12 +382,20 @@ def stop():
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
 =======
 >>>>>>> origin/codex/add-cli-methods-and-update-tests
+=======
+    """Stop the Open WebUI service."""
+    try:
+        installer = Installer()
+        installer.stop()
+        console.print("[green]✓[/green] Open WebUI stopped!")
+>>>>>>> origin/codex/replace-placeholder-commands-in-install.py
     except Exception as e:
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
 
 
 @cli.command()
+<<<<<<< HEAD
 def restart():
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -458,6 +477,15 @@ def enable_autostart_cmd():
         installer.enable_autostart()
         console.print("[green]✓[/green] Autostart enabled")
 >>>>>>> origin/codex/implement-macos-autostart-feature
+=======
+@click.option('--image', help='Custom Open WebUI image to use')
+def update(image: Optional[str]):
+    """Update Open WebUI to the latest version."""
+    try:
+        installer = Installer()
+        installer.update(image=image)
+        console.print("[green]✓[/green] Update complete!")
+>>>>>>> origin/codex/replace-placeholder-commands-in-install.py
     except Exception as e:
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)

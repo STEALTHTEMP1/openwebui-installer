@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""Compatibility wrapper for `openwebui_installer` CLI."""
-
+"""Wrapper script to run the Open WebUI installer CLI from source."""
 from openwebui_installer.cli import main
 
 if __name__ == "__main__":
