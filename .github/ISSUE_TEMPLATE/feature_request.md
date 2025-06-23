@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
+about: Suggest an idea for this project. Non-macOS platforms are not yet implemented.
 title: '[FEATURE] '
 labels: enhancement
 assignees: ''
@@ -18,8 +18,8 @@ A clear and concise description of any alternative solutions or features you've 
 
 **Target Platform**
 - [ ] macOS
-- [ ] Linux (future)
-- [ ] Windows (future)
+- Linux (future roadmap)
+- Windows (future roadmap)
 
 **Additional context**
 Add any other context or screenshots about the feature request here. 
