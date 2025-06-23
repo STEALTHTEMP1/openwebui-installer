@@ -1,0 +1,65 @@
+# Failed auto-merge branches
+codex/adapt-release-automation-for-dmg-signing
+codex/add-trailing-newline-to-files
+codex/add-trailing-newline-to-multiple-files
+codex/add-types-docker-and-types-requests-to-requirements-dev
+codex/align-version-strings-across-repo
+codex/audit-and-synchronize-dependencies
+codex/check-status-of-newline-at-eof-compliance
+codex/configure-pre-commit-and-ci-workflows
+codex/consolidate-installation-steps-in-documentation
+codex/create-codex-setup.sh-script-with-dependencies-install
+codex/create-setup-and-offline-scripts
+codex/enhance-_check_system_requirements-and-cli
+codex/ensure-consistent-dependency-versions
+codex/evaluate-and-update-requirement-documents
+codex/format-code-with-black-and-isort
+codex/format-python-files-with-black-and-isort
+codex/handle-missing-pyqt6-in-gui-initialization
+codex/implement-macos-autostart-feature
+codex/implement-or-remove-cli-commands-in-openwebui_installer
+codex/implement-start,-stop,-and-update-commands
+codex/integrate-logging-module-and-add-cli-command
+codex/mark-gui-tests-and-update-ci-workflow
+codex/modify-_check_system_requirements-for-linux-support
+codex/modify-installer-to-use-environment-variables
+codex/refactor-install.py-and-update-documentation
+codex/refactor-settext-usage-in-update_status
+codex/refactor-update_status-in-gui.py
+codex/replace-blanket-except-clauses-with-specific-exceptions
+codex/replace-placeholder-commands-in-install.py
+codex/review-and-refactor-openwebui-installer-codebase
+codex/review-repo-for-issues-and-bugs
+codex/run-black-and-isort,-fix-flake8-issues
+codex/run-isort-and-black-on-openwebui_installer-and-tests
+codex/set-consistent-minimum-python-version
+codex/set-up-pre-commit-hooks-and-ci-job
+codex/set-up-pre-commit-hooks-and-ci-workflows
+codex/support-linux-in-system-requirements-and-docs
+codex/update-_check_system_requirements-for-linux
+codex/update-_check_system_requirements-for-linux-and-wsl
+codex/update-_check_system_requirements-for-macos-and-linux
+codex/update-ci-workflows-with-environment-variables
+codex/update-cross-platform-claims-and-documentation
+codex/update-documentation-for-macos-support-only
+codex/update-installer-for-linux-compatibility
+codex/update-installer.py-for-linux-support
+codex/update-pyproject.toml-for-mypy
+codex/update-readme-and-ci-for-dependencies
+codex/update-requirements-dev.txt-and-annotate-types
+codex/update-system-requirements-check-for-linux-and-wsl
+gi6los-codex/update-installer-for-linux-compatibility
+hl70bi-codex/add-types-docker-and-types-requests-to-requirements-dev
+km0wr7-codex/format-code-with-black-and-isort
+lk9s47-codex/replace-placeholder-commands-in-install.py (not found)
+m6vo3p-codex/update-pyproject.toml-for-mypy (not found)
+n5pgtt-codex/refactor-install.py-and-update-documentation
+nljf6o-codex/check-status-of-newline-at-eof-compliance (not found)
+okp2e5-codex/update-readme-and-ci-for-dependencies (not found)
+opxhd5-codex/handle-missing-pyqt6-in-gui-initialization (not found)
+owm32g-codex/update-requirements-dev.txt-and-annotate-types (not found)
+t56ds8-codex/review-and-refactor-openwebui-installer-codebase (not found)
+u216g9-codex/refactor-install.py-and-update-documentation
+vd7j4w-codex/refactor-update_status-in-gui.py (not found)
+vjh0dg-codex/update-system-requirements-check-for-linux-and-wsl (not found)
+xhr3s0-codex/create-codex-setup.sh-script-with-dependencies-install
