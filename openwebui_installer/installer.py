@@ -14,6 +14,14 @@ from rich.console import Console
 
 console = Console()
 
+# Secrets that can be provided via environment variables or Docker secrets
+SECRET_ENV_VARS = [
+    "OPENAI_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "HUGGINGFACE_TOKEN",
+    "WEBUI_SECRET_KEY",
+]
+
 
 class InstallerError(Exception):
     """Base exception for installer errors."""
@@ -33,6 +41,20 @@ class Installer:
         self.docker_client = docker.from_env()
         self.webui_image = "ghcr.io/open-webui/open-webui:main"  # Default image
         self.config_dir = os.path.expanduser("~/.openwebui")
+
+    def _load_secret(self, name: str) -> Optional[str]:
+        """Retrieve a secret from environment variables or Docker secrets."""
+        value = os.getenv(name)
+        if value:
+            return value
+        secret_path = os.path.join("/run/secrets", name)
+        if os.path.exists(secret_path):
+            try:
+                with open(secret_path) as f:
+                    return f.read().strip()
+            except Exception:
+                return None
+        return None
 
     def _check_system_requirements(self):
         """Validate system requirements."""
@@ -132,14 +154,20 @@ docker run -d \\
                     pass
 
                 # Start new container
+                env_vars = {
+                    "OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"
+                }
+                for secret in SECRET_ENV_VARS:
+                    value = self._load_secret(secret)
+                    if value:
+                        env_vars[secret] = value
+
                 container = self.docker_client.containers.run(
                     current_webui_image,
                     name="open-webui",
                     ports={'8080/tcp': port},
                     volumes={"open-webui": {"bind": "/app/backend/data", "mode": "rw"}},
-                    environment={
-                        "OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"
-                    },
+                    environment=env_vars,
                     extra_hosts={"host.docker.internal": "host-gateway"},
                     detach=True,
                     restart_policy={"Name": "unless-stopped"}

@@ -20,9 +20,15 @@ The following secrets must be configured in GitHub repository settings:
 
 2. `HOMEBREW_TAP_TOKEN`: GitHub Personal Access Token
    - Generate at: https://github.com/settings/tokens
-   - Required scopes: 
+   - Required scopes:
      * `repo` (Full control of private repositories)
      * `workflow` (Update GitHub Action workflows)
+
+3. Runtime API keys for installer
+   - `OPENAI_API_KEY`
+   - `ANTHROPIC_API_KEY`
+   - `HUGGINGFACE_TOKEN`
+   - `WEBUI_SECRET_KEY`
 
 ## Release Steps
 
