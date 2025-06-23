@@ -2,6 +2,8 @@
 
 Easy installer and manager for Open WebUI - User-friendly AI Interface
 
+> **Note**: The installer currently targets **macOS**. Linux and Windows support are planned as future backlog items.
+
 ## 🎯 WORKING SETUP (Verified ✅)
 
 **Quick Start - Direct Docker Method:**

@@ -68,7 +68,7 @@ jobs:
 
           ### Installation Methods
 
-          #### Via Homebrew (macOS/Linux) - Recommended
+          #### Via Homebrew (macOS only) - Recommended
           ```bash
           brew tap STEALTHTEMP1/openwebui-installer
           brew install openwebui-installer
