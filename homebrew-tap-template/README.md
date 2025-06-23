@@ -2,6 +2,8 @@
 
 This is the official Homebrew tap for Open WebUI Installer - an easy-to-use installer and manager for Open WebUI, a user-friendly AI interface that supports Ollama, OpenAI API, and more.
 
+> **Note**: The tap will become part of the **Universal Container App Store** project, which aims to distribute multiple containerized apps through a single interface.
+
 ## Installation
 
 First, tap this repository:

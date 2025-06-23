@@ -1,4 +1,6 @@
-Here’s a polished Product Requirements Document (PRD) outlining the proposed macOS installer—an all-in-one GUI workflow that installs dependencies, configures Open WebUI + Ollama setup, and creates a one-click launcher. It aligns with best-practices and follows a structured PRD template  ￼.
+Here’s a polished Product Requirements Document (PRD) outlining the proposed macOS installer—an all-in-one GUI workflow that installs dependencies, configures Open WebUI + Ollama setup, and creates a one-click launcher. It aligns with best practices and follows a structured PRD template.
+
+> **Project Update**: The repository is transitioning into a **Universal Container App Store**. This document describes the original Open WebUI Installer concept and is kept for historical reference.
 
 ⸻
 

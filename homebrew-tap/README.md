@@ -2,6 +2,8 @@
 
 This is the official Homebrew tap for Open WebUI tools and utilities.
 
+> **Note**: As part of the **Universal Container App Store** initiative, this tap will eventually distribute additional containerized applications beyond Open WebUI.
+
 ## Available Formulae
 
 - `openwebui-installer`: Official installer for Open WebUI with native Ollama integration for macOS

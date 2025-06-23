@@ -1,6 +1,7 @@
-# Open WebUI Installer
+# Universal Container App Store
 
-Easy installer and manager for Open WebUI - User-friendly AI Interface
+Formerly **Open WebUI Installer**, this project is evolving into a **Universal Container App Store**. The goal is to provide a streamlined way to install and manage containerized applications—including Open WebUI—through a single interface.
+
 
 ## 🎯 WORKING SETUP (Verified ✅)
 
@@ -124,6 +125,8 @@ QT_QPA_PLATFORM=offscreen pytest tests/
 # Private Repository Setup for Open WebUI Installer
 
 This directory contains everything you need to set up automated releases for your private Open WebUI Installer repository.
+
+> **Note**: The overall project is transitioning into the **Universal Container App Store**, but these release scripts continue to work for Open WebUI-specific deployments.
 
 ## 🚀 Quick Setup
 

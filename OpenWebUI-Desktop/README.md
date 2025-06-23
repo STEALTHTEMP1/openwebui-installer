@@ -2,6 +2,8 @@
 
 **Level 3 Complete Abstraction - Native macOS App for Open WebUI**
 
+> **Note**: This desktop wrapper is now maintained under the **Universal Container App Store** umbrella and may be distributed through the store alongside other containerized apps.
+
 A native macOS application that provides seamless desktop integration for Open WebUI with **zero Docker knowledge required**. Download, drag to Applications, double-click, and start chatting with AI in under 30 seconds.
 
 ## ✨ Features
