@@ -1,6 +1,7 @@
 """
 Core installer functionality for Open WebUI
 """
+
 import json
 import os
 import platform
@@ -27,11 +28,13 @@ SECRET_ENV_VARS = [
 
 class InstallerError(Exception):
     """Base exception for installer errors."""
+
     pass
 
 
 class SystemRequirementsError(InstallerError):
     """Exception for system requirement validation failures."""
+
     pass
 
 
@@ -137,7 +140,11 @@ class Installer:
         port: int = 3000,
         force: bool = False,
         image: Optional[str] = None,
+<<<<<<< HEAD
     ) -> None:
+=======
+    ):
+>>>>>>> origin/codex/extend-installer-with-container-management-commands
         """Install Open WebUI."""
         try:
             # Check if already installed
@@ -172,15 +179,22 @@ class Installer:
             # Create launch script
             launch_script = os.path.join(self.config_dir, "launch-openwebui.sh")
             with open(launch_script, "w") as f:
+<<<<<<< HEAD
                 f.write(f"""#!/bin/bash
 {self.runtime} run -d \\
+=======
+                f.write(
+                    f"""#!/bin/bash
+docker run -d \\
+>>>>>>> origin/codex/extend-installer-with-container-management-commands
     --name open-webui \\
     -p {port}:8080 \\
     -v open-webui:/app/backend/data \\
     -e OLLAMA_API_BASE_URL=http://host.docker.internal:11434/api \\
     --add-host host.docker.internal:host-gateway \\
     {current_webui_image}
-""")
+"""
+                )
             os.chmod(launch_script, 0o755)
 
             # Create configuration file
@@ -216,12 +230,16 @@ class Installer:
                 container = self.docker_client.containers.run(
                     current_webui_image,
                     name="open-webui",
-                    ports={'8080/tcp': port},
+                    ports={"8080/tcp": port},
                     volumes={"open-webui": {"bind": "/app/backend/data", "mode": "rw"}},
+<<<<<<< HEAD
                     environment=env_vars,
+=======
+                    environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
+>>>>>>> origin/codex/extend-installer-with-container-management-commands
                     extra_hosts={"host.docker.internal": "host-gateway"},
                     detach=True,
-                    restart_policy={"Name": "unless-stopped"}
+                    restart_policy={"Name": "unless-stopped"},
                 )
                 console.print(f"✓ Container started with ID: {container.short_id}")
 
@@ -243,6 +261,11 @@ class Installer:
                 pass
 
             # Remove configuration
+<<<<<<< HEAD
+=======
+            import shutil
+
+>>>>>>> origin/codex/extend-installer-with-container-management-commands
             if os.path.exists(self.config_dir):
                 shutil.rmtree(self.config_dir)
 
@@ -275,12 +298,14 @@ class Installer:
         try:
             with open(config_file) as f:
                 config = json.load(f)
-                status.update({
-                    "installed": True,
-                    "version": config.get("version"),
-                    "port": config.get("port"),
-                    "model": config.get("model"),
-                })
+                status.update(
+                    {
+                        "installed": True,
+                        "version": config.get("version"),
+                        "port": config.get("port"),
+                        "model": config.get("model"),
+                    }
+                )
         except Exception:
             return status
 
@@ -294,6 +319,7 @@ class Installer:
         return status
 
     def start(self):
+<<<<<<< HEAD
         """Start the Open WebUI container."""
         try:
             self._check_system_requirements()
@@ -312,6 +338,23 @@ class Installer:
                 container = self.docker_client.containers.get("open-webui")
                 container.start()
             except docker.errors.NotFound:
+=======
+        """Start the Open WebUI container using stored configuration."""
+        status = self.get_status()
+        if not status["installed"]:
+            raise InstallerError("Open WebUI is not installed. Run 'install' first.")
+
+        port = status["port"]
+        image = status.get("image", self.webui_image)
+
+        try:
+            container = self.docker_client.containers.get("open-webui")
+            if container.status != "running":
+                container.start()
+                console.print(f"✓ Container started with ID: {container.short_id}")
+        except docker.errors.NotFound:
+            try:
+>>>>>>> origin/codex/extend-installer-with-container-management-commands
                 container = self.docker_client.containers.run(
                     image,
                     name="open-webui",
@@ -322,6 +365,7 @@ class Installer:
                     detach=True,
                     restart_policy={"Name": "unless-stopped"},
                 )
+<<<<<<< HEAD
             return container
         except Exception as e:
             raise InstallerError(f"Failed to start Open WebUI container: {str(e)}")
@@ -335,12 +379,71 @@ class Installer:
             except docker.errors.NotFound:
                 return
         except Exception as e:
+=======
+                console.print(f"✓ Container started with ID: {container.short_id}")
+            except docker.errors.APIError as e:
+                raise InstallerError(f"Failed to start Open WebUI container: {str(e)}")
+        except docker.errors.APIError as e:
+            raise InstallerError(f"Failed to start Open WebUI container: {str(e)}")
+
+    def stop(self):
+        """Stop the Open WebUI container."""
+        try:
+            container = self.docker_client.containers.get("open-webui")
+            container.stop()
+        except docker.errors.NotFound:
+            raise InstallerError("Open WebUI container not found.")
+        except docker.errors.APIError as e:
+>>>>>>> origin/codex/extend-installer-with-container-management-commands
             raise InstallerError(f"Failed to stop Open WebUI container: {str(e)}")
 
     def restart(self):
         """Restart the Open WebUI container."""
         try:
+<<<<<<< HEAD
             self.stop()
             self.start()
         except Exception as e:
             raise InstallerError(f"Failed to restart Open WebUI container: {str(e)}")
+=======
+            container = self.docker_client.containers.get("open-webui")
+            container.restart()
+        except docker.errors.NotFound:
+            raise InstallerError("Open WebUI container not found.")
+        except docker.errors.APIError as e:
+            raise InstallerError(f"Failed to restart Open WebUI container: {str(e)}")
+
+    def update(self, image: Optional[str] = None):
+        """Pull the latest Docker image and restart the container."""
+        status = self.get_status()
+        if not status["installed"]:
+            raise InstallerError("Open WebUI is not installed.")
+
+        image_to_use = image if image else status.get("image", self.webui_image)
+
+        try:
+            console.print(f"Pulling Open WebUI image: {image_to_use}...")
+            self.docker_client.images.pull(image_to_use)
+
+            if image and image != status.get("image"):
+                config_file = os.path.join(self.config_dir, "config.json")
+                with open(config_file) as f:
+                    config = json.load(f)
+                config["image"] = image
+                with open(config_file, "w") as f:
+                    json.dump(config, f, indent=2)
+
+            self.restart()
+        except docker.errors.APIError as e:
+            raise InstallerError(f"Failed to update Open WebUI Docker image: {str(e)}")
+
+    def logs(self, tail: int = 100) -> str:
+        """Return logs from the Open WebUI container."""
+        try:
+            container = self.docker_client.containers.get("open-webui")
+            return container.logs(tail=tail).decode()
+        except docker.errors.NotFound:
+            raise InstallerError("Open WebUI container not found.")
+        except docker.errors.APIError as e:
+            raise InstallerError(f"Failed to get logs: {str(e)}")
+>>>>>>> origin/codex/extend-installer-with-container-management-commands

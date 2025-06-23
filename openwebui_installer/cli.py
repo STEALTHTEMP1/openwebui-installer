@@ -36,12 +36,20 @@ def cli(ctx, runtime):
 
 
 @cli.command()
+<<<<<<< HEAD
 @click.option('--model', '-m', help='Ollama model to install', default='llama2')
 @click.option('--port', '-p', help='Port to run Open WebUI on', default=3000, type=int)
 @click.option('--force', '-f', is_flag=True, help='Force installation even if already installed')
 @click.option('--image', help='Custom Open WebUI image to use')
 @click.pass_context
 def install(ctx, model: str, port: int, force: bool, image: Optional[str]):
+=======
+@click.option("--model", "-m", help="Ollama model to install", default="llama2")
+@click.option("--port", "-p", help="Port to run Open WebUI on", default=3000, type=int)
+@click.option("--force", "-f", is_flag=True, help="Force installation even if already installed")
+@click.option("--image", help="Custom Open WebUI image to use")
+def install(model: str, port: int, force: bool, image: Optional[str]):
+>>>>>>> origin/codex/extend-installer-with-container-management-commands
     """Install Open WebUI and configure Ollama integration."""
     try:
         if not validate_system(ctx.obj['runtime']):
@@ -98,7 +106,7 @@ def status(ctx):
         installer = Installer(runtime=ctx.obj['runtime'])
         status = installer.get_status()
 
-        if status['installed']:
+        if status["installed"]:
             console.print("[green]✓[/green] Open WebUI is installed")
             console.print(f"Version: {status['version']}")
             console.print(f"Port: {status['port']}")
@@ -114,6 +122,7 @@ def status(ctx):
 
 @cli.command()
 def start():
+<<<<<<< HEAD
     """Start Open WebUI."""
     try:
         if not validate_system():
@@ -131,6 +140,13 @@ def start():
 
         console.print("[green]✓[/green] Open WebUI started!")
 
+=======
+    """Start the Open WebUI container."""
+    try:
+        installer = Installer()
+        installer.start()
+        console.print("[green]✓[/green] Open WebUI started")
+>>>>>>> origin/codex/extend-installer-with-container-management-commands
     except Exception as e:
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
@@ -138,6 +154,7 @@ def start():
 
 @cli.command()
 def stop():
+<<<<<<< HEAD
     """Stop Open WebUI."""
     try:
         installer = Installer()
@@ -152,6 +169,13 @@ def stop():
 
         console.print("[green]✓[/green] Open WebUI stopped!")
 
+=======
+    """Stop the Open WebUI container."""
+    try:
+        installer = Installer()
+        installer.stop()
+        console.print("[green]✓[/green] Open WebUI stopped")
+>>>>>>> origin/codex/extend-installer-with-container-management-commands
     except Exception as e:
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
@@ -159,6 +183,7 @@ def stop():
 
 @cli.command()
 def restart():
+<<<<<<< HEAD
     """Restart Open WebUI."""
     try:
         if not validate_system():
@@ -176,6 +201,39 @@ def restart():
 
         console.print("[green]✓[/green] Open WebUI restarted!")
 
+=======
+    """Restart the Open WebUI container."""
+    try:
+        installer = Installer()
+        installer.restart()
+        console.print("[green]✓[/green] Open WebUI restarted")
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {str(e)}")
+        sys.exit(1)
+
+
+@cli.command()
+@click.option("--image", help="Docker image to use when updating")
+def update(image: Optional[str]):
+    """Update the Open WebUI Docker image and restart."""
+    try:
+        installer = Installer()
+        installer.update(image=image)
+        console.print("[green]✓[/green] Open WebUI updated")
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {str(e)}")
+        sys.exit(1)
+
+
+@cli.command()
+@click.option("--tail", default=100, help="Number of log lines to display", type=int)
+def logs(tail: int):
+    """Show logs from the Open WebUI container."""
+    try:
+        installer = Installer()
+        output = installer.logs(tail=tail)
+        console.print(output)
+>>>>>>> origin/codex/extend-installer-with-container-management-commands
     except Exception as e:
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
