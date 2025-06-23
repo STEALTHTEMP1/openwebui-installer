@@ -60,4 +60,31 @@ jobs:
     - name: Lint with flake8
       run: |
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics 
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+  container:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build development container
+      run: docker build -t openwebui-installer-dev -f Dockerfile.dev .
+
+    - name: Validate container image
+      run: docker run --rm openwebui-installer-dev python --version
+
+    - name: Scan image with Trivy
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: openwebui-installer-dev
+        format: sarif
+        output: trivy-results.sarif
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: trivy-results.sarif

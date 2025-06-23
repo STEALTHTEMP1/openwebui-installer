@@ -6,7 +6,43 @@ on:
       - 'v*'
 
 jobs:
+  validate_container:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      packages: write
+    steps:
+    - name: Pull Open WebUI image
+      run: docker pull ghcr.io/open-webui/open-webui:main
+
+    - name: Inspect image
+      run: docker image inspect ghcr.io/open-webui/open-webui:main
+
+    - name: Scan image with Trivy
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ghcr.io/open-webui/open-webui:main
+        format: sarif
+        output: trivy-image.sarif
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: trivy-image.sarif
+
+    - name: Save image artifact
+      run: docker save ghcr.io/open-webui/open-webui:main | gzip > openwebui-image.tar.gz
+
+    - name: Upload container image
+      uses: actions/upload-artifact@v4
+      with:
+        name: openwebui-image
+        path: openwebui-image.tar.gz
+
   release:
+    needs: validate_container
     runs-on: ubuntu-latest
     permissions:
       contents: write
