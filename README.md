@@ -21,6 +21,12 @@ Then access: **http://localhost:3000**
 
 - Docker Desktop installed and running
 - Web browser
+- Install pre-commit hooks
+
+```bash
+pip install pre-commit
+pre-commit install
+```
 
 ## ⚠️ Important Note About Large Files
 
