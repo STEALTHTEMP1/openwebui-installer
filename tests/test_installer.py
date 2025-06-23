@@ -88,6 +88,10 @@ class TestInstallerSuite:
         mock_subprocess_run = mocker.patch("subprocess.run")
         mocker.patch("os.chmod")
 
+        mocker.patch.dict(os.environ, {
+            "OLLAMA_BASE_URL": "http://customhost:9999",
+            "OLLAMA_API_BASE_URL": "http://customhost:9999/api",
+        }, clear=False)
         installer.install(model="test-model", port=1234, force=False)
 
         installer._check_system_requirements.assert_called_once()
@@ -97,6 +101,7 @@ class TestInstallerSuite:
         )
         assert mock_json_dump.call_args[0][0]["port"] == 1234
         assert mock_json_dump.call_args[0][0]["model"] == "test-model"
+
 
     def test_install_with_custom_image(self, installer, mocker):
         """Test installation with a custom Docker image."""
@@ -109,6 +114,10 @@ class TestInstallerSuite:
         mocker.patch("os.chmod")
 
         custom_image = "custom/open-webui:latest"
+        mocker.patch.dict(os.environ, {
+            "OLLAMA_BASE_URL": "http://customhost:9999",
+            "OLLAMA_API_BASE_URL": "http://customhost:9999/api",
+        }, clear=False)
         installer.install(model="test-model", port=1234, force=False, image=custom_image)
 
         installer.docker_client.images.pull.assert_called_with(custom_image)
@@ -128,6 +137,7 @@ class TestInstallerSuite:
         installer.install(model="test", port=1234)
 
         assert os.path.exists(installer.log_file)
+
 
     def test_install_stops_if_already_installed_without_force(self, installer, mocker):
         """Test that installation stops if already installed and force=False."""

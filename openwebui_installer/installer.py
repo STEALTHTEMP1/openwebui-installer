@@ -16,6 +16,8 @@ from logging.handlers import RotatingFileHandler
 >>>>>>> origin/codex/integrate-logging-module-and-add-cli-command
 from typing import Dict, Optional
 
+from dotenv import load_dotenv
+
 import docker
 import requests
 from rich.console import Console
@@ -79,7 +81,11 @@ class Installer:
 =======
     def __init__(self, verbose: bool = False):
         """Initialize the installer."""
+<<<<<<< HEAD
         self.verbose = verbose
+=======
+        load_dotenv()
+>>>>>>> origin/codex/modify-installer-to-use-environment-variables
         self.docker_client = docker.from_env()
 >>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
         self.webui_image = "ghcr.io/open-webui/open-webui:main"  # Default image
@@ -375,6 +381,8 @@ docker run -d \
 
             # Create launch script
             launch_script = os.path.join(self.config_dir, "launch-openwebui.sh")
+            ollama_base_url = os.environ.get("OLLAMA_BASE_URL", "http://host.docker.internal:11434")
+            ollama_api_base_url = os.environ.get("OLLAMA_API_BASE_URL", "http://host.docker.internal:11434/api")
             with open(launch_script, "w") as f:
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -383,6 +391,7 @@ docker run -d \
 <<<<<<< HEAD
 <<<<<<< HEAD
                 f.write(f"""#!/bin/bash
+<<<<<<< HEAD
 {self.runtime} run -d \\
 =======
 =======
@@ -404,6 +413,15 @@ docker run -d \\
     -v open-webui:/app/backend/data \\
     -e OLLAMA_API_BASE_URL=http://host.docker.internal:11434/api \\
     --add-host host.docker.internal:host-gateway \\
+=======
+docker run -d \
+    --name open-webui \
+    -p {port}:8080 \
+    -v open-webui:/app/backend/data \
+    -e OLLAMA_BASE_URL={ollama_base_url} \
+    -e OLLAMA_API_BASE_URL={ollama_api_base_url} \
+    --add-host host.docker.internal:host-gateway \
+>>>>>>> origin/codex/modify-installer-to-use-environment-variables
     {current_webui_image}
 """
                 )
@@ -454,6 +472,7 @@ docker run -d \\
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     environment=env_vars,
 =======
                     environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
@@ -473,6 +492,16 @@ docker run -d \\
 =======
                     environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
 >>>>>>> origin/codex/integrate-logging-module-and-add-cli-command
+=======
+                    environment={
+                        "OLLAMA_BASE_URL": os.environ.get(
+                            "OLLAMA_BASE_URL", "http://host.docker.internal:11434"
+                        ),
+                        "OLLAMA_API_BASE_URL": os.environ.get(
+                            "OLLAMA_API_BASE_URL", "http://host.docker.internal:11434/api"
+                        ),
+                    },
+>>>>>>> origin/codex/modify-installer-to-use-environment-variables
                     extra_hosts={"host.docker.internal": "host-gateway"},
                     detach=True,
                     restart_policy={"Name": "unless-stopped"},
