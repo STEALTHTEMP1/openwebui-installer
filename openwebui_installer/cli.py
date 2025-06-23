@@ -107,6 +107,45 @@ def status():
         sys.exit(1)
 
 
+@cli.command()
+@click.option('--port', '-p', type=int, help='Port to run Open WebUI on')
+def start(port: Optional[int]):
+    """Start the Open WebUI container."""
+    try:
+        installer = Installer()
+        installer.start_container(port=port)
+        console.print("[green]✓[/green] Open WebUI started")
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {str(e)}")
+        sys.exit(1)
+
+
+@cli.command()
+@click.option('--remove', '-r', is_flag=True, help='Remove container after stopping')
+def stop(remove: bool):
+    """Stop the Open WebUI container."""
+    try:
+        installer = Installer()
+        installer.stop_container(remove=remove)
+        console.print("[green]✓[/green] Open WebUI stopped")
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {str(e)}")
+        sys.exit(1)
+
+
+@cli.command()
+@click.option('--image', help='Docker image to use for update')
+def update(image: Optional[str]):
+    """Update the Open WebUI container image."""
+    try:
+        installer = Installer()
+        installer.update(image=image)
+        console.print("[green]✓[/green] Open WebUI updated")
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {str(e)}")
+        sys.exit(1)
+
+
 def main():
     """Main entry point for the CLI."""
     cli()

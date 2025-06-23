@@ -214,3 +214,63 @@ docker run -d \\
             pass
 
         return status
+
+    def start_container(self, port: Optional[int] = None):
+        """Start the Open WebUI container if it's not already running."""
+        try:
+            status = self.get_status()
+
+            if not status["installed"]:
+                raise InstallerError("Open WebUI is not installed")
+
+            port_to_use = port if port is not None else status.get("port", 3000)
+            image = status.get("image", self.webui_image)
+
+            try:
+                container = self.docker_client.containers.get("open-webui")
+                if container.status == "running":
+                    return  # Already running
+                container.start()
+            except docker.errors.NotFound:
+                self.docker_client.containers.run(
+                    image,
+                    name="open-webui",
+                    ports={"8080/tcp": port_to_use},
+                    volumes={"open-webui": {"bind": "/app/backend/data", "mode": "rw"}},
+                    environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
+                    extra_hosts={"host.docker.internal": "host-gateway"},
+                    detach=True,
+                    restart_policy={"Name": "unless-stopped"},
+                )
+        except Exception as e:
+            raise InstallerError(f"Failed to start container: {str(e)}")
+
+    def stop_container(self, remove: bool = False):
+        """Stop the Open WebUI container and optionally remove it."""
+        try:
+            try:
+                container = self.docker_client.containers.get("open-webui")
+                if container.status == "running":
+                    container.stop()
+                if remove:
+                    container.remove()
+            except docker.errors.NotFound:
+                if remove:
+                    # Ensure removed container is not lingering
+                    try:
+                        container = self.docker_client.containers.get("open-webui")
+                        container.remove()
+                    except docker.errors.NotFound:
+                        pass
+        except Exception as e:
+            raise InstallerError(f"Failed to stop container: {str(e)}")
+
+    def update(self, image: Optional[str] = None):
+        """Pull the latest image and restart the container."""
+        try:
+            new_image = image if image else self.webui_image
+            self.docker_client.images.pull(new_image)
+            self.stop_container()
+            self.start_container()
+        except Exception as e:
+            raise InstallerError(f"Update failed: {str(e)}")

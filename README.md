@@ -77,6 +77,19 @@ docker start open-webui
 docker rm open-webui
 ```
 
+### Using the Installer CLI
+
+```bash
+# Start the container
+openwebui-installer start
+
+# Stop the container
+openwebui-installer stop
+
+# Update to the latest image
+openwebui-installer update
+```
+
 ## 📖 Documentation
 
 - [Working Setup Guide](WORKING_SETUP.md) - Detailed troubleshooting and setup notes
