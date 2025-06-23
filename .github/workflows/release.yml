@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      version: ${{ steps.extract_version.outputs.VERSION }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -244,3 +247,36 @@ jobs:
         echo "2. 🔄 Update Homebrew formula with the SHA256 hash above"
         echo "3. 🧪 Test the installation"
         echo "4. 📢 Announce the release!"
+
+  build_dmg:
+    needs: release
+    runs-on: macos-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install create-dmg
+      run: brew install create-dmg
+
+    - name: Build macOS app
+      run: |
+        xcodebuild archive -scheme OpenWebUI-Desktop \
+          -archivePath OpenWebUI-Desktop.xcarchive
+        xcodebuild -exportArchive -archivePath OpenWebUI-Desktop.xcarchive \
+          -exportPath OpenWebUI-DesktopExport \
+          -exportOptionsPlist OpenWebUI-Desktop/ExportOptions.plist
+
+    - name: Build and sign DMG
+      run: |
+        create-dmg --overwrite --identity "${{ secrets.MACOS_CERT_ID }}" \
+          OpenWebUI-Desktop.dmg OpenWebUI-DesktopExport/OpenWebUI-Desktop.app
+
+    - name: Upload DMG Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.release.outputs.upload_url }}
+        asset_path: ./OpenWebUI-Desktop.dmg
+        asset_name: OpenWebUI-Desktop-${{ needs.release.outputs.version }}.dmg
+        asset_content_type: application/x-apple-diskimage
