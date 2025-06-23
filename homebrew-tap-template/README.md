@@ -18,11 +18,11 @@ brew install openwebui-installer
 
 ## Usage
 
-After installation, you can use the installer with these commands:
+After installation, run the installer to start Open WebUI using the standard Docker command:
 
 ```bash
 # Install Open WebUI
-openwebui-installer install
+openwebui-installer install  # executes the recommended Docker run workflow
 
 # Start Open WebUI service
 openwebui-installer start

@@ -41,6 +41,21 @@ This will:
 ./dev.sh exec "python -m pytest tests/ -v"
 ```
 
+### 4. Launch Open WebUI
+
+Outside of the dev container you can start Open WebUI using the same Docker command described in the main README:
+
+```bash
+docker run -d -p 3000:8080 \
+  -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+  -v open-webui:/app/backend/data \
+  --name open-webui \
+  --restart always \
+  ghcr.io/open-webui/open-webui:main
+```
+
+Alternatively install the CLI via `pipx install openwebui-installer` (or Homebrew on macOS) and run `openwebui-installer install` which executes this command for you.
+
 ## 🛠️ Development Workflow
 
 ### Common Commands

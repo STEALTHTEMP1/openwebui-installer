@@ -2,9 +2,9 @@
 
 Easy installer and manager for Open WebUI - User-friendly AI Interface
 
-## 🎯 WORKING SETUP (Verified ✅)
+## 🎯 Quick Start (Docker)
 
-**Quick Start - Direct Docker Method:**
+Run the official container on macOS or Linux:
 
 ```bash
 docker run -d -p 3000:8080 \
@@ -16,6 +16,23 @@ docker run -d -p 3000:8080 \
 ```
 
 Then access: **http://localhost:3000**
+
+### Optional CLI (Homebrew or pip)
+
+Install the CLI if you prefer managing Open WebUI via commands:
+
+```bash
+# macOS via Homebrew
+brew tap open-webui/tap
+brew install openwebui-installer
+
+# or cross-platform via pipx/pip
+pipx install openwebui-installer  # pip install openwebui-installer works too
+
+openwebui-installer install
+```
+
+The CLI runs the same Docker command shown above.
 
 ## 📋 Prerequisites
 
@@ -34,29 +51,27 @@ cd OpenWebUI-Desktop/Scripts
 
 This will download the required runtime components locally before building.
 
-## 🚀 Installation Methods
+## 🚀 Installation Options
 
-### Method 1: Direct Docker (Recommended - Verified Working)
+The Docker command in the quick start section is the recommended way to run Open WebUI on any platform.
+If you prefer a helper CLI you can install it via Homebrew or pip:
 
 ```bash
-# Install Open WebUI directly
-docker run -d -p 3000:8080 \
-  -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
-  -v open-webui:/app/backend/data \
-  --name open-webui \
-  --restart always \
-  ghcr.io/open-webui/open-webui:main
+# macOS via Homebrew
+brew tap open-webui/tap
+brew install openwebui-installer
+
+# or cross-platform via pipx/pip
+pipx install openwebui-installer
 ```
 
-**✅ Result**: Open WebUI accessible at http://localhost:3000
-
-### Method 2: Homebrew (Experimental)
+Start Open WebUI using the CLI:
 
 ```bash
-brew tap stealthtemp1/openwebui-installer
-brew install openwebui-installer
 openwebui-installer install
 ```
+
+The CLI executes the same Docker command as shown in the quick start.
 
 ## 🔧 Container Management
 
