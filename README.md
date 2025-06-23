@@ -7,8 +7,17 @@ Easy installer and manager for Open WebUI - User-friendly AI Interface
 **Quick Start - Direct Docker Method:**
 
 ```bash
+# macOS
 docker run -d -p 3000:8080 \
   -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+  -v open-webui:/app/backend/data \
+  --name open-webui \
+  --restart always \
+  ghcr.io/open-webui/open-webui:main
+
+# Linux
+docker run -d -p 3000:8080 \
+  -e OLLAMA_BASE_URL=http://localhost:11434 \
   -v open-webui:/app/backend/data \
   --name open-webui \
   --restart always \
@@ -19,8 +28,15 @@ Then access: **http://localhost:3000**
 
 ## 📋 Prerequisites
 
-- Docker Desktop installed and running
+- macOS 12+ or a modern Linux distribution
+- Python 3.9 or higher
+- Docker Desktop/Engine 20.10+ running
+- [Ollama](https://ollama.com/) listening on `http://localhost:11434`
 - Web browser
+
+### Configuration Directory
+
+Installer data is stored in `~/.openwebui` on both macOS and Linux.
 
 ## ⚠️ Important Note About Large Files
 
@@ -39,9 +55,17 @@ This will download the required runtime components locally before building.
 ### Method 1: Direct Docker (Recommended - Verified Working)
 
 ```bash
-# Install Open WebUI directly
+# Install Open WebUI directly (macOS)
 docker run -d -p 3000:8080 \
   -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+  -v open-webui:/app/backend/data \
+  --name open-webui \
+  --restart always \
+  ghcr.io/open-webui/open-webui:main
+
+# Linux example
+docker run -d -p 3000:8080 \
+  -e OLLAMA_BASE_URL=http://localhost:11434 \
   -v open-webui:/app/backend/data \
   --name open-webui \
   --restart always \
