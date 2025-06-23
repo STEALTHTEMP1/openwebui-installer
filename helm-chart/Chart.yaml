@@ -1,6 +1,23 @@
 apiVersion: v2
 name: openwebui
-description: Helm chart for deploying Open WebUI
+description: Helm chart for deploying Open WebUI with Ollama integration
 type: application
-version: 0.1.0
-appVersion: "main"
+version: 1.0.0
+appVersion: "0.1.16"
+keywords:
+  - openwebui
+  - ollama
+  - ai
+  - llm
+  - chat
+  - interface
+maintainers:
+  - name: Open WebUI Team
+    email: team@openwebui.com
+sources:
+  - https://github.com/open-webui/openwebui-installer
+  - https://github.com/open-webui/open-webui
+dependencies: []
+annotations:
+  category: AI/ML
+  licenses: MIT
