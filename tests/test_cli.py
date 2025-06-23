@@ -1,18 +1,35 @@
 """
 Tests for the CLI module
 """
-from unittest.mock import MagicMock, patch, Mock
+
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from click.testing import CliRunner
 
-from openwebui_installer.cli import cli, install, uninstall, status
+from openwebui_installer.cli import (
+    cli,
+    install,
+)
+from openwebui_installer.cli import logs as logs_cmd
+from openwebui_installer.cli import restart as restart_cmd
+from openwebui_installer.cli import start as start_cmd
+from openwebui_installer.cli import (
+    status,
+)
+from openwebui_installer.cli import stop as stop_cmd
+from openwebui_installer.cli import (
+    uninstall,
+)
+from openwebui_installer.cli import update as update_cmd
 from openwebui_installer.installer import InstallerError, SystemRequirementsError
+
 
 @pytest.fixture
 def runner():
     """Create a CLI test runner."""
     return CliRunner()
+
 
 @pytest.fixture
 def mock_installer():
@@ -22,38 +39,31 @@ def mock_installer():
         mock.return_value = installer
         yield installer
 
+
 def test_version(runner):
     """Test version command."""
     result = runner.invoke(cli, ["--version"])
     assert result.exit_code == 0
     assert "version" in result.output.lower()
 
+
 def test_install_success(runner, mock_installer):
     """Test successful installation."""
     result = runner.invoke(cli, ["install"])
     assert result.exit_code == 0
     mock_installer.install.assert_called_once_with(
-        model="llama2",
-        port=3000,
-        force=False,
-        image=None  # Added
+        model="llama2", port=3000, force=False, image=None  # Added
     )
+
 
 def test_install_with_options(runner, mock_installer):
     """Test installation with custom options."""
-    result = runner.invoke(cli, [
-        "install",
-        "--model", "codellama",
-        "--port", "8080",
-        "--force"
-    ])
+    result = runner.invoke(cli, ["install", "--model", "codellama", "--port", "8080", "--force"])
     assert result.exit_code == 0
     mock_installer.install.assert_called_once_with(
-        model="codellama",
-        port=8080,
-        force=True,
-        image=None  # Added
+        model="codellama", port=8080, force=True, image=None  # Added
     )
+
 
 def test_install_system_requirements_error(runner, mock_installer):
     """Test installation with system requirements error."""
@@ -62,6 +72,7 @@ def test_install_system_requirements_error(runner, mock_installer):
     assert result.exit_code == 1
     assert "Docker not running" in result.output
 
+
 def test_install_error(runner, mock_installer):
     """Test installation with general error."""
     mock_installer.install.side_effect = InstallerError("Installation failed")
@@ -69,11 +80,13 @@ def test_install_error(runner, mock_installer):
     assert result.exit_code == 1
     assert "Installation failed" in result.output
 
+
 def test_uninstall_success(runner, mock_installer):
     """Test successful uninstallation."""
     result = runner.invoke(cli, ["uninstall"], input="y\n")
     assert result.exit_code == 0
     mock_installer.uninstall.assert_called_once()
+
 
 def test_uninstall_abort(runner, mock_installer):
     """Test uninstallation abort."""
@@ -81,12 +94,14 @@ def test_uninstall_abort(runner, mock_installer):
     assert result.exit_code == 0
     mock_installer.uninstall.assert_not_called()
 
+
 def test_uninstall_error(runner, mock_installer):
     """Test uninstallation with error."""
     mock_installer.uninstall.side_effect = InstallerError("Uninstall failed")
     result = runner.invoke(cli, ["uninstall"], input="y\n")
     assert result.exit_code == 1
     assert "Uninstall failed" in result.output
+
 
 def test_status_not_installed(runner, mock_installer):
     """Test status command when not installed."""
@@ -100,6 +115,7 @@ def test_status_not_installed(runner, mock_installer):
     result = runner.invoke(cli, ["status"])
     assert result.exit_code == 0
     assert "not installed" in result.output.lower()
+
 
 def test_status_installed_not_running(runner, mock_installer):
     """Test status command when installed but not running."""
@@ -115,6 +131,7 @@ def test_status_installed_not_running(runner, mock_installer):
     assert "installed" in result.output.lower()
     assert "stopped" in result.output.lower()
 
+
 def test_status_installed_and_running(runner, mock_installer):
     """Test status command when installed and running."""
     mock_installer.get_status.return_value = {
@@ -129,12 +146,14 @@ def test_status_installed_and_running(runner, mock_installer):
     assert "installed" in result.output.lower()
     assert "running" in result.output.lower()
 
+
 def test_status_error(runner, mock_installer):
     """Test status command with error."""
     mock_installer.get_status.side_effect = InstallerError("Status check failed")
     result = runner.invoke(cli, ["status"])
     assert result.exit_code == 1
     assert "Status check failed" in result.output
+
 
 class TestCLI:
     def test_install_command(self, runner, mock_installer):
@@ -143,38 +162,41 @@ class TestCLI:
         result = runner.invoke(install)
         assert result.exit_code == 0
         assert "Installation complete!" in result.output
-        
+
         # mock_installer._check_system_requirements.assert_called_once() # This is an internal call of the real Installer.install, not directly by CLI
         mock_installer.install.assert_called_once()
-        
+
         # Test installation failure
         mock_installer.install.side_effect = InstallerError("Installation failed")
         result = runner.invoke(install)
         assert result.exit_code == 1
         assert "Error: Installation failed" in result.output
-        
+
     def test_uninstall_command(self, runner, mock_installer):
         """Test uninstall command"""
         # Test successful uninstallation
-        result = runner.invoke(uninstall, input="y\n") # Added input
+        result = runner.invoke(uninstall, input="y\n")  # Added input
         assert result.exit_code == 0
         assert "Uninstallation complete!" in result.output
-        
-        mock_installer.uninstall.assert_called_once() # Changed from cleanup
-        
+
+        mock_installer.uninstall.assert_called_once()  # Changed from cleanup
+
         # Test uninstallation failure
-        mock_installer.uninstall.reset_mock() # Reset mock
+        mock_installer.uninstall.reset_mock()  # Reset mock
         mock_installer.uninstall.side_effect = InstallerError("Uninstallation failed")
-        result = runner.invoke(uninstall, input="y\n") # Added input
+        result = runner.invoke(uninstall, input="y\n")  # Added input
         assert result.exit_code == 1
         assert "Error: Uninstallation failed" in result.output
-        
+
     def test_status_command(self, runner, mock_installer):
         """Test status command"""
         # Test when Open WebUI is running
-        mock_installer.get_status.return_value = { # Use get_status
-            "installed": True, "version": "0.1.0", "port": 3000,
-            "model": "test", "running": True
+        mock_installer.get_status.return_value = {  # Use get_status
+            "installed": True,
+            "version": "0.1.0",
+            "port": 3000,
+            "model": "test",
+            "running": True,
         }
         result = runner.invoke(status)
         assert result.exit_code == 0
@@ -182,9 +204,12 @@ class TestCLI:
         assert "Status: Running" in result.output
 
         # Test when Open WebUI is not running
-        mock_installer.get_status.return_value = { # Use get_status
-            "installed": True, "version": "0.1.0", "port": 3000,
-            "model": "test", "running": False
+        mock_installer.get_status.return_value = {  # Use get_status
+            "installed": True,
+            "version": "0.1.0",
+            "port": 3000,
+            "model": "test",
+            "running": False,
         }
         result = runner.invoke(status)
         assert result.exit_code == 0
@@ -192,45 +217,75 @@ class TestCLI:
         assert "Status: Stopped" in result.output
 
         # Test status check failure
-        mock_installer.get_status.side_effect = InstallerError("Status check failed") # Use get_status
+        mock_installer.get_status.side_effect = InstallerError(
+            "Status check failed"
+        )  # Use get_status
         result = runner.invoke(status)
         assert result.exit_code == 1
         assert "Error: Status check failed" in result.output
-        
+
     def test_version_option(self, runner):
         """Test --version option"""
-        from openwebui_installer import __version__ # Import to use in test
-        result = runner.invoke(cli, ['--version'])
+        from openwebui_installer import __version__  # Import to use in test
+
+        result = runner.invoke(cli, ["--version"])
         assert result.exit_code == 0
-        assert f"cli, version {__version__}" in result.output # New
-        
+        assert f"cli, version {__version__}" in result.output  # New
+
     def test_help_option(self, runner):
         """Test --help option"""
-        result = runner.invoke(cli, ['--help'])
+        result = runner.invoke(cli, ["--help"])
         assert result.exit_code == 0
-        assert 'Usage:' in result.output
-        assert 'Options:' in result.output
-        
+        assert "Usage:" in result.output
+        assert "Options:" in result.output
+
     def test_install_with_port_option(self, runner, mock_installer):
         """Test install command with custom port"""
-        result = runner.invoke(install, ['--port', '3001'])
+        result = runner.invoke(install, ["--port", "3001"])
         assert result.exit_code == 0
-        
+
         mock_installer.install.assert_called_once_with(
-            model='llama2', # Default from CLI
-            port=3001,      # Provided in test
-            force=False,    # Default from CLI
-            image=None      # Added
+            model="llama2",  # Default from CLI
+            port=3001,  # Provided in test
+            force=False,  # Default from CLI
+            image=None,  # Added
         )
-        
+
     def test_install_with_image_option(self, runner, mock_installer):
         """Test install command with custom image"""
-        result = runner.invoke(install, ['--image', 'custom/image:tag'])
+        result = runner.invoke(install, ["--image", "custom/image:tag"])
         assert result.exit_code == 0
-        
+
         mock_installer.install.assert_called_once_with(
-            model='llama2',      # Default from CLI
-            port=3000,         # Default from CLI
-            force=False,       # Default from CLI
-            image='custom/image:tag' # Provided in test
+            model="llama2",  # Default from CLI
+            port=3000,  # Default from CLI
+            force=False,  # Default from CLI
+            image="custom/image:tag",  # Provided in test
         )
+
+    def test_start_command(self, runner, mock_installer):
+        result = runner.invoke(start_cmd)
+        assert result.exit_code == 0
+        mock_installer.start.assert_called_once()
+
+    def test_stop_command(self, runner, mock_installer):
+        result = runner.invoke(stop_cmd)
+        assert result.exit_code == 0
+        mock_installer.stop.assert_called_once()
+
+    def test_restart_command(self, runner, mock_installer):
+        result = runner.invoke(restart_cmd)
+        assert result.exit_code == 0
+        mock_installer.restart.assert_called_once()
+
+    def test_update_command(self, runner, mock_installer):
+        result = runner.invoke(update_cmd, ["--image", "img:new"])
+        assert result.exit_code == 0
+        mock_installer.update.assert_called_once_with(image="img:new")
+
+    def test_logs_command(self, runner, mock_installer):
+        mock_installer.logs.return_value = "logoutput"
+        result = runner.invoke(logs_cmd)
+        assert result.exit_code == 0
+        mock_installer.logs.assert_called_once()
+        assert "logoutput" in result.output
