@@ -214,3 +214,26 @@ node_modules/
 *-image.tar*
 podman-*
 docker-*
+
+# ===============================================
+# INTERNAL DOCUMENTATION - NOT FOR DISTRIBUTION
+# ===============================================
+.internal/
+internal/
+**/INTERNAL*
+**/*INTERNAL*
+**/*-internal.*
+**/*_internal.*
+
+# Business sensitive files
+**/monetization*
+**/revenue*
+**/pricing*
+**/competitive*
+**/partnership*
+**/acquisition*
+
+# Development sensitive
+**/proprietary*
+**/patent*
+**/trade-secret*

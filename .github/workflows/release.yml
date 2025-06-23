@@ -3,7 +3,7 @@ name: Create Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   release:
@@ -11,236 +11,241 @@ jobs:
     permissions:
       contents: write
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Create release archive
-      run: |
-        # Create a clean directory for release
-        mkdir -p release/openwebui-installer
+      - name: Create release archive
+        run: |
+          # Create a clean directory for release
+          mkdir -p release/openwebui-installer
 
-        # Copy all files except .git and other unwanted directories
-        rsync -av --exclude='.git' --exclude='.github' --exclude='node_modules' \
-              --exclude='__pycache__' --exclude='*.pyc' --exclude='.DS_Store' \
-              --exclude='release' --exclude='.env' --exclude='*.log' \
-              ./ release/openwebui-installer/
+          # Copy all files except .git and other unwanted directories
+          rsync -av --exclude='.git' --exclude='.github' --exclude='.internal' \
+                --exclude='internal' --exclude='node_modules' \
+                --exclude='__pycache__' --exclude='*.pyc' --exclude='.DS_Store' \
+                --exclude='release' --exclude='.env' --exclude='*.log' \
+                --exclude='*INTERNAL*' --exclude='**/monetization*' \
+                --exclude='**/revenue*' --exclude='**/pricing*' \
+                --exclude='**/competitive*' --exclude='**/partnership*' \
+                --exclude='**/proprietary*' --exclude='**/patent*' \
+                ./ release/openwebui-installer/
 
-        # Create version file
-        echo "${GITHUB_REF#refs/tags/}" > release/openwebui-installer/VERSION
+          # Create version file
+          echo "${GITHUB_REF#refs/tags/}" > release/openwebui-installer/VERSION
 
-        # Show what we're including in the release
-        echo "Release contents:"
-        find release/openwebui-installer -type f | head -20
-        echo "..."
-        echo "Total files: $(find release/openwebui-installer -type f | wc -l)"
+          # Show what we're including in the release
+          echo "Release contents:"
+          find release/openwebui-installer -type f | head -20
+          echo "..."
+          echo "Total files: $(find release/openwebui-installer -type f | wc -l)"
 
-        # Create tarball
-        cd release
-        tar -czf openwebui-installer-${GITHUB_REF#refs/tags/}.tar.gz openwebui-installer/
+          # Create tarball
+          cd release
+          tar -czf openwebui-installer-${GITHUB_REF#refs/tags/}.tar.gz openwebui-installer/
 
-        # Verify the archive
-        echo "Archive created:"
-        ls -la openwebui-installer-*.tar.gz
+          # Verify the archive
+          echo "Archive created:"
+          ls -la openwebui-installer-*.tar.gz
 
-        # Show archive contents preview
-        echo "Archive contents preview:"
-        tar -tzf openwebui-installer-*.tar.gz | head -10
-        echo "..."
+          # Show archive contents preview
+          echo "Archive contents preview:"
+          tar -tzf openwebui-installer-*.tar.gz | head -10
+          echo "..."
 
-    - name: Extract version
-      id: extract_version
-      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      - name: Extract version
+        id: extract_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Open WebUI Installer ${{ steps.extract_version.outputs.VERSION }}
-        draft: false
-        prerelease: false
-        body: |
-          ## Open WebUI Installer ${{ steps.extract_version.outputs.VERSION }}
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Open WebUI Installer ${{ steps.extract_version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          body: |
+            ## Open WebUI Installer ${{ steps.extract_version.outputs.VERSION }}
 
-          🚀 **Easy installer and manager for Open WebUI - User-friendly AI Interface**
+            🚀 **Easy installer and manager for Open WebUI - User-friendly AI Interface**
 
-          ### What's New in ${{ steps.extract_version.outputs.VERSION }}
-          - Enhanced installation process
-          - Improved error handling and user feedback
-          - Better compatibility across different systems
-          - Updated dependencies and security improvements
+            ### What's New in ${{ steps.extract_version.outputs.VERSION }}
+            - Enhanced installation process
+            - Improved error handling and user feedback
+            - Better compatibility across different systems
+            - Updated dependencies and security improvements
 
-          ### Installation Methods
+            ### Installation Methods
 
-          #### 🍺 Via Homebrew (macOS/Linux) - **Recommended**
-          ```bash
-          # Add the tap
-          brew tap STEALTHTEMP1/openwebui-installer
+            #### 🍺 Via Homebrew (macOS/Linux) - **Recommended**
+            ```bash
+            # Add the tap
+            brew tap STEALTHTEMP1/openwebui-installer
 
-          # Install the installer
-          brew install openwebui-installer
+            # Install the installer
+            brew install openwebui-installer
 
-          # Install Open WebUI
-          openwebui-installer install
-          ```
+            # Install Open WebUI
+            openwebui-installer install
+            ```
 
-          #### 📦 Manual Installation
-          ```bash
-          # Download and extract
-          curl -L https://github.com/STEALTHTEMP1/openwebui-installer/archive/refs/tags/${{ steps.extract_version.outputs.VERSION }}.tar.gz | tar -xz
-          cd openwebui-installer-*
+            #### 📦 Manual Installation
+            ```bash
+            # Download and extract
+            curl -L https://github.com/STEALTHTEMP1/openwebui-installer/archive/refs/tags/${{ steps.extract_version.outputs.VERSION }}.tar.gz | tar -xz
+            cd openwebui-installer-*
 
-          # Make executable (if needed)
-          chmod +x install.py install.sh
+            # Make executable (if needed)
+            chmod +x install.py install.sh
 
-          # Run the installer
-          python3 install.py
-          # OR if you have a shell script
-          # ./install.sh
-          ```
+            # Run the installer
+            python3 install.py
+            # OR if you have a shell script
+            # ./install.sh
+            ```
 
-          ### 🎯 Features
-          - **One-command installation** - Get Open WebUI running instantly
-          - **Automatic updates** - Keep your installation current
-          - **Service management** - Start, stop, restart Open WebUI easily
-          - **Docker support** - Clean, isolated installations
-          - **Multi-platform** - Works on macOS, Linux, and Windows (via WSL)
-          - **Configuration management** - Easy setup and customization
+            ### 🎯 Features
+            - **One-command installation** - Get Open WebUI running instantly
+            - **Automatic updates** - Keep your installation current
+            - **Service management** - Start, stop, restart Open WebUI easily
+            - **Docker support** - Clean, isolated installations
+            - **Multi-platform** - Works on macOS, Linux, and Windows (via WSL)
+            - **Configuration management** - Easy setup and customization
 
-          ### 📋 Requirements
-          - **Python 3.8+** (for Python-based components)
-          - **Docker** (will be installed automatically if missing)
-          - **Internet connection** (for downloading Open WebUI and models)
-          - **4GB+ RAM recommended** (for AI model operations)
+            ### 📋 Requirements
+            - **Python 3.8+** (for Python-based components)
+            - **Docker** (will be installed automatically if missing)
+            - **Internet connection** (for downloading Open WebUI and models)
+            - **4GB+ RAM recommended** (for AI model operations)
 
-          ### 🚀 Quick Start
-          ```bash
-          # Install via Homebrew
-          brew tap STEALTHTEMP1/openwebui-installer
-          brew install openwebui-installer
+            ### 🚀 Quick Start
+            ```bash
+            # Install via Homebrew
+            brew tap STEALTHTEMP1/openwebui-installer
+            brew install openwebui-installer
 
-          # Install Open WebUI
-          openwebui-installer install
+            # Install Open WebUI
+            openwebui-installer install
 
-          # Start the service
-          openwebui-installer start
+            # Start the service
+            openwebui-installer start
 
-          # Open in browser (usually http://localhost:3000)
-          open http://localhost:3000
-          ```
+            # Open in browser (usually http://localhost:3000)
+            open http://localhost:3000
+            ```
 
-          ### 📖 Available Commands
-          ```bash
-          openwebui-installer install     # Install Open WebUI
-          openwebui-installer start       # Start the service
-          openwebui-installer stop        # Stop the service
-          openwebui-installer restart     # Restart the service
-          openwebui-installer status      # Check service status
-          openwebui-installer update      # Update Open WebUI
-          openwebui-installer uninstall   # Remove Open WebUI
-          openwebui-installer logs        # View service logs
-          openwebui-installer --help      # Show all commands
-          openwebui-installer --version   # Show version info
-          ```
+            ### 📖 Available Commands
+            ```bash
+            openwebui-installer install     # Install Open WebUI
+            openwebui-installer start       # Start the service
+            openwebui-installer stop        # Stop the service
+            openwebui-installer restart     # Restart the service
+            openwebui-installer status      # Check service status
+            openwebui-installer update      # Update Open WebUI
+            openwebui-installer uninstall   # Remove Open WebUI
+            openwebui-installer logs        # View service logs
+            openwebui-installer --help      # Show all commands
+            openwebui-installer --version   # Show version info
+            ```
 
-          ### 🔧 Troubleshooting
-          - **Service won't start?** Check logs with `openwebui-installer logs`
-          - **Port conflicts?** Use `openwebui-installer config` to change ports
-          - **Docker issues?** Ensure Docker is running and accessible
-          - **Permission errors?** Try running with appropriate permissions
+            ### 🔧 Troubleshooting
+            - **Service won't start?** Check logs with `openwebui-installer logs`
+            - **Port conflicts?** Use `openwebui-installer config` to change ports
+            - **Docker issues?** Ensure Docker is running and accessible
+            - **Permission errors?** Try running with appropriate permissions
 
-          ### 🆘 Support
-          - **Documentation:** [README.md](https://github.com/STEALTHTEMP1/openwebui-installer)
-          - **Issues:** [Report bugs and request features](https://github.com/STEALTHTEMP1/openwebui-installer/issues)
-          - **Homebrew Tap:** [STEALTHTEMP1/homebrew-openwebui-installer](https://github.com/STEALTHTEMP1/homebrew-openwebui-installer)
+            ### 🆘 Support
+            - **Documentation:** [README.md](https://github.com/STEALTHTEMP1/openwebui-installer)
+            - **Issues:** [Report bugs and request features](https://github.com/STEALTHTEMP1/openwebui-installer/issues)
+            - **Homebrew Tap:** [STEALTHTEMP1/homebrew-openwebui-installer](https://github.com/STEALTHTEMP1/homebrew-openwebui-installer)
 
-          ### 🔐 Security & Privacy
-          - All installations are local to your machine
-          - No data is sent to external servers without your consent
-          - Docker containers provide isolation and security
-          - Open source and auditable
+            ### 🔐 Security & Privacy
+            - All installations are local to your machine
+            - No data is sent to external servers without your consent
+            - Docker containers provide isolation and security
+            - Open source and auditable
 
-          ---
+            ---
 
-          ### 📊 Checksums
-          **Archive:** `openwebui-installer-${{ steps.extract_version.outputs.VERSION }}.tar.gz`
+            ### 📊 Checksums
+            **Archive:** `openwebui-installer-${{ steps.extract_version.outputs.VERSION }}.tar.gz`
 
-          The SHA256 hash for this release is automatically calculated and will be updated in the Homebrew formula.
+            The SHA256 hash for this release is automatically calculated and will be updated in the Homebrew formula.
 
-          For manual verification:
-          ```bash
-          shasum -a 256 openwebui-installer-${{ steps.extract_version.outputs.VERSION }}.tar.gz
-          ```
+            For manual verification:
+            ```bash
+            shasum -a 256 openwebui-installer-${{ steps.extract_version.outputs.VERSION }}.tar.gz
+            ```
 
-          ### 🔄 Homebrew Formula Updates
-          The SHA256 hash will be displayed in the workflow logs for updating the Homebrew formula.
+            ### 🔄 Homebrew Formula Updates
+            The SHA256 hash will be displayed in the workflow logs for updating the Homebrew formula.
 
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./release/openwebui-installer-${{ steps.extract_version.outputs.VERSION }}.tar.gz
-        asset_name: openwebui-installer-${{ steps.extract_version.outputs.VERSION }}.tar.gz
-        asset_content_type: application/gzip
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release/openwebui-installer-${{ steps.extract_version.outputs.VERSION }}.tar.gz
+          asset_name: openwebui-installer-${{ steps.extract_version.outputs.VERSION }}.tar.gz
+          asset_content_type: application/gzip
 
-    - name: Generate SHA256 for Homebrew
-      run: |
-        cd release
-        ARCHIVE_NAME="openwebui-installer-${{ steps.extract_version.outputs.VERSION }}.tar.gz"
-        SHA256=$(shasum -a 256 "$ARCHIVE_NAME" | cut -d' ' -f1)
+      - name: Generate SHA256 for Homebrew
+        run: |
+          cd release
+          ARCHIVE_NAME="openwebui-installer-${{ steps.extract_version.outputs.VERSION }}.tar.gz"
+          SHA256=$(shasum -a 256 "$ARCHIVE_NAME" | cut -d' ' -f1)
 
-        echo "================================================"
-        echo "🍺 HOMEBREW FORMULA UPDATE REQUIRED"
-        echo "================================================"
-        echo ""
-        echo "Archive: $ARCHIVE_NAME"
-        echo "SHA256: $SHA256"
-        echo ""
-        echo "Update your Formula/openwebui-installer.rb file with:"
-        echo ""
-        echo "url \"https://github.com/STEALTHTEMP1/openwebui-installer/archive/refs/tags/${{ steps.extract_version.outputs.VERSION }}.tar.gz\""
-        echo "sha256 \"$SHA256\""
-        echo ""
-        echo "================================================"
+          echo "================================================"
+          echo "🍺 HOMEBREW FORMULA UPDATE REQUIRED"
+          echo "================================================"
+          echo ""
+          echo "Archive: $ARCHIVE_NAME"
+          echo "SHA256: $SHA256"
+          echo ""
+          echo "Update your Formula/openwebui-installer.rb file with:"
+          echo ""
+          echo "url \"https://github.com/STEALTHTEMP1/openwebui-installer/archive/refs/tags/${{ steps.extract_version.outputs.VERSION }}.tar.gz\""
+          echo "sha256 \"$SHA256\""
+          echo ""
+          echo "================================================"
 
-        # Create GitHub Actions summary
-        echo "## 🍺 Homebrew Formula Update Required" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Update your \`Formula/openwebui-installer.rb\` file in the [homebrew-openwebui-installer](https://github.com/STEALTHTEMP1/homebrew-openwebui-installer) repository:" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`ruby" >> $GITHUB_STEP_SUMMARY
-        echo "url \"https://github.com/STEALTHTEMP1/openwebui-installer/archive/refs/tags/${{ steps.extract_version.outputs.VERSION }}.tar.gz\"" >> $GITHUB_STEP_SUMMARY
-        echo "sha256 \"$SHA256\"" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Quick Update Command" >> $GITHUB_STEP_SUMMARY
-        echo "If you have the update script, run:" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-        echo "./update-formula.sh ${{ steps.extract_version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Manual Steps" >> $GITHUB_STEP_SUMMARY
-        echo "1. Update the formula file with the new URL and SHA256" >> $GITHUB_STEP_SUMMARY
-        echo "2. Test with \`brew audit --strict Formula/openwebui-installer.rb\`" >> $GITHUB_STEP_SUMMARY
-        echo "3. Commit and push the changes" >> $GITHUB_STEP_SUMMARY
-        echo "4. Test installation: \`brew install STEALTHTEMP1/openwebui-installer/openwebui-installer\`" >> $GITHUB_STEP_SUMMARY
+          # Create GitHub Actions summary
+          echo "## 🍺 Homebrew Formula Update Required" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Update your \`Formula/openwebui-installer.rb\` file in the [homebrew-openwebui-installer](https://github.com/STEALTHTEMP1/homebrew-openwebui-installer) repository:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`ruby" >> $GITHUB_STEP_SUMMARY
+          echo "url \"https://github.com/STEALTHTEMP1/openwebui-installer/archive/refs/tags/${{ steps.extract_version.outputs.VERSION }}.tar.gz\"" >> $GITHUB_STEP_SUMMARY
+          echo "sha256 \"$SHA256\"" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Update Command" >> $GITHUB_STEP_SUMMARY
+          echo "If you have the update script, run:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "./update-formula.sh ${{ steps.extract_version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Manual Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Update the formula file with the new URL and SHA256" >> $GITHUB_STEP_SUMMARY
+          echo "2. Test with \`brew audit --strict Formula/openwebui-installer.rb\`" >> $GITHUB_STEP_SUMMARY
+          echo "3. Commit and push the changes" >> $GITHUB_STEP_SUMMARY
+          echo "4. Test installation: \`brew install STEALTHTEMP1/openwebui-installer/openwebui-installer\`" >> $GITHUB_STEP_SUMMARY
 
-    - name: Verify Release
-      run: |
-        echo "✅ Release verification:"
-        echo "   Tag: ${{ steps.extract_version.outputs.VERSION }}"
-        echo "   Release ID: ${{ steps.create_release.outputs.id }}"
-        echo "   Release URL: ${{ steps.create_release.outputs.html_url }}"
-        echo "   Upload URL: ${{ steps.create_release.outputs.upload_url }}"
-        echo ""
-        echo "🎉 Release ${{ steps.extract_version.outputs.VERSION }} created successfully!"
-        echo ""
-        echo "Next steps:"
-        echo "1. ✅ Release created and archive uploaded"
-        echo "2. 🔄 Update Homebrew formula with the SHA256 hash above"
-        echo "3. 🧪 Test the installation"
-        echo "4. 📢 Announce the release!"
+      - name: Verify Release
+        run: |
+          echo "✅ Release verification:"
+          echo "   Tag: ${{ steps.extract_version.outputs.VERSION }}"
+          echo "   Release ID: ${{ steps.create_release.outputs.id }}"
+          echo "   Release URL: ${{ steps.create_release.outputs.html_url }}"
+          echo "   Upload URL: ${{ steps.create_release.outputs.upload_url }}"
+          echo ""
+          echo "🎉 Release ${{ steps.extract_version.outputs.VERSION }} created successfully!"
+          echo ""
+          echo "Next steps:"
+          echo "1. ✅ Release created and archive uploaded"
+          echo "2. 🔄 Update Homebrew formula with the SHA256 hash above"
+          echo "3. 🧪 Test the installation"
+          echo "4. 📢 Announce the release!"
