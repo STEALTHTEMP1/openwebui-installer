@@ -47,8 +47,10 @@ class Installer:
         # Check Docker
         try:
             self.docker_client.ping()
-        except Exception:
-            raise SystemRequirementsError("Docker is not running or not installed")
+        except docker.errors.DockerException as e:
+            raise SystemRequirementsError(
+                f"Docker is not running or not installed: {e}"
+            ) from e
 
         # Check Ollama with timeout
         try:
@@ -56,9 +58,13 @@ class Installer:
             if response.status_code != 200:
                 raise SystemRequirementsError("Ollama is not running")
         except requests.exceptions.Timeout:
-            raise SystemRequirementsError("Timeout connecting to Ollama - check if it's running")
-        except Exception:
-            raise SystemRequirementsError("Ollama is not installed or not running")
+            raise SystemRequirementsError(
+                "Timeout connecting to Ollama - check if it's running"
+            )
+        except requests.exceptions.RequestException as e:
+            raise SystemRequirementsError(
+                f"Ollama is not installed or not running: {e}"
+            ) from e
 
     def _ensure_config_dir(self):
         """Ensure configuration directory exists."""
@@ -149,8 +155,14 @@ docker run -d \\
             except docker.errors.APIError as e:
                 raise InstallerError(f"Failed to start Open WebUI container: {str(e)}")
 
-        except Exception as e:
-            raise InstallerError(f"Installation failed: {str(e)}")
+        except (
+            docker.errors.DockerException,
+            subprocess.CalledProcessError,
+            subprocess.TimeoutExpired,
+            OSError,
+            json.JSONDecodeError,
+        ) as e:
+            raise InstallerError(f"Installation failed: {e}") from e
 
     def uninstall(self):
         """Uninstall Open WebUI."""
@@ -175,8 +187,8 @@ docker run -d \\
             except docker.errors.NotFound:
                 pass
 
-        except Exception as e:
-            raise InstallerError(f"Uninstallation failed: {str(e)}")
+        except (docker.errors.DockerException, OSError) as e:
+            raise InstallerError(f"Uninstallation failed: {e}") from e
 
     def get_status(self) -> Dict:
         """Get installation status."""
@@ -203,7 +215,7 @@ docker run -d \\
                     "port": config.get("port"),
                     "model": config.get("model"),
                 })
-        except Exception:
+        except (OSError, json.JSONDecodeError):
             return status
 
         # Check if running

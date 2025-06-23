@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, mock_open
 
 import docker
 import pytest
+import requests
 from openwebui_installer.installer import (Installer, InstallerError,
                                            SystemRequirementsError)
 
@@ -61,7 +62,7 @@ class TestInstallerSuite:
         """Test that system requirements check fails if Docker is not running."""
         mocker.patch('platform.system', return_value='Darwin')
         mocker.patch('sys.version_info', (3, 9, 0))
-        installer.docker_client.ping.side_effect = Exception("Docker not running")
+        installer.docker_client.ping.side_effect = docker.errors.DockerException("Docker not running")
 
         with pytest.raises(SystemRequirementsError, match="Docker is not running or not installed"):
             installer._check_system_requirements()
@@ -72,7 +73,7 @@ class TestInstallerSuite:
         mocker.patch('sys.version_info', (3, 9, 0))
         installer.docker_client.ping.return_value = True
         mock_requests_get = mocker.patch('requests.get')
-        mock_requests_get.side_effect = Exception("Connection failed")
+        mock_requests_get.side_effect = requests.exceptions.RequestException("Connection failed")
 
         with pytest.raises(SystemRequirementsError, match="Ollama is not installed or not running"):
             installer._check_system_requirements()
@@ -199,6 +200,17 @@ class TestInstallerSuite:
         with pytest.raises(InstallerError, match="Failed to pull Open WebUI Docker image: pull failed"):
             installer.install(force=False) # Call install, which contains the pull logic
 
+    def test_install_file_write_error(self, installer, mocker):
+        """Test installation failure when writing files."""
+        mocker.patch.object(installer, 'get_status', return_value={'installed': False})
+        mocker.patch.object(installer, '_check_system_requirements')
+        mocker.patch('os.makedirs')
+        mocker.patch('subprocess.run')
+        mocker.patch('builtins.open', side_effect=OSError('write error'))
+
+        with pytest.raises(InstallerError, match="Installation failed: write error"):
+            installer.install(force=False)
+
     # def test_start_open_webui(self, installer, mocker):
     #     """Test starting Open WebUI container."""
     #     mock_docker_client = mocker.patch('docker.from_env').return_value
@@ -252,6 +264,19 @@ class TestInstallerSuite:
         installer.docker_client.containers.get.assert_called_once_with("open-webui")
         mock_container.stop.assert_called_once()
         mock_container.remove.assert_called_once()
+
+    def test_uninstall_failure_docker_error(self, installer, mocker):
+        """Test uninstall fails when Docker API raises an error."""
+        mocker.patch('os.path.exists', return_value=True)
+        mocker.patch('shutil.rmtree')
+        err = docker.errors.APIError("boom")
+        mock_container = MagicMock()
+        mock_container.stop.side_effect = err
+        installer.docker_client.containers.get.return_value = mock_container
+        installer.docker_client.volumes.get.return_value = MagicMock()
+
+        with pytest.raises(InstallerError, match="Uninstallation failed: boom"):
+            installer.uninstall()
 
     # def test_is_open_webui_running(self, installer, mocker):
     #     """Test checking if open webui is running."""
