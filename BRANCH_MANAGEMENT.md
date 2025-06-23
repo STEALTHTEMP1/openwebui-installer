@@ -242,6 +242,9 @@ git push origin BRANCH_NAME
 git merge origin/BRANCH_NAME
 ./scripts/post_merge_validation.sh
 
+# Manual conflict resolution
+./scripts/manual_merge_branch.sh BRANCH_NAME
+
 # Check branch status
 git for-each-ref --format='%(refname:short) %(committerdate:relative)' refs/remotes/origin
 ```
