@@ -56,6 +56,7 @@ docker run -d -p 3000:8080 \
 brew tap stealthtemp1/openwebui-installer
 brew install openwebui-installer
 openwebui-installer install
+brew upgrade openwebui-installer # upgrade when new versions are released
 ```
 
 To upgrade later, run:

@@ -18,6 +18,7 @@ Then install the desired formula:
 
 ```bash
 brew install openwebui-installer
+brew upgrade openwebui-installer # update to the latest version
 ```
 
 ### Upgrading
