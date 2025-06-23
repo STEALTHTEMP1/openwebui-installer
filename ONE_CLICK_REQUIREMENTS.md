@@ -98,7 +98,7 @@ Create the **easiest possible installation experience** for Open WebUI on macOS,
 
 ### Option 2: Electron App
 **Advantages:**
-- ✅ Cross-platform (Mac, Windows, Linux)
+- ✅ Potential for cross-platform support (Windows/Linux in future)
 - ✅ Web technologies (HTML, CSS, JS)
 - ✅ Rapid development
 - ✅ Rich UI possibilities

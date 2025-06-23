@@ -94,8 +94,8 @@ function createWindow() {
 }
 ```
 
-**Advantages:**
-- ✅ Cross-platform (Mac, Windows, Linux)
+- **Advantages:**
+- ✅ macOS-first (Windows and Linux support planned)
 - ✅ Rich ecosystem and tooling
 - ✅ Easy to add custom features
 - ✅ Familiar to web developers
@@ -124,7 +124,7 @@ fn main() {
 **Advantages:**
 - ✅ Much smaller than Electron (~10-20MB)
 - ✅ Better performance than Electron
-- ✅ Cross-platform
+ - ✅ macOS-first design (cross-platform support planned)
 - ✅ Modern architecture
 
 **Disadvantages:**
@@ -215,7 +215,7 @@ Custom App = Electron + Custom UI + Docker Management + Open WebUI Integration
 **Pros:**
 - ✅ Proven architecture
 - ✅ Rich feature set foundation
-- ✅ Cross-platform
+ - ✅ macOS-first design with planned Linux and Windows support
 
 **Cons:**
 - ❌ Complex to maintain

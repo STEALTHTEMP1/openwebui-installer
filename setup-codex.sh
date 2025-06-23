@@ -514,7 +514,7 @@ When fixing bugs, please:
 4. **Test** the fix comprehensively
 5. **Document** the fix and prevention measures
 
-Consider the installer's cross-platform requirements and Docker integration.
+Consider the installer's future cross-platform requirements and Docker integration.
 EOF
 
     cat > .codex/prompts/feature_development.md << 'EOF'
@@ -525,7 +525,7 @@ When developing new features:
 2. **Implement** following project patterns and conventions
 3. **Test** thoroughly with unit and integration tests
 4. **Document** with clear docstrings and usage examples
-5. **Consider** cross-platform compatibility and Docker integration
+5. **Consider** future cross-platform compatibility and Docker integration
 
 Keep the installer simple, reliable, and user-friendly.
 EOF

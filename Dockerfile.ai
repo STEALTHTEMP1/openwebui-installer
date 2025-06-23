@@ -341,7 +341,7 @@ Provide context about the Open WebUI Installer project and current task.
 
 ## Notes
 - Keep responses focused on the Open WebUI Installer project
-- Consider Docker, Python, and cross-platform compatibility
+- Consider Docker, Python, and future cross-platform compatibility
 - Maintain code quality and testing standards
 """
 
@@ -523,7 +523,7 @@ RUN cat > /workspace/prompts/code_generation.md << 'EOF'
 
 ## Context
 You are working on the Open WebUI Installer project, which helps users easily install and manage Open WebUI (a user-friendly AI interface). The project should be:
-- Cross-platform (macOS, Linux, Windows)
+- macOS-first with plans for Linux and Windows support
 - Docker-based for isolation
 - User-friendly with clear error messages
 - Well-tested and documented
@@ -583,7 +583,7 @@ RUN cat > /workspace/prompts/debugging.md << 'EOF'
 ## Context
 You are debugging issues in the Open WebUI Installer project. Focus on:
 - Docker-related issues (common)
-- Cross-platform compatibility problems
+- Future cross-platform compatibility problems
 - Network and port conflicts
 - Permission and access issues
 - Installation and dependency problems

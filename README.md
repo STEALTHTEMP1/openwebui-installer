@@ -2,6 +2,8 @@
 
 Easy installer and manager for Open WebUI - User-friendly AI Interface
 
+**Supported OS:** macOS (Apple Silicon and Intel). Linux and Windows support are planned for future releases.
+
 ## 🎯 WORKING SETUP (Verified ✅)
 
 **Quick Start - Direct Docker Method:**
