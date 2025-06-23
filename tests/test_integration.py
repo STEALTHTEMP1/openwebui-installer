@@ -1,112 +1,115 @@
-"""
-Integration tests for Open WebUI Installer
-"""
+"""Integration tests that exercise the installer with a real Docker engine."""
 
 import os
+import shutil
 import subprocess
-import pytest
+
 import docker
-import requests
-from pathlib import Path
+import pytest
+
 from openwebui_installer.installer import Installer
-from unittest.mock import patch, Mock, MagicMock # Added MagicMock
+
 
 @pytest.fixture(scope="module")
 def docker_client():
-    """Create a Docker client"""
-    # This might still cause issues if Docker isn't available/configured in the env
-    # For now, assuming it's primarily for tests that need a real client, like test_docker_integration
+    """Return a real Docker client or skip if Docker is unavailable."""
     try:
-        return docker.from_env()
-    except docker.errors.DockerException:
-        return None # Or skip tests that require it
+        client = docker.from_env()
+        client.ping()
+    except docker.errors.DockerException as exc:
+        pytest.skip(f"Docker daemon not available: {exc}")
+    yield client
+    # Clean up any leftover container or volume after the suite
+    for name in ["open-webui"]:
+        try:
+            c = client.containers.get(name)
+            c.remove(force=True)
+        except docker.errors.NotFound:
+            pass
+    try:
+        v = client.volumes.get("open-webui")
+        v.remove(force=True)
+    except docker.errors.NotFound:
+        pass
+
 
 @pytest.fixture
-def installer(mocker, tmp_path):
-    """Create a test installer instance with a mocked Docker client."""
-    # Patch docker.from_env() before Installer is instantiated
-    mock_docker_client_instance = MagicMock()
-    mocker.patch('docker.from_env', return_value=mock_docker_client_instance)
+def installer(docker_client, tmp_path, monkeypatch):
+    """Return an Installer using the real Docker client."""
+    inst = Installer()
+    inst.docker_client = docker_client
+    inst.webui_image = os.environ.get("TEST_WEBUI_IMAGE", "hello-world")
+    inst.config_dir = str(tmp_path / "openwebui-test-integration")
 
-    installer_obj = Installer()
-    # Use a temporary directory for config_dir for each test run
-    config_dir_path = tmp_path / "openwebui-test-integration"
-    config_dir_path.mkdir(parents=True, exist_ok=True)
-    installer_obj.config_dir = str(config_dir_path)
+    # Skip system requirement checks and model pulls for testing
+    monkeypatch.setattr(inst, "_check_system_requirements", lambda: None)
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda *a, **k: subprocess.CompletedProcess(a, 0),
+    )
 
-    assert installer_obj.docker_client == mock_docker_client_instance
+    yield inst
 
-    yield installer_obj
+    # Cleanup container, volume and config directory
+    try:
+        docker_client.containers.get("open-webui").remove(force=True)
+    except docker.errors.NotFound:
+        pass
+    try:
+        docker_client.volumes.get("open-webui").remove(force=True)
+    except docker.errors.NotFound:
+        pass
+    shutil.rmtree(inst.config_dir, ignore_errors=True)
+
 
 def test_installer_initialization(installer):
     """Test installer initialization"""
     assert installer.webui_image == "ghcr.io/open-webui/open-webui:main"
     assert "openwebui" in installer.config_dir
 
+
 def test_system_requirements_check(installer):
-    """Test system requirements validation"""
-    # This test will fail if Docker or Ollama are not running
-    # We'll mock the requirements check for now
-    with patch.object(installer, '_check_system_requirements'):
-        installer._check_system_requirements()
+    """Ensure the patched requirements check executes without error."""
+    installer._check_system_requirements()
+
 
 def test_config_directory_creation(installer):
     """Test configuration directory creation"""
     installer._ensure_config_dir()
     assert os.path.exists(installer.config_dir)
 
-def test_installation_workflow(installer):
-    """Test complete installation workflow"""
-    with patch.object(installer, '_check_system_requirements'), \
-         patch.object(installer.docker_client.images, 'pull'), \
-         patch('subprocess.run') as mock_run:
 
-        installer.install(model="llama2", port=3000)
+def test_installation_workflow(installer, docker_client):
+    """Install the container and verify it exists."""
+    installer.install(model="llama2", port=3000)
 
-        # Verify Docker image was pulled
-        installer.docker_client.images.pull.assert_called_once_with(installer.webui_image)
+    container = docker_client.containers.get("open-webui")
+    assert container is not None
+    volume = docker_client.volumes.get("open-webui")
+    assert volume is not None
 
-        # Verify Ollama model was pulled
-        mock_run.assert_called_once_with(["ollama", "pull", "llama2"], check=True, timeout=300)
 
-def test_uninstall_workflow(installer):
-    """Test uninstall workflow"""
-    with patch.object(installer.docker_client.containers, 'get') as mock_get, \
-         patch.object(installer.docker_client.volumes, 'get') as mock_volume_get, \
-         patch('shutil.rmtree'):
+def test_uninstall_workflow(installer, docker_client):
+    """Install then uninstall and ensure cleanup."""
+    installer.install(model="llama2", port=3001)
+    installer.uninstall()
 
-        # Mock container
-        mock_container = Mock()
-        mock_get.return_value = mock_container
+    with pytest.raises(docker.errors.NotFound):
+        docker_client.containers.get("open-webui")
+    with pytest.raises(docker.errors.NotFound):
+        docker_client.volumes.get("open-webui")
 
-        # Mock volume
-        mock_volume = Mock()
-        mock_volume_get.return_value = mock_volume
-
-        installer.uninstall()
-
-        # Verify container was stopped and removed
-        mock_container.stop.assert_called_once()
-        mock_container.remove.assert_called_once()
-
-        # Verify volume was removed
-        mock_volume.remove.assert_called_once()
 
 def test_status_check(installer):
-    """Test status checking"""
-    # Test when not installed
+    """Verify status reporting before and after install."""
     status = installer.get_status()
     assert status["installed"] is False
+
+    installer.install(port=3002)
+
+    status = installer.get_status()
+    assert status["installed"] is True
+    assert status["version"] == "0.1.0"
+    # hello-world exits immediately so running should be False
     assert status["running"] is False
-
-    # Test when installed but not running
-    with patch('os.path.exists', return_value=True), \
-         patch('builtins.open', create=True) as mock_open:
-
-        mock_open.return_value.__enter__.return_value.read.return_value = '{"version": "0.1.0", "port": 3000, "model": "llama2"}'
-
-        with patch.object(installer.docker_client.containers, 'get', side_effect=docker.errors.NotFound("Container not found")):
-            status = installer.get_status()
-            assert status["installed"] is True
-            assert status["version"] == "0.1.0"
-            assert status["running"] is False
