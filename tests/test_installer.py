@@ -47,7 +47,7 @@ class TestInstallerSuite:
     def test_check_system_requirements_wrong_os(self, installer, mocker):
         """Test that system requirements check fails on a non-macOS system."""
         mocker.patch('platform.system', return_value='Linux')
-        with pytest.raises(SystemRequirementsError, match="This installer only supports macOS"):
+        with pytest.raises(SystemRequirementsError, match="This installer only supports"):
             installer._check_system_requirements()
 
     def test_check_system_requirements_wrong_python(self, installer, mocker):

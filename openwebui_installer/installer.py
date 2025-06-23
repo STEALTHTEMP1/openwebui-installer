@@ -28,17 +28,21 @@ class SystemRequirementsError(InstallerError):
 class Installer:
     """Main installer class for Open WebUI."""
 
-    def __init__(self):
+    def __init__(self, *, config_dir: Optional[str] = None):
         """Initialize the installer."""
         self.docker_client = docker.from_env()
         self.webui_image = "ghcr.io/open-webui/open-webui:main"  # Default image
-        self.config_dir = os.path.expanduser("~/.openwebui")
+        self.config_dir = os.path.expanduser(
+            config_dir or os.environ.get("OPENWEBUI_CONFIG_DIR", "~/.openwebui")
+        )
 
     def _check_system_requirements(self):
         """Validate system requirements."""
-        # Check macOS
-        if platform.system() != "Darwin":
-            raise SystemRequirementsError("This installer only supports macOS")
+        supported_oses = os.environ.get("OPENWEBUI_SUPPORTED_OSES", "Darwin").split(",")
+        if platform.system() not in supported_oses:
+            raise SystemRequirementsError(
+                f"This installer only supports {', '.join(supported_oses)}"
+            )
 
         # Check Python version (aligned with setup.py)
         if sys.version_info < (3, 9):
@@ -52,7 +56,8 @@ class Installer:
 
         # Check Ollama with timeout
         try:
-            response = requests.get("http://localhost:11434/api/tags", timeout=10)
+            ollama_url = os.environ.get("OLLAMA_URL", "http://localhost:11434")
+            response = requests.get(f"{ollama_url.rstrip('/')}/api/tags", timeout=10)
             if response.status_code != 200:
                 raise SystemRequirementsError("Ollama is not running")
         except requests.exceptions.Timeout:
@@ -63,6 +68,14 @@ class Installer:
     def _ensure_config_dir(self):
         """Ensure configuration directory exists."""
         os.makedirs(self.config_dir, exist_ok=True)
+
+    def validate_system(self) -> bool:
+        """Public wrapper to validate system requirements."""
+        try:
+            self._check_system_requirements()
+            return True
+        except InstallerError:
+            return False
 
     def install(self, model: str = "llama2", port: int = 3000, force: bool = False, image: Optional[str] = None):
         """Install Open WebUI."""
