@@ -4,6 +4,8 @@
 
 Create the **easiest possible installation experience** for Open WebUI on macOS, targeting **novice users** who want AI functionality without technical complexity.
 
+**Note:** The one-click installer currently supports only macOS. Linux and Windows support are planned for the future.
+
 **Vision**: Download one file, double-click, and have Open WebUI running in under 30 seconds with **Level 3 Complete Abstraction** - making Docker completely invisible to users.
 
 ## 👥 Target User Profile
@@ -98,7 +100,7 @@ Create the **easiest possible installation experience** for Open WebUI on macOS,
 
 ### Option 2: Electron App
 **Advantages:**
-- ✅ Cross-platform (Mac, Windows, Linux)
+ - ✅ Platform support: currently macOS only (Linux and Windows planned)
 - ✅ Web technologies (HTML, CSS, JS)
 - ✅ Rapid development
 - ✅ Rich UI possibilities

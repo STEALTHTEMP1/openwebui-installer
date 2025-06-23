@@ -220,7 +220,7 @@ jobs:
           - **Automatic updates** - Keep your installation current
           - **Service management** - Start, stop, restart Open WebUI easily
           - **Docker support** - Clean, isolated installations
-          - **Multi-platform** - Works on macOS, Linux, and Windows (via WSL)
+          - **Platform support** - Currently macOS only (Linux and Windows planned)
           - **Configuration management** - Easy setup and customization
 
           ### 📋 Requirements
@@ -384,7 +384,7 @@ Easy installer and manager for Open WebUI - A user-friendly AI interface.
 - Automatic updates
 - Service management
 - Docker support
-- Multi-platform compatibility
+ - Platform support: currently macOS only (Linux and Windows planned)
 
 ## Installation
 

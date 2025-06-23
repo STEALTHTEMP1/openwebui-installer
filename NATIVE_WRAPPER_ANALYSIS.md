@@ -4,6 +4,8 @@
 
 Instead of rebuilding Open WebUI's interface natively, **wrap the existing web interface** in a native macOS application with **bundled container runtime**. This approach leverages Open WebUI's excellent web UI while providing native macOS integration and **making Docker completely invisible** to users.
 
+**Note:** Current focus is macOS only. Linux and Windows wrappers are future roadmap items.
+
 ## 🚀 Why Level 3 Complete Abstraction is Revolutionary
 
 ### ✅ Advantages
@@ -95,7 +97,7 @@ function createWindow() {
 ```
 
 **Advantages:**
-- ✅ Cross-platform (Mac, Windows, Linux)
+ - ✅ Platform support: currently macOS only (Linux and Windows planned)
 - ✅ Rich ecosystem and tooling
 - ✅ Easy to add custom features
 - ✅ Familiar to web developers
@@ -124,7 +126,7 @@ fn main() {
 **Advantages:**
 - ✅ Much smaller than Electron (~10-20MB)
 - ✅ Better performance than Electron
-- ✅ Cross-platform
+ - ✅ Platform support: currently macOS only (Linux and Windows planned)
 - ✅ Modern architecture
 
 **Disadvantages:**
@@ -215,7 +217,7 @@ Custom App = Electron + Custom UI + Docker Management + Open WebUI Integration
 **Pros:**
 - ✅ Proven architecture
 - ✅ Rich feature set foundation
-- ✅ Cross-platform
+ - ✅ Platform support: currently macOS only (Linux and Windows planned)
 
 **Cons:**
 - ❌ Complex to maintain
