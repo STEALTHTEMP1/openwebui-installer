@@ -1,6 +1,7 @@
 services:
   # Main development environment
   dev-environment:
+    image: ${DEV_IMAGE:-ghcr.io/your-org/openwebui-installer/dev:latest}
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -57,6 +58,7 @@ services:
 
   # Code quality and analysis tools
   code-quality:
+    image: ${QUALITY_IMAGE:-ghcr.io/your-org/openwebui-installer/quality:latest}
     build:
       context: .
       dockerfile: Dockerfile.quality
@@ -71,6 +73,7 @@ services:
 
   # Documentation server
   docs:
+    image: ${DOCS_IMAGE:-ghcr.io/your-org/openwebui-installer/docs:latest}
     build:
       context: .
       dockerfile: Dockerfile.docs
@@ -94,6 +97,7 @@ services:
 
   # AI/ML development environment
   ai-dev:
+    image: ${AI_IMAGE:-ghcr.io/your-org/openwebui-installer/ai:latest}
     build:
       context: .
       dockerfile: Dockerfile.ai
