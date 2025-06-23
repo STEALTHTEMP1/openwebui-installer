@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch, Mock
 import pytest
 from click.testing import CliRunner
 
-from openwebui_installer.cli import cli, install, uninstall, status, start, stop, update
+from openwebui_installer.cli import cli, install, uninstall, status, start, stop, restart
 from openwebui_installer.installer import InstallerError, SystemRequirementsError
 
 @pytest.fixture
@@ -236,37 +236,37 @@ class TestCLI:
         )
 
     def test_start_command(self, runner, mock_installer):
-        """Test starting the container"""
+        """Test start command"""
         result = runner.invoke(start)
         assert result.exit_code == 0
-        mock_installer.start_container.assert_called_once_with(port=None)
+        mock_installer.start.assert_called_once()
 
-        mock_installer.start_container.reset_mock()
-        mock_installer.start_container.side_effect = InstallerError("start fail")
+        mock_installer.start.reset_mock()
+        mock_installer.start.side_effect = InstallerError('start failed')
         result = runner.invoke(start)
         assert result.exit_code == 1
-        assert "start fail" in result.output
+        assert 'start failed' in result.output
 
     def test_stop_command(self, runner, mock_installer):
-        """Test stopping the container"""
-        result = runner.invoke(stop, ["--remove"])
+        """Test stop command"""
+        result = runner.invoke(stop)
         assert result.exit_code == 0
-        mock_installer.stop_container.assert_called_once_with(remove=True)
+        mock_installer.stop.assert_called_once()
 
-        mock_installer.stop_container.reset_mock()
-        mock_installer.stop_container.side_effect = InstallerError("stop fail")
+        mock_installer.stop.reset_mock()
+        mock_installer.stop.side_effect = InstallerError('stop failed')
         result = runner.invoke(stop)
         assert result.exit_code == 1
-        assert "stop fail" in result.output
+        assert 'stop failed' in result.output
 
-    def test_update_command(self, runner, mock_installer):
-        """Test updating the container"""
-        result = runner.invoke(update, ["--image", "new:image"])
+    def test_restart_command(self, runner, mock_installer):
+        """Test restart command"""
+        result = runner.invoke(restart)
         assert result.exit_code == 0
-        mock_installer.update.assert_called_once_with(image="new:image")
+        mock_installer.restart.assert_called_once()
 
-        mock_installer.update.reset_mock()
-        mock_installer.update.side_effect = InstallerError("update fail")
-        result = runner.invoke(update)
+        mock_installer.restart.reset_mock()
+        mock_installer.restart.side_effect = InstallerError('restart failed')
+        result = runner.invoke(restart)
         assert result.exit_code == 1
-        assert "update fail" in result.output
+        assert 'restart failed' in result.output

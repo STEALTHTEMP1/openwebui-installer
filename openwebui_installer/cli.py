@@ -303,6 +303,7 @@ def status(ctx: click.Context):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 @cli.command()
 def start():
 <<<<<<< HEAD
@@ -338,12 +339,15 @@ def start():
 =======
 >>>>>>> origin/codex/add-cli-methods-and-update-tests
 =======
+=======
+>>>>>>> origin/codex/implement-or-remove-cli-commands-in-openwebui_installer
 @cli.command()
 def start():
     """Start the Open WebUI service."""
     try:
         installer = Installer()
         installer.start()
+<<<<<<< HEAD
         console.print("[green]✓[/green] Open WebUI started!")
 >>>>>>> origin/codex/replace-placeholder-commands-in-install.py
 =======
@@ -356,12 +360,16 @@ def start(port: Optional[int]):
         installer.start_container(port=port)
         console.print("[green]✓[/green] Open WebUI started")
 >>>>>>> origin/codex/implement-start,-stop,-and-update-commands
+=======
+        console.print("[green]✓[/green] Open WebUI started")
+>>>>>>> origin/codex/implement-or-remove-cli-commands-in-openwebui_installer
     except Exception as e:
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
 
 
 @cli.command()
+<<<<<<< HEAD
 <<<<<<< HEAD
 def stop():
 <<<<<<< HEAD
@@ -395,10 +403,14 @@ def stop():
 =======
 >>>>>>> origin/codex/add-cli-methods-and-update-tests
 =======
+=======
+def stop():
+>>>>>>> origin/codex/implement-or-remove-cli-commands-in-openwebui_installer
     """Stop the Open WebUI service."""
     try:
         installer = Installer()
         installer.stop()
+<<<<<<< HEAD
         console.print("[green]✓[/green] Open WebUI stopped!")
 >>>>>>> origin/codex/replace-placeholder-commands-in-install.py
 =======
@@ -410,12 +422,16 @@ def stop(remove: bool):
         installer.stop_container(remove=remove)
         console.print("[green]✓[/green] Open WebUI stopped")
 >>>>>>> origin/codex/implement-start,-stop,-and-update-commands
+=======
+        console.print("[green]✓[/green] Open WebUI stopped")
+>>>>>>> origin/codex/implement-or-remove-cli-commands-in-openwebui_installer
     except Exception as e:
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
 
 
 @cli.command()
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 def restart():
@@ -443,6 +459,10 @@ def restart():
 =======
     """Restart Open WebUI container."""
 >>>>>>> origin/codex/add-cli-methods-and-update-tests
+=======
+def restart():
+    """Restart the Open WebUI service."""
+>>>>>>> origin/codex/implement-or-remove-cli-commands-in-openwebui_installer
     try:
         installer = Installer()
         installer.restart()
@@ -452,6 +472,7 @@ def restart():
         sys.exit(1)
 
 
+<<<<<<< HEAD
 @cli.command()
 <<<<<<< HEAD
 @click.option("--image", help="Docker image to use when updating")
@@ -521,6 +542,8 @@ def update(image: Optional[str]):
 
 =======
 >>>>>>> origin/codex/implement-start,-stop,-and-update-commands
+=======
+>>>>>>> origin/codex/implement-or-remove-cli-commands-in-openwebui_installer
 def main():
     """Main entry point for the CLI."""
     cli()

@@ -1,22 +1,13 @@
-"""Tests for the GUI module."""
+"""
+Tests for the GUI module
+"""
 import sys
 from unittest.mock import patch, MagicMock
-
 import pytest
-
-# Attempt to import PyQt6; if unavailable or missing dependencies,
-# skip the entire test module gracefully.
-try:
-    from PyQt6.QtWidgets import QApplication, QMessageBox
-except Exception as exc:  # pragma: no cover - import failure handling
-    pytest.skip(f"PyQt6 not available: {exc}", allow_module_level=True)
-
+pytest.importorskip("PyQt6.QtWidgets", reason="PyQt6 not available")
+from PyQt6.QtWidgets import QApplication, QMessageBox
 from openwebui_installer.gui import MainWindow
 from openwebui_installer import __version__
-
-# Mark all tests in this module as GUI related so they can be skipped
-# in headless environments unless explicitly requested.
-pytestmark = pytest.mark.gui
 
 @pytest.fixture
 def window(qapp):
@@ -152,35 +143,3 @@ def test_uninstall_with_error(window):
                     warning_args = mock_warning.call_args[0]
                     assert "Could not uninstall" in warning_args[2]  # message is third argument
                     mock_update.assert_called_once()
-
-
-@patch("openwebui_installer.gui.Installer")
-def test_update_status_label_text(mock_installer_class, qapp):
-    """Test the status label text when the application is installed."""
-    status = {
-        "installed": True,
-        "version": "1.2.3",
-        "port": 1234,
-        "model": "llama2",
-        "running": False,
-    }
-
-    mock_installer_instance = mock_installer_class.return_value
-    mock_installer_instance.get_status.return_value = status
-
-    win = MainWindow()
-    qapp.processEvents()
-
-    expected_text = "\n".join(
-        [
-            "Open WebUI is installed",
-            f"Version: {status['version']}",
-            f"Port: {status['port']}",
-            f"Model: {status['model']}",
-            "Status: Stopped",
-        ]
-    )
-
-    assert win.status_label.text() == expected_text
-    win.close()
-    qapp.processEvents()

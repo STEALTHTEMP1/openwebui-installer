@@ -539,6 +539,7 @@ docker run -d \\
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     def start(self):
 <<<<<<< HEAD
         """Start the Open WebUI container."""
@@ -691,10 +692,47 @@ docker run -d \\
     def stop(self):
         """Stop the Open WebUI container."""
 >>>>>>> origin/codex/replace-placeholder-commands-in-install.py
+=======
+    def start(self):
+        """Start the Open WebUI container."""
+        status = self.get_status()
+        if not status["installed"]:
+            raise InstallerError("Open WebUI is not installed")
+
+        try:
+            container = self.docker_client.containers.get("open-webui")
+            container.start()
+            return
+        except docker.errors.NotFound:
+            pass
+
+        # Container does not exist, recreate it using stored config
+        config_file = os.path.join(self.config_dir, "config.json")
+        with open(config_file) as f:
+            config = json.load(f)
+
+        image = config.get("image", self.webui_image)
+        port = config.get("port", 3000)
+
+        self.docker_client.containers.run(
+            image,
+            name="open-webui",
+            ports={"8080/tcp": port},
+            volumes={"open-webui": {"bind": "/app/backend/data", "mode": "rw"}},
+            environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
+            extra_hosts={"host.docker.internal": "host-gateway"},
+            detach=True,
+            restart_policy={"Name": "unless-stopped"},
+        )
+
+    def stop(self):
+        """Stop the Open WebUI container."""
+>>>>>>> origin/codex/implement-or-remove-cli-commands-in-openwebui_installer
         try:
             container = self.docker_client.containers.get("open-webui")
             container.stop()
         except docker.errors.NotFound:
+<<<<<<< HEAD
 <<<<<<< HEAD
             raise InstallerError("Open WebUI container is not running")
         except docker.errors.APIError as e:
@@ -774,10 +812,14 @@ docker run -d \\
         except docker.errors.APIError as e:
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
             raise InstallerError(f"Failed to stop Open WebUI container: {str(e)}")
+=======
+            raise InstallerError("Open WebUI is not running")
+>>>>>>> origin/codex/implement-or-remove-cli-commands-in-openwebui_installer
 
     def restart(self):
         """Restart the Open WebUI container."""
         try:
+<<<<<<< HEAD
 <<<<<<< HEAD
             self.stop()
             self.start()
@@ -993,3 +1035,9 @@ docker run -d \\
         except Exception as e:
             raise InstallerError(f"Update failed: {str(e)}")
 >>>>>>> origin/codex/implement-start,-stop,-and-update-commands
+=======
+            container = self.docker_client.containers.get("open-webui")
+            container.restart()
+        except docker.errors.NotFound:
+            raise InstallerError("Open WebUI is not running")
+>>>>>>> origin/codex/implement-or-remove-cli-commands-in-openwebui_installer
