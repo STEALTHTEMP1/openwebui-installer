@@ -175,12 +175,16 @@ xcodebuild -exportArchive -archivePath OpenWebUI-Desktop.xcarchive \
   -exportPath . -exportOptionsPlist ExportOptions.plist
 
 # Create DMG (requires create-dmg)
-create-dmg --volname "OpenWebUI Desktop" \
-  --window-size 600 400 \
-  --app-drop-link 400 200 \
-  OpenWebUI-Desktop.dmg \
-  OpenWebUI-Desktop.app
-```
+  create-dmg --volname "OpenWebUI Desktop" \
+    --window-size 600 400 \
+    --app-drop-link 400 200 \
+    OpenWebUI-Desktop.dmg \
+    OpenWebUI-Desktop.app
+
+# Notarize and staple (requires Apple developer account)
+xcrun notarytool submit OpenWebUI-Desktop.dmg --apple-id "$APPLE_ID" --password "$NOTARIZATION_PASSWORD" --team-id "$TEAM_ID" --wait
+xcrun stapler staple OpenWebUI-Desktop.app
+  ```
 
 ## 📊 Performance Metrics
 

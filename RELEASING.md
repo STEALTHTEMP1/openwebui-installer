@@ -20,9 +20,14 @@ The following secrets must be configured in GitHub repository settings:
 
 2. `HOMEBREW_TAP_TOKEN`: GitHub Personal Access Token
    - Generate at: https://github.com/settings/tokens
-   - Required scopes: 
+   - Required scopes:
      * `repo` (Full control of private repositories)
      * `workflow` (Update GitHub Action workflows)
+
+3. `DEVELOPER_ID_APP`: Name of your Developer ID Application certificate
+4. `APPLE_ID`: Apple ID used for notarization
+5. `NOTARIZATION_PASSWORD`: App-specific password for notarization
+6. `TEAM_ID`: Apple Developer Team ID
 
 ## Release Steps
 
@@ -48,6 +53,7 @@ The following secrets must be configured in GitHub repository settings:
      3. Create GitHub Release
      4. Publish to PyPI
      5. Update Homebrew formula
+     6. Build and notarize `OpenWebUI.dmg`
 
 4. **Verify Release**
    - Check GitHub release page
@@ -93,4 +99,17 @@ If issues are found:
    cd homebrew-tap
    git revert HEAD
    git push
-   ``` 
+   ```
+
+## DMG Signing and Notarization
+
+The workflow builds and notarizes the macOS installer automatically. To run the process locally:
+
+```bash
+# After building OpenWebUI-Desktop.app
+create-dmg --identity "Developer ID Application: Your Name" OpenWebUI.dmg OpenWebUI-Desktop.app
+xcrun notarytool submit OpenWebUI.dmg --apple-id "$APPLE_ID" --password "$NOTARIZATION_PASSWORD" --team-id "$TEAM_ID" --wait
+xcrun stapler staple OpenWebUI-Desktop.app
+```
+
+Ensure the secrets listed above are configured before triggering a release tag.

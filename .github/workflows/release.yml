@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -244,3 +246,61 @@ jobs:
         echo "2. 🔄 Update Homebrew formula with the SHA256 hash above"
         echo "3. 🧪 Test the installation"
         echo "4. 📢 Announce the release!"
+
+  dmg:
+    needs: release
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install create-dmg
+      run: brew install create-dmg
+
+    - name: Bundle runtime resources
+      run: |
+        chmod +x OpenWebUI-Desktop/Scripts/bundle-resources.sh
+        ./OpenWebUI-Desktop/Scripts/bundle-resources.sh
+
+    - name: Build macOS app
+      run: |
+        xcodebuild -scheme OpenWebUI-Desktop -configuration Release build
+
+    - name: Sign app bundle
+      run: |
+        codesign --deep --force --options runtime --sign "${{ secrets.DEVELOPER_ID_APP }}" \
+          build/Build/Products/Release/OpenWebUI-Desktop.app
+
+    - name: Create signed DMG
+      run: |
+        create-dmg --volname "OpenWebUI Desktop" \
+          --window-size 600 400 \
+          --app-drop-link 400 200 \
+          --identity "${{ secrets.DEVELOPER_ID_APP }}" \
+          OpenWebUI.dmg \
+          build/Build/Products/Release/OpenWebUI-Desktop.app
+
+    - name: Notarize DMG
+      env:
+        APPLE_ID: ${{ secrets.APPLE_ID }}
+        NOTARIZATION_PASSWORD: ${{ secrets.NOTARIZATION_PASSWORD }}
+        TEAM_ID: ${{ secrets.TEAM_ID }}
+      run: |
+        xcrun notarytool submit OpenWebUI.dmg \
+          --apple-id "$APPLE_ID" \
+          --password "$NOTARIZATION_PASSWORD" \
+          --team-id "$TEAM_ID" \
+          --wait
+        xcrun stapler staple build/Build/Products/Release/OpenWebUI-Desktop.app
+
+    - name: Upload DMG
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.release.outputs.upload_url }}
+        asset_path: ./OpenWebUI.dmg
+        asset_name: OpenWebUI.dmg
+        asset_content_type: application/octet-stream
