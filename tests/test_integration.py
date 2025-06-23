@@ -9,7 +9,8 @@ docker = pytest.importorskip("docker")
 requests = pytest.importorskip("requests")
 from pathlib import Path
 from openwebui_installer.installer import Installer
-from unittest.mock import patch, Mock, MagicMock # Added MagicMock
+from unittest.mock import patch, Mock, MagicMock
+import time
 
 @pytest.fixture(scope="module")
 def docker_client():
@@ -37,6 +38,53 @@ def installer(mocker, tmp_path):
     assert installer_obj.docker_client == mock_docker_client_instance
 
     yield installer_obj
+
+
+@pytest.fixture(scope="module")
+def real_installer(tmp_path_factory):
+    """Provide an Installer instance backed by a real Docker engine."""
+    try:
+        client = docker.from_env()
+        client.ping()
+    except Exception as exc:  # Docker not available
+        pytest.skip(f"Docker not available: {exc}")
+
+    inst = Installer()
+    inst.config_dir = str(tmp_path_factory.mktemp("openwebui-real"))
+
+    # Ensure no leftover resources
+    for name in ["open-webui"]:
+        try:
+            c = client.containers.get(name)
+            c.stop()
+            c.remove()
+        except docker.errors.NotFound:
+            pass
+        try:
+            v = client.volumes.get(name)
+            v.remove()
+        except docker.errors.NotFound:
+            pass
+
+    yield inst
+
+    # Cleanup after tests
+    try:
+        inst.uninstall()
+    except Exception:
+        pass
+    for name in ["open-webui"]:
+        try:
+            c = client.containers.get(name)
+            c.stop()
+            c.remove()
+        except docker.errors.NotFound:
+            pass
+        try:
+            v = client.volumes.get(name)
+            v.remove()
+        except docker.errors.NotFound:
+            pass
 
 def test_installer_initialization(installer):
     """Test installer initialization"""
@@ -110,3 +158,34 @@ def test_status_check(installer):
             assert status["installed"] is True
             assert status["version"] == "0.1.0"
             assert status["running"] is False
+
+
+def test_docker_integration(real_installer):
+    """Start the container with Docker and verify it responds."""
+    test_port = 38080
+
+    with patch.object(real_installer, "_check_system_requirements"):
+        real_installer.install(model="llama2", port=test_port, force=True)
+
+    # Wait for container to become ready
+    end_time = time.time() + 120
+    while time.time() < end_time:
+        try:
+            r = requests.get(f"http://localhost:{test_port}", timeout=5)
+            if r.status_code < 500:
+                break
+        except requests.exceptions.ConnectionError:
+            pass
+        time.sleep(2)
+    else:
+        pytest.fail(f"Open WebUI did not start on port {test_port}")
+
+    container = real_installer.docker_client.containers.get("open-webui")
+    container.reload()
+    assert container.status == "running"
+
+    real_installer.uninstall()
+    with pytest.raises(docker.errors.NotFound):
+        real_installer.docker_client.containers.get("open-webui")
+    with pytest.raises(docker.errors.NotFound):
+        real_installer.docker_client.volumes.get("open-webui")
