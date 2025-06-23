@@ -224,7 +224,7 @@ jobs:
           - **Configuration management** - Easy setup and customization
 
           ### 📋 Requirements
-          - **Python 3.8+** (for Python-based components)
+          - **Python 3.9+** (for Python-based components)
           - **Docker** (will be installed automatically if missing)
           - **Internet connection** (for downloading Open WebUI and models)
           - **4GB+ RAM recommended** (for AI model operations)
@@ -422,7 +422,7 @@ openwebui-installer uninstall   # Remove Open WebUI
 
 ## Requirements
 
-- Python 3.8+
+- Python 3.9+
 - Docker (will be installed if missing)
 - 4GB+ RAM recommended
 
