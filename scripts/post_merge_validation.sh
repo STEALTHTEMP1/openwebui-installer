@@ -3,29 +3,40 @@
 # Comprehensive post-merge validation for Universal App Store
 # Ensures all merges maintained system integrity
 
-set -euo pipefail
+# Load utility libraries
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/common.sh"
+source "$SCRIPT_DIR/lib/error_handling.sh"
+source "$SCRIPT_DIR/lib/resource_manager.sh"
+source "$SCRIPT_DIR/lib/lock_manager.sh"
+source "$SCRIPT_DIR/lib/dependency_checker.sh"
+source "$SCRIPT_DIR/lib/git_cache.sh"
+source "$SCRIPT_DIR/lib/input_sanitizer.sh"
+
+# Check dependencies
+check_dependencies
+
+# Acquire lock for this operation
+if ! acquire_lock "post_merge_validation"; then
+    log_error "Another validation is already running"
+    exit 1
+fi
+auto_release_lock "post_merge_validation"
 
 echo "🔍 Post-Merge Validation - Universal App Store"
 echo "=============================================="
 
-# Colors
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-NC='\033[0m'
-
 VALIDATION_FAILED=false
-VALIDATION_REPORT=".branch-analysis/validation_report_$(date +%Y%m%d_%H%M%S).md"
+VALIDATION_REPORT=".branch-analysis/validation_report_$(timestamp).md"
+register_temp_file "$VALIDATION_REPORT"
 
 # Initialize validation report
 cat > "$VALIDATION_REPORT" << EOF
 # Post-Merge Validation Report
 
-**Timestamp**: $(date)
-**Branch**: $(git branch --show-current)
-**Commit**: $(git rev-parse HEAD)
+**Timestamp**: $(iso_timestamp)
+**Branch**: $(git_current_branch)
+**Commit**: $(safe_git rev-parse HEAD)
 
 ## Validation Results
 
@@ -37,25 +48,28 @@ log_result() {
     local details=$3
 
     if [[ "$status" == "PASS" ]]; then
-        echo -e "${GREEN}✅ $test_name${NC}"
+        log_info "✅ $test_name"
         echo "- ✅ **$test_name**: PASSED" >> "$VALIDATION_REPORT"
     elif [[ "$status" == "SKIP" ]]; then
-        echo -e "${YELLOW}⏭️  $test_name${NC}"
+        log_warn "⏭️  $test_name"
         echo "- ⏭️  **$test_name**: SKIPPED" >> "$VALIDATION_REPORT"
     else
-        echo -e "${RED}❌ $test_name${NC}"
+        log_error "❌ $test_name"
         echo "- ❌ **$test_name**: FAILED" >> "$VALIDATION_REPORT"
         VALIDATION_FAILED=true
     fi
 
     if [[ -n "$details" ]]; then
-        echo "  $details"
+        log_debug "Details: $details"
         echo "  - Details: $details" >> "$VALIDATION_REPORT"
     fi
 }
 
+# Start timing
+start_timer "post_merge_validation"
+
 # Test 1: Critical Files Exist
-echo "📁 Testing critical file existence..."
+log_info "Testing critical file existence..."
 CRITICAL_FILES=(
     "install.py"
     "openwebui_installer/cli.py"
@@ -83,9 +97,11 @@ else
 fi
 
 # Test 2: Python Syntax Validation
-echo "🐍 Testing Python syntax..."
+log_info "Testing Python syntax..."
 PYTHON_ERRORS=()
 for py_file in $(find . -name "*.py" -not -path "./.git/*" -not -path "./venv/*" -not -path "./.venv/*" -not -path "./.branch-analysis/*" 2>/dev/null); do
+    # Validate file path
+    py_file=$(validate_file_path "$py_file")
     if ! python3 -m py_compile "$py_file" 2>/dev/null; then
         PYTHON_ERRORS+=("$py_file")
     fi
@@ -99,9 +115,10 @@ fi
 
 # Test 3: Swift Syntax Validation (if available)
 if command -v xcrun >/dev/null 2>&1; then
-    echo "🍎 Testing Swift syntax..."
+    log_info "Testing Swift syntax..."
     SWIFT_ERRORS=()
     for swift_file in $(find OpenWebUI-Desktop -name "*.swift" 2>/dev/null || true); do
+        swift_file=$(validate_file_path "$swift_file")
         if ! xcrun swift -typecheck "$swift_file" 2>/dev/null; then
             SWIFT_ERRORS+=("$swift_file")
         fi
@@ -117,7 +134,7 @@ else
 fi
 
 # Test 4: Import Validation
-echo "📦 Testing Python imports..."
+log_info "Testing Python imports..."
 IMPORT_ERRORS=()
 
 # Test main CLI import
@@ -169,7 +186,7 @@ else
 fi
 
 # Test 5: Merge Conflict Artifacts
-echo "🔍 Testing for merge conflict artifacts..."
+log_info "Testing for merge conflict artifacts..."
 CONFLICT_ARTIFACTS=$(find . -name "*.py" -o -name "*.swift" -o -name "*.md" -o -name "*.toml" | xargs grep -l "<<<<<<\|======\|>>>>>>" 2>/dev/null || echo "")
 
 if [[ -z "$CONFLICT_ARTIFACTS" ]]; then
@@ -179,7 +196,7 @@ else
 fi
 
 # Test 6: Universal App Store Components
-echo "🏪 Testing Universal App Store components..."
+log_info "Testing Universal App Store components..."
 APPSTORE_COMPONENTS=(
     "appstore.md"
     "UNIVERSAL_ROADMAP.md"
@@ -201,7 +218,7 @@ else
 fi
 
 # Test 7: CLI Runtime Support
-echo "⚙️  Testing CLI runtime support..."
+log_info "Testing CLI runtime support..."
 if [[ -f "openwebui_installer/cli.py" ]] && grep -q "runtime.*str" openwebui_installer/cli.py; then
     log_result "CLI Runtime Support" "PASS" "Runtime parameter support detected"
 else
@@ -209,7 +226,7 @@ else
 fi
 
 # Test 8: Swift ContainerManager
-echo "📱 Testing Swift ContainerManager..."
+log_info "Testing Swift ContainerManager..."
 if [[ -f "OpenWebUI-Desktop/OpenWebUI-Desktop/Models/ContainerManager.swift" ]]; then
     log_result "Swift ContainerManager" "PASS" "ContainerManager.swift exists"
 else
@@ -217,7 +234,7 @@ else
 fi
 
 # Test 9: Duplicate Directory Check
-echo "🗂️  Testing for duplicate directories..."
+log_info "Testing for duplicate directories..."
 DUPLICATE_ISSUES=()
 if [[ -d "openwebui-installer" && -d "openwebui_installer" ]]; then
     DUPLICATE_ISSUES+=("Both openwebui-installer and openwebui_installer directories exist")
@@ -230,7 +247,7 @@ else
 fi
 
 # Test 10: Basic Functionality Test
-echo "🧪 Testing basic functionality..."
+log_info "Testing basic functionality..."
 BASIC_TEST_ERRORS=()
 
 # Test CLI help
@@ -283,16 +300,16 @@ else
 fi
 
 # Test 11: Git Repository Integrity
-echo "📊 Testing Git repository integrity..."
+log_info "Testing Git repository integrity..."
 GIT_ISSUES=()
 
 # Check for uncommitted changes
-if ! git diff --quiet; then
+if ! safe_git diff --quiet; then
     GIT_ISSUES+=("Uncommitted changes in working directory")
 fi
 
 # Check for untracked important files
-UNTRACKED_IMPORTANT=$(git ls-files --others --exclude-standard | grep -E "\.(py|swift|md|toml)$" | head -5 || echo "")
+UNTRACKED_IMPORTANT=$(safe_git ls-files --others --exclude-standard | grep -E "\.(py|swift|md|toml)$" | head -5 || echo "")
 if [[ -n "$UNTRACKED_IMPORTANT" ]]; then
     GIT_ISSUES+=("Untracked important files: $(echo "$UNTRACKED_IMPORTANT" | tr '\n' ' ')")
 fi
@@ -304,7 +321,7 @@ else
 fi
 
 # Test 12: Universal App Store Schema Validation
-echo "📋 Testing Universal App Store schema..."
+log_info "Testing Universal App Store schema..."
 SCHEMA_ISSUES=()
 
 # Check if appstore.md contains required sections
@@ -331,6 +348,9 @@ else
     log_result "Universal App Store Schema" "FAIL" "${SCHEMA_ISSUES[*]}"
 fi
 
+# End timing
+VALIDATION_DURATION=$(end_timer "post_merge_validation")
+
 # Generate summary
 echo ""
 echo "📊 Validation Summary"
@@ -341,8 +361,9 @@ cat >> "$VALIDATION_REPORT" << EOF
 
 ## Summary
 
-**Validation Date**: $(date)
+**Validation Date**: $(iso_timestamp)
 **Total Tests**: 12
+**Duration**: ${VALIDATION_DURATION}s
 **Repository State**: $(if [[ "$VALIDATION_FAILED" == "false" ]]; then echo "✅ HEALTHY"; else echo "❌ ISSUES DETECTED"; fi)
 
 ## Recommendations
@@ -350,8 +371,8 @@ cat >> "$VALIDATION_REPORT" << EOF
 EOF
 
 if [[ "$VALIDATION_FAILED" == "false" ]]; then
-    echo -e "${GREEN}✅ All validations passed!${NC}"
-    echo -e "${BLUE}🎉 Universal App Store merge process completed successfully${NC}"
+    log_info "✅ All validations passed!"
+    log_info "🎉 Universal App Store merge process completed successfully"
     echo ""
     echo "Next steps:"
     echo "1. Test the Universal App Store functionality manually"
@@ -369,8 +390,8 @@ if [[ "$VALIDATION_FAILED" == "false" ]]; then
 4. Continue with Universal App Store development roadmap
 EOF
 else
-    echo -e "${RED}❌ Some validations failed${NC}"
-    echo -e "${YELLOW}⚠️  Please review the issues above and resolve them${NC}"
+    log_error "❌ Some validations failed"
+    log_warn "⚠️  Please review the issues above and resolve them"
     echo ""
     echo "Common fixes:"
     echo "1. Run: python3 -m py_compile on failed Python files"
@@ -395,15 +416,16 @@ EOF
 fi
 
 echo ""
-echo -e "${PURPLE}📄 Detailed report saved to: $VALIDATION_REPORT${NC}"
+log_info "📄 Detailed report saved to: $VALIDATION_REPORT"
+echo -e "⏱️  Validation completed in: ${BLUE}${VALIDATION_DURATION}s${NC}"
 
 # Create success/failure indicator file
 if [[ "$VALIDATION_FAILED" == "false" ]]; then
     touch ".branch-analysis/validation_success"
-    echo -e "${GREEN}🎯 Universal App Store is ready for development!${NC}"
+    log_info "🎯 Universal App Store is ready for development!"
     exit 0
 else
     touch ".branch-analysis/validation_failed"
-    echo -e "${RED}🚨 Please resolve validation issues before proceeding${NC}"
+    log_error "🚨 Please resolve validation issues before proceeding"
     exit 1
 fi

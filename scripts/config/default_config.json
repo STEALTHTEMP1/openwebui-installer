@@ -1,0 +1,92 @@
+{
+    "version": "1.0",
+    "repository": {
+        "main_branch": "main",
+        "fallback_branch": "master",
+        "remote_name": "origin"
+    },
+    "analysis": {
+        "max_parallel_jobs": 8,
+        "cache_expiry_seconds": 300,
+        "max_backups": 10,
+        "skip_patterns": [
+            "codex/new-task",
+            "codex/find-and-fix-a-bug-in-the-codebase",
+            "codex/investigate-empty-openwebui-installer-folder",
+            "codex/delete-.ds_store-from-repository",
+            "codex/remove-tracked-.ds_store-and-.snapshots",
+            "codex/remove-multi-platform-claims-and-update-docs"
+        ]
+    },
+    "critical_files": [
+        "install.py",
+        "openwebui_installer/cli.py",
+        "openwebui_installer/installer.py",
+        "openwebui_installer/gui.py",
+        "README.md",
+        "pyproject.toml",
+        "requirements.txt",
+        "OpenWebUI-Desktop/OpenWebUI-Desktop/OpenWebUIApp.swift",
+        "OpenWebUI-Desktop/OpenWebUI-Desktop/ContentView.swift"
+    ],
+    "branch_patterns": {
+        "critical": [
+            "*app-store*",
+            "*swift*",
+            "*universal*"
+        ],
+        "high": [
+            "*container*",
+            "*multi*",
+            "*catalog*"
+        ],
+        "medium": [
+            "*feature*",
+            "*enhance*",
+            "*improve*"
+        ],
+        "low": [
+            "*fix*",
+            "*bug*",
+            "*patch*"
+        ]
+    },
+    "validation": {
+        "AUTO_MERGE": {
+            "max_changed_files": 10,
+            "max_critical_files": 1,
+            "max_conflict_potential": 0,
+            "required_checks": ["syntax", "imports", "conflicts"]
+        },
+        "GUIDED_MERGE": {
+            "max_changed_files": 20,
+            "max_critical_files": 3,
+            "max_conflict_potential": 2,
+            "required_checks": ["syntax", "imports", "conflicts", "critical_files"]
+        },
+        "MANUAL_MERGE": {
+            "max_changed_files": 100,
+            "max_critical_files": 10,
+            "max_conflict_potential": 10,
+            "required_checks": ["syntax", "imports", "conflicts", "critical_files", "tests"]
+        }
+    },
+    "paths": {
+        "analysis_dir": ".branch-analysis",
+        "backup_dir": ".branch-analysis/backups",
+        "cache_dir": ".branch-analysis/cache",
+        "logs_dir": ".branch-analysis/logs",
+        "temp_dir": ".branch-analysis/temp"
+    },
+    "logging": {
+        "level": "INFO",
+        "max_log_files": 10,
+        "max_log_size_mb": 10
+    },
+    "timeouts": {
+        "git_operation": 300,
+        "merge_operation": 600,
+        "validation": 300,
+        "lock_timeout": 1800
+    }
+}

@@ -3,25 +3,37 @@
 # Enhanced Branch Analysis for Universal App Store
 # Systematically identifies conflicts and provides resolution strategies
 
-set -euo pipefail
+# Load utility libraries
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/common.sh"
+source "$SCRIPT_DIR/lib/error_handling.sh"
+source "$SCRIPT_DIR/lib/resource_manager.sh"
+source "$SCRIPT_DIR/lib/lock_manager.sh"
+source "$SCRIPT_DIR/lib/dependency_checker.sh"
+source "$SCRIPT_DIR/lib/git_cache.sh"
+source "$SCRIPT_DIR/lib/parallel_processor.sh"
+source "$SCRIPT_DIR/lib/input_sanitizer.sh"
+
+# Check dependencies
+check_dependencies
+
+# Acquire lock for this operation
+if ! acquire_lock "branch_analysis"; then
+    log_error "Another branch analysis is already running"
+    exit 1
+fi
+auto_release_lock "branch_analysis"
 
 echo "🔍 Enhanced Branch Analysis for Universal App Store"
 echo "=================================================="
 echo ""
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-NC='\033[0m'
-
 # Create analysis output directory
-mkdir -p .branch-analysis
+ensure_directory ".branch-analysis"
 ANALYSIS_DIR=".branch-analysis"
-TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+TIMESTAMP=$(timestamp)
 REPORT_FILE="$ANALYSIS_DIR/branch_analysis_$TIMESTAMP.md"
+register_temp_file "$REPORT_FILE"
 
 # Initialize report
 cat > "$REPORT_FILE" << EOF
@@ -43,23 +55,26 @@ EOF
 # Function to analyze branch conflicts
 analyze_branch_conflicts() {
     local branch=$1
-    local base_branch=${2:-main}
+    local base_branch=${2:-$(git_main_branch)}
 
-    echo "🔬 Analyzing conflicts for: $branch"
+    log_debug "Analyzing conflicts for: $branch"
+
+    # Sanitize branch name
+    branch=$(sanitize_branch_name "$branch" true)
 
     # Check if branch exists
-    if ! git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
-        echo "❌ Branch not found: $branch"
+    if ! safe_git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+        log_error "Branch not found: $branch"
         return 1
     fi
 
-    # Get changed files
-    CHANGED_FILES=$(git diff --name-only "$base_branch"..."origin/$branch" 2>/dev/null || echo "")
+    # Get changed files using cache
+    CHANGED_FILES=$(get_cached_changed_files "$base_branch" "origin/$branch")
 
     # Calculate conflict potential using merge-tree
     CONFLICT_POTENTIAL=0
-    if git merge-tree "$base_branch" "origin/$branch" >/dev/null 2>&1; then
-        CONFLICT_OUTPUT=$(git merge-tree "$base_branch" "origin/$branch" 2>/dev/null || echo "")
+    if safe_git merge-tree "$base_branch" "origin/$branch" >/dev/null 2>&1; then
+        CONFLICT_OUTPUT=$(safe_git merge-tree "$base_branch" "origin/$branch" 2>/dev/null || echo "")
         CONFLICT_POTENTIAL=$(echo "$CONFLICT_OUTPUT" | grep -c "<<<<<<< " || echo "0")
     fi
 
@@ -145,14 +160,15 @@ categorize_branch_relevance() {
 
 # Main analysis execution
 echo "📊 Discovering branches..."
-git fetch --all --quiet 2>/dev/null || echo "Note: Some remotes may not be accessible"
+cached_remote_update
 
 # Get all remote branches except main/master
-ALL_BRANCHES=$(git branch -r 2>/dev/null | grep -v -E "(HEAD|main|master)" | sed 's/origin\///' | tr -d ' ' | sort -u || echo "")
+ALL_BRANCHES=$(get_cached_branches "remote" | grep -v -E "(HEAD|main|master)" | sort -u || echo "")
+ALL_BRANCHES=$(validate_branch_list "$ALL_BRANCHES")
 TOTAL_BRANCHES=$(echo "$ALL_BRANCHES" | wc -l)
 
 if [[ -z "$ALL_BRANCHES" || "$TOTAL_BRANCHES" -eq 0 ]]; then
-    echo "⚠️  No remote branches found. This may be a local-only repository."
+    log_warn "No remote branches found. This may be a local-only repository."
     echo "Creating mock analysis for demonstration..."
 
     # Create demonstration data
@@ -167,6 +183,9 @@ fi
 echo "📋 Found $TOTAL_BRANCHES branches to analyze"
 echo ""
 
+# Start timing
+start_timer "branch_analysis"
+
 # Analysis containers
 AUTO_MERGE=()
 GUIDED_MERGE=()
@@ -176,70 +195,90 @@ HIGH_PRIORITY=()
 MEDIUM_PRIORITY=()
 LOW_PRIORITY=()
 
-# Analyze each branch
-COUNTER=0
-for branch in $ALL_BRANCHES; do
-    COUNTER=$((COUNTER + 1))
-    echo -e "${BLUE}[$COUNTER/$TOTAL_BRANCHES]${NC} Analyzing: $branch"
+# Use parallel processing if more than 10 branches
+if [[ $TOTAL_BRANCHES -gt 10 ]]; then
+    log_info "Using parallel processing for $TOTAL_BRANCHES branches"
 
-    # Skip problematic branches from smart_merge.sh
-    SKIP_PATTERNS=(
-        "codex/new-task"
-        "codex/find-and-fix-a-bug-in-the-codebase"
-        "codex/investigate-empty-openwebui-installer-folder"
-        "codex/delete-.ds_store-from-repository"
-        "codex/remove-tracked-.ds_store-and-.snapshots"
-        "codex/remove-multi-platform-claims-and-update-docs"
-    )
+    # Convert branches to array
+    BRANCHES_ARRAY=()
+    while IFS= read -r branch; do
+        [[ -n "$branch" ]] && BRANCHES_ARRAY+=("$branch")
+    done <<< "$ALL_BRANCHES"
 
-    SKIP_BRANCH=false
-    for pattern in "${SKIP_PATTERNS[@]}"; do
-        if [[ "$branch" == *"$pattern"* ]]; then
-            echo -e "  ${YELLOW}⏭️  Skipping (problematic)${NC}"
-            SKIP_BRANCH=true
-            break
+    # Process in parallel
+    process_branches_parallel "${BRANCHES_ARRAY[@]}"
+else
+    # Sequential processing for small number of branches
+    log_info "Using sequential processing for $TOTAL_BRANCHES branches"
+
+    # Analyze each branch
+    COUNTER=0
+    for branch in $ALL_BRANCHES; do
+        COUNTER=$((COUNTER + 1))
+        show_progress $COUNTER $TOTAL_BRANCHES "Analyzing branches"
+
+        # Skip problematic branches from smart_merge.sh
+        SKIP_PATTERNS=(
+            "codex/new-task"
+            "codex/find-and-fix-a-bug-in-the-codebase"
+            "codex/investigate-empty-openwebui-installer-folder"
+            "codex/delete-.ds_store-from-repository"
+            "codex/remove-tracked-.ds_store-and-.snapshots"
+            "codex/remove-multi-platform-claims-and-update-docs"
+        )
+
+        SKIP_BRANCH=false
+        for pattern in "${SKIP_PATTERNS[@]}"; do
+            if [[ "$branch" == *"$pattern"* ]]; then
+                log_debug "Skipping problematic branch: $branch"
+                SKIP_BRANCH=true
+                break
+            fi
+        done
+
+        if [[ "$SKIP_BRANCH" == true ]]; then
+            continue
         fi
+
+        # Check if already merged
+        if safe_git merge-base --is-ancestor "origin/$branch" HEAD 2>/dev/null; then
+            log_debug "Branch already merged: $branch"
+            continue
+        fi
+
+        # Analyze conflicts and categorize
+        if ANALYSIS_RESULT=$(analyze_branch_conflicts "$branch" 2>/dev/null); then
+            IFS='|' read -r branch_name strategy priority critical_impact conflict_potential <<< "$ANALYSIS_RESULT"
+        else
+            # Handle analysis failure gracefully
+            strategy="MANUAL_MERGE"
+            priority="HIGH"
+            log_warn "Analysis failed for $branch, defaulting to manual merge"
+        fi
+
+        # Categorize by Universal App Store relevance
+        RELEVANCE=$(categorize_branch_relevance "$branch")
+
+        # Sort into categories
+        case $strategy in
+            "AUTO_MERGE") AUTO_MERGE+=("$branch|$RELEVANCE") ;;
+            "GUIDED_MERGE") GUIDED_MERGE+=("$branch|$RELEVANCE") ;;
+            "MANUAL_MERGE") MANUAL_MERGE+=("$branch|$RELEVANCE") ;;
+        esac
+
+        case $RELEVANCE in
+            "CRITICAL") CRITICAL_BRANCHES+=("$branch|$strategy") ;;
+            "HIGH") HIGH_PRIORITY+=("$branch|$strategy") ;;
+            "MEDIUM") MEDIUM_PRIORITY+=("$branch|$strategy") ;;
+            "LOW") LOW_PRIORITY+=("$branch|$strategy") ;;
+        esac
+
+        log_debug "Branch $branch: Strategy=$strategy, Relevance=$RELEVANCE"
     done
+fi
 
-    if [[ "$SKIP_BRANCH" == true ]]; then
-        continue
-    fi
-
-    # Check if already merged
-    if git merge-base --is-ancestor "origin/$branch" HEAD 2>/dev/null; then
-        echo -e "  ${GREEN}✅ Already merged${NC}"
-        continue
-    fi
-
-    # Analyze conflicts and categorize
-    if ANALYSIS_RESULT=$(analyze_branch_conflicts "$branch" 2>/dev/null); then
-        IFS='|' read -r branch_name strategy priority critical_impact conflict_potential <<< "$ANALYSIS_RESULT"
-    else
-        # Handle analysis failure gracefully
-        strategy="MANUAL_MERGE"
-        priority="HIGH"
-        echo -e "  ${YELLOW}⚠️  Analysis failed, defaulting to manual merge${NC}"
-    fi
-
-    # Categorize by Universal App Store relevance
-    RELEVANCE=$(categorize_branch_relevance "$branch")
-
-    # Sort into categories
-    case $strategy in
-        "AUTO_MERGE") AUTO_MERGE+=("$branch|$RELEVANCE") ;;
-        "GUIDED_MERGE") GUIDED_MERGE+=("$branch|$RELEVANCE") ;;
-        "MANUAL_MERGE") MANUAL_MERGE+=("$branch|$RELEVANCE") ;;
-    esac
-
-    case $RELEVANCE in
-        "CRITICAL") CRITICAL_BRANCHES+=("$branch|$strategy") ;;
-        "HIGH") HIGH_PRIORITY+=("$branch|$strategy") ;;
-        "MEDIUM") MEDIUM_PRIORITY+=("$branch|$strategy") ;;
-        "LOW") LOW_PRIORITY+=("$branch|$strategy") ;;
-    esac
-
-    echo -e "  ${PURPLE}Strategy: $strategy | Relevance: $RELEVANCE${NC}"
-done
+# End timing
+ANALYSIS_DURATION=$(end_timer "branch_analysis")
 
 # Generate comprehensive report
 cat >> "$REPORT_FILE" << EOF
@@ -292,6 +331,7 @@ echo -e "High priority: ${BLUE}${#HIGH_PRIORITY[@]}${NC}"
 echo -e "Medium priority: ${YELLOW}${#MEDIUM_PRIORITY[@]}${NC}"
 echo -e "Low priority: ${GREEN}${#LOW_PRIORITY[@]}${NC}"
 echo ""
+echo -e "Analysis completed in: ${BLUE}${ANALYSIS_DURATION}s${NC}"
 echo -e "📄 Detailed report: ${BLUE}$REPORT_FILE${NC}"
 
 # Export results for merge scripts
@@ -321,3 +361,5 @@ echo "3. Process critical branches: ./scripts/merge_critical_branches.sh"
 echo "4. Handle manual conflicts: ./scripts/post_merge_validation.sh"
 echo ""
 echo -e "${BLUE}Ready to execute the merge process!${NC}"
+
+# Clean up resources automatically on exit (handled by resource_manager.sh)
