@@ -7,17 +7,7 @@ from unittest.mock import MagicMock, patch, Mock
 import pytest
 from click.testing import CliRunner
 
-from openwebui_installer.cli import (
-    cli,
-    install,
-    uninstall,
-    status,
-    start,
-    stop,
-    restart,
-    update,
-    logs,
-)
+from openwebui_installer.cli import cli, install, uninstall, status
 from openwebui_installer.installer import InstallerError, SystemRequirementsError
 
 
@@ -29,11 +19,10 @@ def runner():
 
 @pytest.fixture
 def mock_installer():
-    """Mock installer instance as context manager."""
-    with patch("openwebui_installer.cli.Installer") as mock_cls:
+    """Mock installer instance."""
+    with patch("openwebui_installer.cli.Installer") as mock:
         installer = Mock()
-        mock_cls.return_value.__enter__.return_value = installer
-        mock_cls.return_value.__exit__.return_value = False
+        mock.return_value = installer
         yield installer
 
 
@@ -64,10 +53,12 @@ def test_install_with_options(runner, mock_installer):
 
 def test_install_system_requirements_error(runner, mock_installer):
     """Test installation with system requirements error."""
-    mock_installer.install.side_effect = SystemRequirementsError("Docker not running")
+    mock_installer.install.side_effect = SystemRequirementsError(
+        "Docker service is not running. Start Docker Desktop and ensure the daemon is running."
+    )
     result = runner.invoke(cli, ["install"])
     assert result.exit_code == 1
-    assert "Docker not running" in result.output
+    assert "Docker service is not running" in result.output
 
 
 def test_install_error(runner, mock_installer):
@@ -260,28 +251,11 @@ class TestCLI:
             image="custom/image:tag",  # Provided in test
         )
 
-    def test_start_command(self, runner, mock_installer):
-        result = runner.invoke(start)
-        assert result.exit_code == 0
-        mock_installer.start.assert_called_once()
-
-    def test_stop_command(self, runner, mock_installer):
-        result = runner.invoke(stop)
-        assert result.exit_code == 0
-        mock_installer.stop.assert_called_once()
-
-    def test_restart_command(self, runner, mock_installer):
-        result = runner.invoke(restart)
-        assert result.exit_code == 0
-        mock_installer.restart.assert_called_once()
-
-    def test_update_command(self, runner, mock_installer):
-        result = runner.invoke(update, ["--image", "test:image"])
-        assert result.exit_code == 0
-        mock_installer.update.assert_called_once_with(image="test:image")
-
-    def test_logs_command(self, runner, mock_installer):
-        mock_installer.logs.return_value = "log output"
-        result = runner.invoke(logs)
-        assert result.exit_code == 0
-        mock_installer.logs.assert_called_once_with(tail=100)
+    def test_verbose_flag(self, runner):
+        """Installer receives verbose flag when provided"""
+        with patch("openwebui_installer.cli.Installer") as mock_cls:
+            instance = Mock()
+            mock_cls.return_value = instance
+            result = runner.invoke(cli, ["--verbose", "install"])
+            assert result.exit_code == 0
+            mock_cls.assert_called_with(verbose=True)

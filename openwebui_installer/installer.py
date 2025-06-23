@@ -14,7 +14,9 @@ from typing import Dict, Optional
 import docker
 import requests
 from rich.console import Console
+import logging
 
+logger = logging.getLogger(__name__)
 console = Console()
 
 # Secrets that can be provided via environment variables or Docker secrets
@@ -41,6 +43,7 @@ class SystemRequirementsError(InstallerError):
 class Installer:
     """Main installer class for Open WebUI."""
 
+<<<<<<< HEAD
     def __init__(self, runtime: str = "docker"):
         """Initialize the installer.
 
@@ -67,6 +70,12 @@ class Installer:
             self.runtime = "podman"
             self.docker_client = self._get_podman_client()
 
+=======
+    def __init__(self, verbose: bool = False):
+        """Initialize the installer."""
+        self.verbose = verbose
+        self.docker_client = docker.from_env()
+>>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
         self.webui_image = "ghcr.io/open-webui/open-webui:main"  # Default image
         self.config_dir = os.path.expanduser("~/.openwebui")
 
@@ -120,17 +129,25 @@ class Installer:
 >>>>>>> origin/codex/add-context-manager-and-close-method
     def _check_system_requirements(self):
         """Validate system requirements."""
+<<<<<<< HEAD
         # Check supported operating systems (macOS and Linux)
         system = platform.system()
         if system not in ("Darwin", "Linux"):
             raise SystemRequirementsError(
                 "This installer only supports macOS and Linux"
             )
+=======
+        logger.debug("Validating system requirements")
+        # Check macOS
+        if platform.system() != "Darwin":
+            raise SystemRequirementsError("This installer only supports macOS")
+>>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
 
         # Check Python version (aligned with setup.py)
         if sys.version_info < (3, 9):
             raise SystemRequirementsError("Python 3.9 or higher is required")
 
+<<<<<<< HEAD
         # Check container runtime
         try:
             self.docker_client.ping()
@@ -142,8 +159,26 @@ class Installer:
                     "Docker is not running or not installed. Podman detected; use --runtime podman"
                 )
             raise SystemRequirementsError("Docker is not running or not installed")
+=======
+        # Check Docker CLI
+        logger.debug("Checking Docker CLI availability")
+        if not shutil.which("docker"):
+            raise SystemRequirementsError(
+                "Docker is not installed. Install Docker with our script or from https://docs.docker.com/get-docker/"
+            )
+
+        # Check Docker service
+        logger.debug("Checking Docker service status")
+        try:
+            self.docker_client.ping()
+        except docker.errors.DockerException as e:
+            raise SystemRequirementsError(
+                "Docker service is not running. Start Docker Desktop and ensure the daemon is running."
+            ) from e
+>>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
 
         # Check Ollama with timeout
+        logger.debug("Checking Ollama availability")
         try:
             response = requests.get("http://localhost:11434/api/tags", timeout=10)
             if response.status_code != 200:
@@ -166,6 +201,7 @@ class Installer:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     ) -> None:
 =======
     ):
@@ -176,8 +212,12 @@ class Installer:
 =======
     ):
 >>>>>>> origin/codex/add-cli-methods-and-update-tests
+=======
+    ):
+>>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
         """Install Open WebUI."""
         try:
+            logger.debug("Starting installation")
             # Check if already installed
             if not force and self.get_status()["installed"]:
                 raise InstallerError("Open WebUI is already installed. Use --force to reinstall.")
@@ -213,6 +253,7 @@ class Installer:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 f.write(f"""#!/bin/bash
 {self.runtime} run -d \\
 =======
@@ -220,6 +261,8 @@ class Installer:
 >>>>>>> origin/codex/extend-installer-with-container-management-methods
 =======
 >>>>>>> origin/codex/add-cli-methods-and-update-tests
+=======
+>>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
                 f.write(
                     f"""#!/bin/bash
 docker run -d \\
@@ -272,6 +315,7 @@ docker run -d \\
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     environment=env_vars,
 =======
                     environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
@@ -282,6 +326,9 @@ docker run -d \\
 =======
                     environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
 >>>>>>> origin/codex/add-cli-methods-and-update-tests
+=======
+                    environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
+>>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
                     extra_hosts={"host.docker.internal": "host-gateway"},
                     detach=True,
                     restart_policy={"Name": "unless-stopped"},
@@ -297,6 +344,7 @@ docker run -d \\
     def uninstall(self):
         """Uninstall Open WebUI."""
         try:
+            logger.debug("Starting uninstallation")
             # Stop and remove container if running
             try:
                 container = self.docker_client.containers.get("open-webui")
@@ -312,11 +360,14 @@ docker run -d \\
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
 =======
 >>>>>>> origin/codex/extend-installer-with-container-management-methods
 =======
 >>>>>>> origin/codex/add-cli-methods-and-update-tests
+=======
+>>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
             if os.path.exists(self.config_dir):
                 shutil.rmtree(self.config_dir)
 

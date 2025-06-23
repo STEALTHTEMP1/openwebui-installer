@@ -2,6 +2,7 @@
 Command-line interface for Open WebUI Installer
 """
 
+import logging
 import sys
 from typing import Optional
 
@@ -15,11 +16,18 @@ from .installer import Installer
 console = Console()
 
 
+<<<<<<< HEAD
 def validate_system(runtime: str) -> bool:
     """Validate system requirements."""
     try:
 <<<<<<< HEAD
         installer = Installer(runtime=runtime)
+=======
+def validate_system(verbose: bool = False) -> bool:
+    """Validate system requirements."""
+    try:
+        installer = Installer(verbose=verbose)
+>>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
         installer._check_system_requirements()
 =======
         with Installer() as installer:
@@ -28,11 +36,15 @@ def validate_system(runtime: str) -> bool:
         return True
     except Exception as e:
         console.print(f"[red]System validation failed:[/red] {str(e)}")
+        if verbose:
+            console.print_exception()
         return False
 
 
 @click.group()
+@click.option("--verbose", is_flag=True, help="Enable verbose output")
 @click.version_option(version=__version__)
+<<<<<<< HEAD
 @click.option('--runtime', type=click.Choice(['docker', 'podman']), default='docker', help='Container runtime to use')
 @click.pass_context
 def cli(ctx, runtime):
@@ -55,10 +67,21 @@ def install(ctx, model: str, port: int, force: bool, image: Optional[str]):
 >>>>>>> origin/codex/extend-installer-with-container-management-methods
 =======
 >>>>>>> origin/codex/add-cli-methods-and-update-tests
+=======
+@click.pass_context
+def cli(ctx: click.Context, verbose: bool):
+    """Open WebUI Installer - Install and manage Open WebUI with Ollama integration."""
+    logging.basicConfig(level=logging.DEBUG if verbose else logging.INFO, format="%(message)s")
+    ctx.obj = {"verbose": verbose}
+
+
+@cli.command()
+>>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
 @click.option("--model", "-m", help="Ollama model to install", default="llama2")
 @click.option("--port", "-p", help="Port to run Open WebUI on", default=3000, type=int)
 @click.option("--force", "-f", is_flag=True, help="Force installation even if already installed")
 @click.option("--image", help="Custom Open WebUI image to use")
+<<<<<<< HEAD
 def install(model: str, port: int, force: bool, image: Optional[str]):
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
     """Install Open WebUI and configure Ollama integration."""
@@ -68,6 +91,17 @@ def install(model: str, port: int, force: bool, image: Optional[str]):
 
 <<<<<<< HEAD
         installer = Installer(runtime=ctx.obj['runtime'])
+=======
+@click.pass_context
+def install(ctx: click.Context, model: str, port: int, force: bool, image: Optional[str]):
+    """Install Open WebUI and configure Ollama integration."""
+    try:
+        verbose = ctx.obj.get("verbose", False)
+        if not validate_system(verbose=verbose):
+            sys.exit(1)
+
+        installer = Installer(verbose=verbose)
+>>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -98,14 +132,23 @@ def install(model: str, port: int, force: bool, image: Optional[str]):
 
 @cli.command()
 @click.pass_context
+<<<<<<< HEAD
 def uninstall(ctx):
+=======
+def uninstall(ctx: click.Context):
+>>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
     """Uninstall Open WebUI."""
     if not click.confirm("Are you sure you want to uninstall Open WebUI?", default=False):
         console.print("Uninstallation aborted.")
         return
     try:
 <<<<<<< HEAD
+<<<<<<< HEAD
         installer = Installer(runtime=ctx.obj['runtime'])
+=======
+        verbose = ctx.obj.get("verbose", False)
+        installer = Installer(verbose=verbose)
+>>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -134,6 +177,7 @@ def uninstall(ctx):
 
 
 @cli.command()
+<<<<<<< HEAD
 <<<<<<< HEAD
 @click.pass_context
 def status(ctx):
@@ -223,6 +267,16 @@ def status():
             status = installer.get_status()
 >>>>>>> origin/codex/add-context-manager-and-close-method
 
+=======
+@click.pass_context
+def status(ctx: click.Context):
+    """Check Open WebUI installation status."""
+    try:
+        verbose = ctx.obj.get("verbose", False)
+        installer = Installer(verbose=verbose)
+        status = installer.get_status()
+
+>>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
         if status["installed"]:
             console.print("[green]✓[/green] Open WebUI is installed")
             console.print(f"Version: {status['version']}")
