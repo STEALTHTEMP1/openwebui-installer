@@ -271,6 +271,18 @@ The workflow works with any project structure. It automatically includes all fil
 - `.env` - Environment files
 - `*.log` - Log files
 
+## 🔑 Required Secrets
+
+Set the following secrets in your environment or as Docker secrets:
+
+- `OPENAI_API_KEY`
+- `ANTHROPIC_API_KEY`
+- `HUGGINGFACE_TOKEN`
+- `WEBUI_SECRET_KEY`
+
+These are automatically passed to the container by the installer.
+
+
 ## 🔒 Security & Privacy
 
 - **Your main repository stays private** - Only releases are public

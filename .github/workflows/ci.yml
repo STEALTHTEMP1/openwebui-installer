@@ -15,7 +15,11 @@ on:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
-    strategy:
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
+      WEBUI_SECRET_KEY: ${{ secrets.WEBUI_SECRET_KEY }}    strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
         python-version: ['3.9', '3.10', '3.11']
@@ -93,8 +97,13 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
+      WEBUI_SECRET_KEY: ${{ secrets.WEBUI_SECRET_KEY }}
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
     
     - name: Set up Python
       uses: actions/setup-python@v4

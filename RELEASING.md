@@ -32,6 +32,11 @@ The following secrets must be configured in GitHub repository settings:
    - `NOTARIZATION_TEAM_ID`: Team identifier
    - `NOTARIZATION_PASSWORD`: App-specific password
 
+4. **Runtime API keys for installer**
+   - `OPENAI_API_KEY`
+   - `ANTHROPIC_API_KEY`
+   - `HUGGINGFACE_TOKEN`
+   - `WEBUI_SECRET_KEY`
 ## Release Steps
 
 1. **Prepare Release**
