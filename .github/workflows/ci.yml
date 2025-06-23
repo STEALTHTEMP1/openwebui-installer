@@ -61,3 +61,18 @@ jobs:
       run: |
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics 
+  helm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.12.3
+
+      - name: Lint chart
+        run: helm lint helm-chart/openwebui
+
+      - name: Template chart
+        run: helm template test-render helm-chart/openwebui

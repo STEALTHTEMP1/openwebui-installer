@@ -1,0 +1,8 @@
+apiVersion: v2
+name: openwebui
+version: 0.1.0
+appVersion: "1.0"
+description: Helm chart for deploying Open WebUI
+maintainers:
+  - name: Open WebUI Team
+    email: team@openwebui.com
