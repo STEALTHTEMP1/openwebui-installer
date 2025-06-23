@@ -64,7 +64,13 @@ class Installer:
         """Ensure configuration directory exists."""
         os.makedirs(self.config_dir, exist_ok=True)
 
-    def install(self, model: str = "llama2", port: int = 3000, force: bool = False, image: Optional[str] = None):
+    def install(
+        self,
+        model: str = "llama2",
+        port: int = 3000,
+        force: bool = False,
+        image: Optional[str] = None,
+    ) -> None:
         """Install Open WebUI."""
         try:
             # Check if already installed
