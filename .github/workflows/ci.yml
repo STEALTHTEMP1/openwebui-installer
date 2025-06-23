@@ -22,7 +22,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    
+
+    - name: Install system packages
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libegl1
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
@@ -56,6 +62,8 @@ jobs:
         Xvfb :99 -screen 0 1920x1080x24 > /tmp/Xvfb.log 2>&1 &
         
     - name: Run tests
+      env:
+        QT_QPA_PLATFORM: offscreen
       run: |
         pytest tests/ --cov=openwebui_installer --cov-report=xml
       env:
