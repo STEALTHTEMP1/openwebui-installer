@@ -249,6 +249,10 @@ The workflow works with any project structure. It automatically includes all fil
 3. **Set up your Homebrew tap** (see main project documentation)
 4. **Test the complete flow** end-to-end
 
+## 🗂️ Docker Image Caching
+
+GitHub Actions builds development images and pushes them to GitHub Container Registry. These cached images can dramatically reduce setup time. See [DevOps/REGISTRY_CACHING.md](DevOps/REGISTRY_CACHING.md) for details on using the registry and overriding image tags with environment variables.
+
 ---
 
 **Ready to get started?** Run `./setup.sh` and follow the prompts!
