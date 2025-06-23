@@ -12,12 +12,7 @@
 
 ## 📖 Document Purpose
 
-This document serves as the **single source of truth** for all requirements related to the Universal Container App Store project. It consolidates and supersedes all previous requirement documents including:
-
-- `Universal Container App Store.md` (Original PRD)
-- `Universal Container App Store - Feedback & Revision Canvas (v0.6).md` (Latest revisions)  
-- `ONE_CLICK_REQUIREMENTS.md` (Installation requirements)
-- `prd.md` (Original OpenWebUI installer PRD)
+This document serves as the **single source of truth** for all requirements related to the Universal Container App Store project. It replaces earlier drafts such as `ONE_CLICK_REQUIREMENTS.md`, `prd.md`, and other planning documents.
 
 ---
 
