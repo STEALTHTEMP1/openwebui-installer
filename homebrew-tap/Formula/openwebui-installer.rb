@@ -44,6 +44,11 @@ class OpenwebuiInstaller < Formula
     sha256 "922b9cd261d7c2f8e8b435e8309d6e8f1fbb487e091f3a9e2aa9ed2e8e7b6b8c"
   end
 
+  resource "psutil" do
+    url "https://files.pythonhosted.org/packages/source/p/psutil/psutil-5.9.8.tar.gz"
+    sha256 "6be126e3225486dff286a8fb9a06246a5253f4c7c53b475ea5f5ac934e64194c"
+  end
+
   def install
     virtualenv_install_with_resources
   end
