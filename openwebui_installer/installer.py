@@ -4,6 +4,7 @@ Core installer functionality for Open WebUI
 import json
 import os
 import platform
+import shutil
 import subprocess
 import sys
 import shutil
@@ -215,7 +216,6 @@ class Installer:
                 pass
 
             # Remove configuration
-            import shutil
             if os.path.exists(self.config_dir):
                 shutil.rmtree(self.config_dir)
 
