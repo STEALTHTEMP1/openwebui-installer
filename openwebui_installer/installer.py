@@ -192,12 +192,90 @@ class Installer:
         """Ensure configuration directory exists."""
         os.makedirs(self.config_dir, exist_ok=True)
 
+<<<<<<< HEAD
+=======
+    def _pull_webui_image(self, image: str) -> None:
+        """Pull the Open WebUI Docker image."""
+        console.print(f"Pulling Open WebUI image: {image}...")
+        try:
+            self.docker_client.images.pull(image)
+        except docker.errors.APIError as e:
+            raise InstallerError(f"Failed to pull Open WebUI Docker image: {str(e)}")
+
+    def _pull_ollama_model(self, model: str) -> None:
+        """Pull the specified Ollama model."""
+        console.print(f"Pulling Ollama model: {model}...")
+        try:
+            subprocess.run(["ollama", "pull", model], check=True, timeout=300)
+        except subprocess.TimeoutExpired:
+            raise InstallerError(f"Timeout while pulling Ollama model {model}")
+        except subprocess.CalledProcessError as e:
+            raise InstallerError(f"Failed to pull Ollama model {model}: {str(e)}")
+
+    def _create_launch_script(self, port: int, image: str) -> None:
+        """Create a script to launch Open WebUI."""
+        launch_script = os.path.join(self.config_dir, "launch-openwebui.sh")
+        with open(launch_script, "w") as f:
+            f.write(
+                f"""#!/bin/bash
+docker run -d \
+    --name open-webui \
+    -p {port}:8080 \
+    -v open-webui:/app/backend/data \
+    -e OLLAMA_API_BASE_URL=http://host.docker.internal:11434/api \
+    --add-host host.docker.internal:host-gateway \
+    {image}
+"""
+            )
+        os.chmod(launch_script, 0o755)
+
+    def _write_config(self, model: str, port: int, image: str) -> None:
+        """Write installer configuration."""
+        config = {
+            "version": "0.1.0",
+            "model": model,
+            "port": port,
+            "image": image,
+        }
+        with open(os.path.join(self.config_dir, "config.json"), "w") as f:
+            json.dump(config, f, indent=2)
+
+    def _stop_existing_container(self) -> None:
+        """Stop and remove any existing Open WebUI container."""
+        try:
+            existing_container = self.docker_client.containers.get("open-webui")
+            existing_container.stop()
+            existing_container.remove()
+        except docker.errors.NotFound:
+            pass
+        except docker.errors.APIError as e:
+            raise InstallerError(f"Failed to stop existing container: {str(e)}")
+
+    def _start_container(self, port: int, image: str) -> None:
+        """Start the Open WebUI container."""
+        try:
+            container = self.docker_client.containers.run(
+                image,
+                name="open-webui",
+                ports={"8080/tcp": port},
+                volumes={"open-webui": {"bind": "/app/backend/data", "mode": "rw"}},
+                environment={"OLLAMA_API_BASE_URL": "http://host.docker.internal:11434/api"},
+                extra_hosts={"host.docker.internal": "host-gateway"},
+                detach=True,
+                restart_policy={"Name": "unless-stopped"},
+            )
+            console.print(f"✓ Container started with ID: {container.short_id}")
+        except docker.errors.APIError as e:
+            raise InstallerError(f"Failed to start Open WebUI container: {str(e)}")
+
+>>>>>>> origin/codex/add-private-helper-functions-in-installer.py
     def install(
         self,
         model: str = "llama2",
         port: int = 3000,
         force: bool = False,
         image: Optional[str] = None,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -219,6 +297,9 @@ class Installer:
 =======
     ):
 >>>>>>> origin/codex/implement-macos-autostart-feature
+=======
+    ):
+>>>>>>> origin/codex/add-private-helper-functions-in-installer.py
         """Install Open WebUI."""
         try:
             logger.debug("Starting installation")
@@ -235,6 +316,7 @@ class Installer:
             # Use custom image if provided, otherwise use default
             current_webui_image = image if image else self.webui_image
 
+<<<<<<< HEAD
             # Pull Docker image
             console.print(f"Pulling Open WebUI image: {current_webui_image}...")
             try:
@@ -283,19 +365,19 @@ docker run -d \\
 """
                 )
             os.chmod(launch_script, 0o755)
+=======
+            # Pull resources and configure installation
+            self._pull_webui_image(current_webui_image)
+            self._pull_ollama_model(model)
+            self._create_launch_script(port, current_webui_image)
+>>>>>>> origin/codex/add-private-helper-functions-in-installer.py
 
             # Create configuration file
-            config = {
-                "version": "0.1.0",
-                "model": model,
-                "port": port,
-                "image": current_webui_image,
-            }
-            with open(os.path.join(self.config_dir, "config.json"), "w") as f:
-                json.dump(config, f, indent=2)
+            self._write_config(model, port, current_webui_image)
 
             # Start the container after installation
             console.print("Starting Open WebUI container...")
+<<<<<<< HEAD
             try:
                 # Stop and remove existing container if it exists
                 try:
@@ -348,6 +430,10 @@ docker run -d \\
 
             except docker.errors.APIError as e:
                 raise InstallerError(f"Failed to start Open WebUI container: {str(e)}")
+=======
+            self._stop_existing_container()
+            self._start_container(port, current_webui_image)
+>>>>>>> origin/codex/add-private-helper-functions-in-installer.py
 
         except Exception as e:
             raise InstallerError(f"Installation failed: {str(e)}")
@@ -373,6 +459,7 @@ docker run -d \\
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> origin/codex/extend-installer-with-container-management-commands
 =======
 >>>>>>> origin/codex/extend-installer-with-container-management-methods
@@ -382,6 +469,8 @@ docker run -d \\
 >>>>>>> origin/codex/enhance-_check_system_requirements-and-cli
 =======
 >>>>>>> origin/codex/implement-macos-autostart-feature
+=======
+>>>>>>> origin/codex/add-private-helper-functions-in-installer.py
             if os.path.exists(self.config_dir):
                 shutil.rmtree(self.config_dir)
 

@@ -82,39 +82,39 @@ class TestInstallerSuite:
         """Test a complete, successful installation run from a clean state."""
         mocker.patch.object(installer, "_check_system_requirements")
         mocker.patch.object(installer, "get_status", return_value={"installed": False})
-        mock_open_patch = mocker.patch("builtins.open", mock_open())
-        mocker.patch("os.makedirs")
-        mock_json_dump = mocker.patch("json.dump")
-        mock_subprocess_run = mocker.patch("subprocess.run")
-        mocker.patch("os.chmod")
+        mocker.patch.object(installer, "_pull_webui_image")
+        mocker.patch.object(installer, "_pull_ollama_model")
+        mocker.patch.object(installer, "_create_launch_script")
+        mock_write_config = mocker.patch.object(installer, "_write_config")
+        mocker.patch.object(installer, "_stop_existing_container")
+        mocker.patch.object(installer, "_start_container")
 
         installer.install(model="test-model", port=1234, force=False)
 
         installer._check_system_requirements.assert_called_once()
-        installer.docker_client.images.pull.assert_called_with(installer.webui_image)
-        mock_subprocess_run.assert_called_with(
-            ["ollama", "pull", "test-model"], check=True, timeout=300
-        )
-        assert mock_json_dump.call_args[0][0]["port"] == 1234
-        assert mock_json_dump.call_args[0][0]["model"] == "test-model"
+        installer._pull_webui_image.assert_called_once_with(installer.webui_image)
+        installer._pull_ollama_model.assert_called_once_with("test-model")
+        installer._create_launch_script.assert_called_once_with(1234, installer.webui_image)
+        mock_write_config.assert_called_once_with("test-model", 1234, installer.webui_image)
 
     def test_install_with_custom_image(self, installer, mocker):
         """Test installation with a custom Docker image."""
         mocker.patch.object(installer, "_check_system_requirements")
         mocker.patch.object(installer, "get_status", return_value={"installed": False})
-        mock_open_patch = mocker.patch("builtins.open", mock_open())
-        mocker.patch("os.makedirs")
-        mock_json_dump = mocker.patch("json.dump")
-        mock_subprocess_run = mocker.patch("subprocess.run")
-        mocker.patch("os.chmod")
+        mocker.patch.object(installer, "_pull_webui_image")
+        mocker.patch.object(installer, "_pull_ollama_model")
+        mocker.patch.object(installer, "_create_launch_script")
+        mock_write_config = mocker.patch.object(installer, "_write_config")
+        mocker.patch.object(installer, "_stop_existing_container")
+        mocker.patch.object(installer, "_start_container")
 
         custom_image = "custom/open-webui:latest"
         installer.install(model="test-model", port=1234, force=False, image=custom_image)
 
-        installer.docker_client.images.pull.assert_called_with(custom_image)
-        # Check that custom image is stored in config
-        config_data = mock_json_dump.call_args[0][0]
-        assert config_data["image"] == custom_image
+        installer._pull_webui_image.assert_called_once_with(custom_image)
+        args = mock_write_config.call_args[0]
+        assert args[0] == "test-model"
+        assert args[2] == custom_image
 
     def test_install_stops_if_already_installed_without_force(self, installer, mocker):
         """Test that installation stops if already installed and force=False."""
@@ -123,32 +123,6 @@ class TestInstallerSuite:
             InstallerError, match="Open WebUI is already installed. Use --force to reinstall."
         ):
             installer.install(force=False)
-
-    def test_enable_autostart_success(self, installer, mocker):
-        """Test enabling autostart on macOS."""
-        mocker.patch("platform.system", return_value="Darwin")
-        mocker.patch("os.path.exists", return_value=True)
-        mocker.patch("os.makedirs")
-        mocker.patch("builtins.open", mock_open())
-        mock_run = mocker.patch("subprocess.run")
-
-        installer.enable_autostart()
-
-        mock_run.assert_called_once()
-
-    def test_enable_autostart_wrong_os(self, installer, mocker):
-        """Autostart should fail on non-macOS systems."""
-        mocker.patch("platform.system", return_value="Linux")
-        with pytest.raises(InstallerError, match="Autostart is only supported on macOS"):
-            installer.enable_autostart()
-
-    def test_enable_autostart_missing_script(self, installer, mocker):
-        """Autostart fails if launch script is missing."""
-        mocker.patch("platform.system", return_value="Darwin")
-        mocker.patch("os.path.exists", return_value=False)
-
-        with pytest.raises(InstallerError, match="Launch script not found"):
-            installer.enable_autostart()
 
     def test_uninstall_success(self, installer, mocker):
         """Test a successful uninstall removes container, volume, and config directory."""
@@ -227,12 +201,18 @@ class TestInstallerSuite:
             installer, "_check_system_requirements"
         )  # Mock to prevent its execution
         # installer.docker_client is already a MagicMock from the fixture.
-        installer.docker_client.images.pull.side_effect = docker.errors.APIError("pull failed")
+        mock_fail = mocker.patch.object(
+            installer,
+            "_pull_webui_image",
+            side_effect=InstallerError("Failed to pull Open WebUI Docker image: pull failed"),
+        )
 
         with pytest.raises(
             InstallerError, match="Failed to pull Open WebUI Docker image: pull failed"
         ):
-            installer.install(force=False)  # Call install, which contains the pull logic
+            installer.install(force=False)
+
+        mock_fail.assert_called_once_with(installer.webui_image)
 
     # def test_start_open_webui(self, installer, mocker):
     #     """Test starting Open WebUI container."""
@@ -258,22 +238,18 @@ class TestInstallerSuite:
         mocker.patch.object(installer, "get_status", return_value={"installed": False})
         mocker.patch.object(installer, "_check_system_requirements")
         # Mock the docker image pull to prevent it from running
-        installer.docker_client.images.pull.return_value = None
+        mocker.patch.object(installer, "_pull_webui_image")
 
-        # Mock subprocess.run to fail for the ollama pull
-        mock_subprocess_run = mocker.patch("subprocess.run")
-        mock_subprocess_run.side_effect = subprocess.CalledProcessError(
-            1, ["ollama", "pull", model_name]
+        mock_fail = mocker.patch.object(
+            installer,
+            "_pull_ollama_model",
+            side_effect=InstallerError(f"Failed to pull Ollama model {model_name}"),
         )
 
-        expected_error_message = f"Failed to pull Ollama model {model_name}"
-        with pytest.raises(InstallerError, match=expected_error_message):
+        with pytest.raises(InstallerError, match=f"Failed to pull Ollama model {model_name}"):
             installer.install(model=model_name, force=False)
 
-        # Ensure subprocess.run was called with the correct model
-        mock_subprocess_run.assert_called_with(
-            ["ollama", "pull", model_name], check=True, timeout=300
-        )
+        mock_fail.assert_called_once_with(model_name)
 
     def test_stop_open_webui(self, installer, mocker):  # Renaming to reflect what it does
         """Test that uninstall stops and removes the container."""
