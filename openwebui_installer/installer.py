@@ -9,6 +9,7 @@ import platform
 import shutil
 import subprocess
 import sys
+import time
 from logging.handlers import RotatingFileHandler
 from typing import Dict, Optional
 
@@ -52,7 +53,7 @@ class Installer:
             ``docker`` is selected but unavailable, the installer will attempt
             to fall back to Podman if it is detected.
         verbose: bool
-            Enable verbose logging output.
+            Enable verbose logging and output.
         """
         load_dotenv()
 
@@ -60,12 +61,11 @@ class Installer:
         self.verbose = verbose
         self.webui_image = "ghcr.io/open-webui/open-webui:main"
         self.config_dir = os.path.expanduser("~/.openwebui")
-        self._setup_logger()
 
-        # Initialize container runtime
+        # Initialize Docker client with runtime fallback
         try:
             self.docker_client = docker.from_env()
-            # Test connection
+            # Test Docker connection
             self.docker_client.ping()
         except Exception:
             if runtime == "docker" and self._podman_available():
@@ -78,6 +78,8 @@ class Installer:
             # Caller explicitly requested podman but we didn't switch
             self.runtime = "podman"
             self.docker_client = self._get_podman_client()
+
+        self._setup_logger()
 
     def __enter__(self):
         """Context manager entry."""
@@ -101,17 +103,17 @@ class Installer:
         os.makedirs(self.log_dir, exist_ok=True)
         self.log_file = os.path.join(self.log_dir, "openwebui_installer.log")
 
-        if not logger.handlers:
-            # Rotating file handler (10MB max, 5 backups)
+        if self.verbose:
             handler = RotatingFileHandler(
-                self.log_file, maxBytes=10 * 1024 * 1024, backupCount=5
+                self.log_file, maxBytes=5 * 1024 * 1024, backupCount=3
             )
-            formatter = logging.Formatter(
-                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            handler.setFormatter(
+                logging.Formatter(
+                    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                )
             )
-            handler.setFormatter(formatter)
             logger.addHandler(handler)
-            logger.setLevel(logging.DEBUG if self.verbose else logging.INFO)
+            logger.setLevel(logging.INFO)
 
     def _podman_available(self) -> bool:
         """Check if Podman is installed."""
@@ -120,10 +122,10 @@ class Installer:
                 ["podman", "--version"],
                 capture_output=True,
                 text=True,
-                check=False
+                timeout=10
             )
             return result.returncode == 0
-        except FileNotFoundError:
+        except (subprocess.TimeoutExpired, FileNotFoundError):
             return False
 
     def _get_podman_client(self):
@@ -131,20 +133,13 @@ class Installer:
         try:
             # Try to connect to Podman socket
             import docker
-            client = docker.DockerClient(base_url="unix:///run/user/1000/podman/podman.sock")
-            client.ping()
-            return client
+            return docker.DockerClient(base_url='unix:///tmp/podman.sock')
         except Exception:
-            # Fallback to default socket locations
+            # Fallback to default Docker client
             try:
-                client = docker.DockerClient(base_url="unix:///var/run/podman/podman.sock")
-                client.ping()
-                return client
+                return docker.from_env()
             except Exception:
-                # Last resort: system socket
-                client = docker.DockerClient(base_url="unix:///run/podman/podman.sock")
-                client.ping()
-                return client
+                return None
 
     def _check_system_requirements(self):
         """Validate system requirements."""
@@ -165,27 +160,26 @@ class Installer:
         # Check container runtime
         try:
             self.docker_client.ping()
-        except Exception:
+        except Exception as e:
             if self.runtime == "podman":
                 raise SystemRequirementsError("Podman is not running or not installed")
             if self._podman_available():
                 raise SystemRequirementsError(
                     "Docker is not running or not installed. Podman detected; use --runtime podman"
                 )
-            raise SystemRequirementsError("Docker is not running or not installed")
+            raise SystemRequirementsError(
+                "Docker service is not running. Start Docker Desktop and ensure the daemon is running."
+            ) from e
 
         # Check Ollama with timeout
         try:
-            response = requests.get("http://localhost:11434/api/version", timeout=5)
+            response = requests.get("http://localhost:11434/api/tags", timeout=10)
             if response.status_code != 200:
-                console.print(
-                    "[yellow]Warning:[/yellow] Ollama is not running. "
-                    "Install Ollama from https://ollama.ai for full functionality."
-                )
-        except requests.RequestException:
-            console.print(
-                "[yellow]Warning:[/yellow] Ollama is not accessible. "
-                "Install Ollama from https://ollama.ai for full functionality."
+                raise SystemRequirementsError("Ollama is not responding correctly")
+        except requests.exceptions.RequestException:
+            raise SystemRequirementsError(
+                "Ollama is not running. Please install and start Ollama first:\n"
+                "Visit: https://ollama.ai/"
             )
 
         # Create config directory
@@ -194,57 +188,52 @@ class Installer:
     def _pull_webui_image(self, image: str) -> None:
         """Pull the Open WebUI Docker image."""
         try:
-            logger.info(f"Pulling Open WebUI image: {image}")
+            if self.verbose:
+                logger.info(f"Pulling Docker image: {image}")
             console.print(f"Pulling Open WebUI image: {image}...")
-
-            # Pull image with progress
             self.docker_client.images.pull(image)
-            console.print(f"[green]✓[/green] Successfully pulled {image}")
-
         except docker.errors.APIError as e:
-            raise InstallerError(f"Failed to pull Open WebUI image: {str(e)}")
+            raise InstallerError(f"Failed to pull Docker image {image}: {str(e)}")
 
     def _pull_ollama_model(self, model: str) -> None:
-        """Pull the specified Ollama model."""
+        """Pull Ollama model if not already available."""
         try:
-            logger.info(f"Pulling Ollama model: {model}")
+            if self.verbose:
+                logger.info(f"Checking Ollama model: {model}")
+
+            # Check if model is already available
+            response = requests.get("http://localhost:11434/api/tags", timeout=10)
+            if response.status_code == 200:
+                models = response.json().get("models", [])
+                model_names = [m["name"] for m in models]
+                if model in model_names:
+                    console.print(f"Model {model} is already available")
+                    return
+
             console.print(f"Pulling Ollama model: {model}...")
+            result = subprocess.run(
+                ["ollama", "pull", model],
+                capture_output=True,
+                text=True,
+                timeout=300
+            )
+            if result.returncode != 0:
+                raise InstallerError(f"Failed to pull Ollama model {model}: {result.stderr}")
 
-            # Check if Ollama is available
-            try:
-                response = requests.get("http://localhost:11434/api/version", timeout=5)
-                if response.status_code == 200:
-                    # Pull model via Ollama API
-                    pull_response = requests.post(
-                        "http://localhost:11434/api/pull",
-                        json={"name": model},
-                        timeout=300
-                    )
-                    if pull_response.status_code == 200:
-                        console.print(f"[green]✓[/green] Successfully pulled model {model}")
-                    else:
-                        console.print(f"[yellow]Warning:[/yellow] Could not pull model {model}")
-                else:
-                    console.print(f"[yellow]Warning:[/yellow] Ollama not available, skipping model pull")
-            except requests.RequestException:
-                console.print(f"[yellow]Warning:[/yellow] Ollama not available, skipping model pull")
-
-        except Exception as e:
-            logger.warning(f"Failed to pull Ollama model {model}: {str(e)}")
-            console.print(f"[yellow]Warning:[/yellow] Could not pull model {model}: {str(e)}")
+        except requests.exceptions.RequestException:
+            raise InstallerError("Failed to communicate with Ollama")
+        except subprocess.TimeoutExpired:
+            raise InstallerError(f"Timeout pulling Ollama model {model}")
 
     def _create_launch_script(self, port: int, image: str) -> None:
         """Create launch script for Open WebUI."""
         launch_script = os.path.join(self.config_dir, "launch-openwebui.sh")
 
-        # Environment variables with fallbacks
+        # Environment variables
         ollama_base_url = os.environ.get("OLLAMA_BASE_URL", "http://host.docker.internal:11434")
         ollama_api_base_url = os.environ.get("OLLAMA_API_BASE_URL", "http://host.docker.internal:11434/api")
 
         script_content = f"""#!/bin/bash
-# Open WebUI Launch Script
-# Generated by openwebui-installer
-
 {self.runtime} run -d \\
     --name open-webui \\
     -p {port}:8080 \\
@@ -253,49 +242,38 @@ class Installer:
     -e OLLAMA_API_BASE_URL={ollama_api_base_url} \\
     --add-host host.docker.internal:host-gateway \\
     {image}
-
-echo "Open WebUI started on http://localhost:{port}"
 """
 
         with open(launch_script, "w") as f:
             f.write(script_content)
         os.chmod(launch_script, 0o755)
 
-        logger.info(f"Created launch script: {launch_script}")
-
     def _stop_existing_container(self) -> None:
         """Stop and remove existing Open WebUI container."""
         try:
-            # Try to get existing container
-            try:
-                container = self.docker_client.containers.get("open-webui")
-                logger.info("Stopping existing Open WebUI container")
-                container.stop(timeout=10)
-                container.remove()
-                console.print("Stopped and removed existing Open WebUI container")
-            except docker.errors.NotFound:
-                # No existing container, that's fine
-                pass
-        except docker.errors.APIError as e:
-            logger.warning(f"Error stopping existing container: {str(e)}")
+            container = self.docker_client.containers.get("open-webui")
+            if container.status == "running":
+                container.stop()
+            container.remove()
+            if self.verbose:
+                logger.info("Stopped and removed existing container")
+        except docker.errors.NotFound:
+            pass  # Container doesn't exist, which is fine
 
     def _start_container(self, port: int, image: str) -> None:
-        """Start the Open WebUI container."""
+        """Start Open WebUI container."""
         try:
-            logger.info("Starting Open WebUI container")
-
             # Environment variables
             env_vars = {
                 "OLLAMA_BASE_URL": os.environ.get("OLLAMA_BASE_URL", "http://host.docker.internal:11434"),
                 "OLLAMA_API_BASE_URL": os.environ.get("OLLAMA_API_BASE_URL", "http://host.docker.internal:11434/api"),
             }
 
-            # Add any secret environment variables that are set
+            # Add secret environment variables if they exist
             for secret_var in SECRET_ENV_VARS:
                 if secret_var in os.environ:
                     env_vars[secret_var] = os.environ[secret_var]
 
-            # Start container
             container = self.docker_client.containers.run(
                 image,
                 name="open-webui",
@@ -307,8 +285,8 @@ echo "Open WebUI started on http://localhost:{port}"
                 restart_policy={"Name": "unless-stopped"}
             )
 
-            logger.info(f"Started Open WebUI container: {container.id}")
-            console.print(f"[green]✓[/green] Open WebUI container started successfully")
+            if self.verbose:
+                logger.info(f"Started container: {container.id}")
 
         except docker.errors.APIError as e:
             raise InstallerError(f"Failed to start Open WebUI container: {str(e)}")
@@ -327,9 +305,7 @@ echo "Open WebUI started on http://localhost:{port}"
 
             # Check if already installed
             if not force and self.get_status()["installed"]:
-                raise InstallerError(
-                    "Open WebUI is already installed. Use --force to reinstall."
-                )
+                raise InstallerError("Open WebUI is already installed. Use --force to reinstall.")
 
             # Use provided image or default
             current_webui_image = image if image else self.webui_image
@@ -341,12 +317,11 @@ echo "Open WebUI started on http://localhost:{port}"
 
             # Create configuration file
             config = {
-                "version": "1.0",
-                "image": current_webui_image,
-                "port": port,
                 "model": model,
-                "runtime": self.runtime,
-                "installed_at": subprocess.check_output(["date", "+%Y-%m-%d %H:%M:%S"]).decode().strip(),
+                "port": port,
+                "image": current_webui_image,
+                "installed_at": time.time(),
+                "runtime": self.runtime
             }
 
             config_file = os.path.join(self.config_dir, "config.json")
@@ -361,14 +336,9 @@ echo "Open WebUI started on http://localhost:{port}"
             self._stop_existing_container()
             self._start_container(port, current_webui_image)
 
-            console.print(f"[green]✓[/green] Installation completed successfully!")
-            console.print(f"Open WebUI is available at: http://localhost:{port}")
-
-            if self.verbose:
-                logger.info("Installation completed successfully")
-
         except Exception as e:
-            logger.error(f"Installation failed: {str(e)}")
+            if self.verbose:
+                logger.error(f"Installation failed: {str(e)}")
             raise InstallerError(f"Installation failed: {str(e)}")
 
     def uninstall(self):
@@ -380,57 +350,40 @@ echo "Open WebUI started on http://localhost:{port}"
             # Stop and remove container
             self._stop_existing_container()
 
-            # Remove Docker image
-            try:
-                config_file = os.path.join(self.config_dir, "config.json")
-                if os.path.exists(config_file):
-                    with open(config_file, "r") as f:
-                        config = json.load(f)
-                    image_name = config.get("image", self.webui_image)
-
-                    try:
-                        self.docker_client.images.remove(image_name, force=True)
-                        console.print(f"Removed Docker image: {image_name}")
-                    except docker.errors.ImageNotFound:
-                        pass
-            except Exception as e:
-                logger.warning(f"Could not remove Docker image: {str(e)}")
-
-            # Remove volume
+            # Remove Docker volume
             try:
                 volume = self.docker_client.volumes.get("open-webui")
                 volume.remove()
-                console.print("Removed Docker volume: open-webui")
             except docker.errors.NotFound:
                 pass
 
-            # Remove configuration directory
+            # Remove configuration
             if os.path.exists(self.config_dir):
                 shutil.rmtree(self.config_dir)
-                console.print(f"Removed configuration directory: {self.config_dir}")
 
             if self.verbose:
-                logger.info("Uninstallation completed successfully")
+                logger.info("Uninstallation completed")
 
         except Exception as e:
-            logger.error(f"Uninstallation failed: {str(e)}")
+            if self.verbose:
+                logger.error(f"Uninstallation failed: {str(e)}")
             raise InstallerError(f"Uninstallation failed: {str(e)}")
 
-    def get_status(self) -> Dict[str, any]:
-        """Get installation and runtime status."""
-        config_file = os.path.join(self.config_dir, "config.json")
-
-        if not os.path.exists(config_file):
-            return {
-                "installed": False,
-                "running": False,
-                "version": None,
-                "port": None,
-                "model": None,
-            }
-
+    def get_status(self) -> Dict:
+        """Get installation and running status."""
         try:
-            with open(config_file, "r") as f:
+            config_file = os.path.join(self.config_dir, "config.json")
+
+            if not os.path.exists(config_file):
+                return {
+                    "installed": False,
+                    "running": False,
+                    "version": None,
+                    "port": None,
+                    "model": None,
+                }
+
+            with open(config_file) as f:
                 config = json.load(f)
 
             # Check if container is running
@@ -439,164 +392,130 @@ echo "Open WebUI started on http://localhost:{port}"
                 container = self.docker_client.containers.get("open-webui")
                 running = container.status == "running"
             except docker.errors.NotFound:
-                running = False
+                pass
 
             return {
                 "installed": True,
                 "running": running,
-                "version": config.get("version"),
-                "port": config.get("port"),
-                "model": config.get("model"),
-                "runtime": config.get("runtime", self.runtime),
-                "image": config.get("image"),
+                "version": config.get("image", "unknown"),
+                "port": config.get("port", 3000),
+                "model": config.get("model", "unknown"),
+                "runtime": config.get("runtime", self.runtime)
             }
 
         except Exception as e:
-            logger.error(f"Error getting status: {str(e)}")
+            if self.verbose:
+                logger.error(f"Status check failed: {str(e)}")
             return {
                 "installed": False,
                 "running": False,
                 "version": None,
                 "port": None,
                 "model": None,
-                "error": str(e),
+                "error": str(e)
             }
 
     def start(self):
         """Start Open WebUI container."""
         try:
-            if self.verbose:
-                logger.info("Starting Open WebUI")
-
-            status = self.get_status()
-            if not status["installed"]:
-                raise InstallerError("Open WebUI is not installed. Run 'install' first.")
-
-            try:
-                container = self.docker_client.containers.get("open-webui")
-                if container.status != "running":
-                    container.start()
-                    console.print("Started Open WebUI container")
-                else:
-                    console.print("Open WebUI is already running")
-            except docker.errors.NotFound:
-                # Container doesn't exist, recreate it
-                port = status.get("port", 3000)
-                image = status.get("image", self.webui_image)
-                self._start_container(port, image)
-
-        except Exception as e:
-            logger.error(f"Failed to start Open WebUI: {str(e)}")
-            raise InstallerError(f"Failed to start Open WebUI: {str(e)}")
+            container = self.docker_client.containers.get("open-webui")
+            if container.status != "running":
+                container.start()
+                if self.verbose:
+                    logger.info("Started Open WebUI container")
+            else:
+                console.print("Open WebUI is already running")
+        except docker.errors.NotFound:
+            raise InstallerError("Open WebUI container not found. Please install first.")
 
     def stop(self):
         """Stop Open WebUI container."""
         try:
-            if self.verbose:
-                logger.info("Stopping Open WebUI")
-
-            try:
-                container = self.docker_client.containers.get("open-webui")
-                if container.status == "running":
-                    container.stop(timeout=10)
-                    console.print("Stopped Open WebUI container")
-                else:
-                    console.print("Open WebUI is not running")
-            except docker.errors.NotFound:
-                console.print("Open WebUI container not found")
-
-        except Exception as e:
-            logger.error(f"Failed to stop Open WebUI: {str(e)}")
-            raise InstallerError(f"Failed to stop Open WebUI: {str(e)}")
+            container = self.docker_client.containers.get("open-webui")
+            if container.status == "running":
+                container.stop()
+                if self.verbose:
+                    logger.info("Stopped Open WebUI container")
+            else:
+                console.print("Open WebUI is not running")
+        except docker.errors.NotFound:
+            raise InstallerError("Open WebUI container not found")
 
     def restart(self):
         """Restart Open WebUI container."""
         try:
+            container = self.docker_client.containers.get("open-webui")
+            container.restart()
             if self.verbose:
-                logger.info("Restarting Open WebUI")
-
-            self.stop()
-            self.start()
-
-        except Exception as e:
-            logger.error(f"Failed to restart Open WebUI: {str(e)}")
-            raise InstallerError(f"Failed to restart Open WebUI: {str(e)}")
+                logger.info("Restarted Open WebUI container")
+        except docker.errors.NotFound:
+            raise InstallerError("Open WebUI container not found")
 
     def update(self, image: Optional[str] = None):
-        """Update Open WebUI to the latest version."""
+        """Update Open WebUI to latest version."""
         try:
             if self.verbose:
-                logger.info("Updating Open WebUI")
+                logger.info("Starting update")
 
             status = self.get_status()
             if not status["installed"]:
-                raise InstallerError("Open WebUI is not installed. Run 'install' first.")
+                raise InstallerError("Open WebUI is not installed")
 
-            # Use provided image or default
-            new_image = image if image else self.webui_image
+            # Use provided image or current image
+            current_image = image if image else status.get("version", self.webui_image)
 
             # Pull latest image
-            self._pull_webui_image(new_image)
+            self._pull_webui_image(current_image)
 
-            # Stop existing container
+            # Get current configuration
+            config_file = os.path.join(self.config_dir, "config.json")
+            with open(config_file) as f:
+                config = json.load(f)
+
+            # Stop current container
             self._stop_existing_container()
 
-            # Start with new image
-            port = status.get("port", 3000)
-            self._start_container(port, new_image)
+            # Start with updated image
+            self._start_container(config["port"], current_image)
 
-            # Update configuration
-            config_file = os.path.join(self.config_dir, "config.json")
-            if os.path.exists(config_file):
-                with open(config_file, "r") as f:
-                    config = json.load(f)
-                config["image"] = new_image
-                config["updated_at"] = subprocess.check_output(["date", "+%Y-%m-%d %H:%M:%S"]).decode().strip()
-                with open(config_file, "w") as f:
-                    json.dump(config, f, indent=2)
+            # Update config
+            config["image"] = current_image
+            with open(config_file, "w") as f:
+                json.dump(config, f, indent=2)
 
-            console.print("Open WebUI updated successfully!")
+            if self.verbose:
+                logger.info("Update completed")
 
         except Exception as e:
-            logger.error(f"Failed to update Open WebUI: {str(e)}")
-            raise InstallerError(f"Failed to update Open WebUI: {str(e)}")
+            if self.verbose:
+                logger.error(f"Update failed: {str(e)}")
+            raise InstallerError(f"Update failed: {str(e)}")
 
     def show_logs(self, lines: int = 50, follow: bool = False):
         """Show Open WebUI container logs."""
         try:
-            if self.verbose:
-                logger.info(f"Showing logs (lines: {lines}, follow: {follow})")
-
             container = self.docker_client.containers.get("open-webui")
 
             if follow:
-                # Stream logs
-                for log_line in container.logs(stream=True, follow=True, tail=lines):
-                    console.print(log_line.decode().strip())
+                for line in container.logs(stream=True, follow=True, tail=lines):
+                    console.print(line.decode().strip())
             else:
-                # Get logs
                 logs = container.logs(tail=lines).decode()
                 console.print(logs)
 
         except docker.errors.NotFound:
-            console.print("Open WebUI container not found")
-        except Exception as e:
-            logger.error(f"Failed to get logs: {str(e)}")
-            raise InstallerError(f"Failed to get logs: {str(e)}")
+            raise InstallerError("Open WebUI container not found")
 
     def enable_autostart(self):
-        """Enable autostart on macOS."""
+        """Enable autostart on macOS using launchd."""
         if platform.system() != "Darwin":
             raise InstallerError("Autostart is only supported on macOS")
 
         try:
-            if self.verbose:
-                logger.info("Enabling autostart")
+            launch_agents_dir = os.path.expanduser("~/Library/LaunchAgents")
+            os.makedirs(launch_agents_dir, exist_ok=True)
 
-            plist_dir = os.path.expanduser("~/Library/LaunchAgents")
-            os.makedirs(plist_dir, exist_ok=True)
-
-            plist_file = os.path.join(plist_dir, "com.openwebui.installer.plist")
+            plist_path = os.path.join(launch_agents_dir, "com.openwebui.installer.plist")
             launch_script = os.path.join(self.config_dir, "launch-openwebui.sh")
 
             plist_content = f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -617,15 +536,16 @@ echo "Open WebUI started on http://localhost:{port}"
 </dict>
 </plist>"""
 
-            with open(plist_file, "w") as f:
+            with open(plist_path, "w") as f:
                 f.write(plist_content)
 
             # Load the launch agent
-            subprocess.run(["launchctl", "load", plist_file], check=True)
-            console.print(f"Autostart enabled via {plist_file}")
+            subprocess.run(["launchctl", "load", plist_path], check=True)
+
+            if self.verbose:
+                logger.info(f"Autostart enabled via {plist_path}")
 
         except Exception as e:
-            logger.error(f"Failed to enable autostart: {str(e)}")
             raise InstallerError(f"Failed to enable autostart: {str(e)}")
 
     def disable_autostart(self):
@@ -634,19 +554,15 @@ echo "Open WebUI started on http://localhost:{port}"
             raise InstallerError("Autostart is only supported on macOS")
 
         try:
-            if self.verbose:
-                logger.info("Disabling autostart")
+            plist_path = os.path.expanduser("~/Library/LaunchAgents/com.openwebui.installer.plist")
 
-            plist_file = os.path.expanduser("~/Library/LaunchAgents/com.openwebui.installer.plist")
-
-            if os.path.exists(plist_file):
+            if os.path.exists(plist_path):
                 # Unload the launch agent
-                subprocess.run(["launchctl", "unload", plist_file], check=False)
-                os.remove(plist_file)
-                console.print("Autostart disabled")
-            else:
-                console.print("Autostart is not enabled")
+                subprocess.run(["launchctl", "unload", plist_path], check=False)
+                os.remove(plist_path)
+
+            if self.verbose:
+                logger.info("Autostart disabled")
 
         except Exception as e:
-            logger.error(f"Failed to disable autostart: {str(e)}")
             raise InstallerError(f"Failed to disable autostart: {str(e)}")
