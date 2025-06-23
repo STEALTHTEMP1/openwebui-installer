@@ -30,10 +30,12 @@ setup(
     ],
     python_requires=">=3.9",
     install_requires=[
-        "click>=8.1.0",
-        "docker>=6.1.0",
-        "PyQt6>=6.6.0",
-        "requests>=2.31.0",
+        "click==8.2.1",
+        "docker==7.1.0",
+        "PyQt6==6.9.1",
+        "requests==2.32.4",
+        "rich==14.0.0",
+        "psutil==5.9.8",
     ],
     entry_points={
         "console_scripts": [
