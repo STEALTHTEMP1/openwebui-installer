@@ -70,6 +70,7 @@ class Installer:
         self.webui_image = "ghcr.io/open-webui/open-webui:main"  # Default image
         self.config_dir = os.path.expanduser("~/.openwebui")
 
+<<<<<<< HEAD
     def _podman_available(self) -> bool:
         """Check if Podman is installed."""
         return shutil.which("podman") is not None
@@ -95,6 +96,28 @@ class Installer:
             except Exception:
                 return None
         return None
+=======
+    def close(self):
+        """Close any resources held by the installer."""
+        if hasattr(self.docker_client, "close"):
+            try:
+                self.docker_client.close()
+            except Exception:
+                pass
+
+    # ------------------------------------------------------------------
+    # Context manager support
+    # ------------------------------------------------------------------
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+        # Propagate exceptions
+        return False
+
+>>>>>>> origin/codex/add-context-manager-and-close-method
     def _check_system_requirements(self):
         """Validate system requirements."""
         # Check supported operating systems (macOS and Linux)

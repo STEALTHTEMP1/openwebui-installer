@@ -29,10 +29,11 @@ def runner():
 
 @pytest.fixture
 def mock_installer():
-    """Mock installer instance."""
-    with patch("openwebui_installer.cli.Installer") as mock:
+    """Mock installer instance as context manager."""
+    with patch("openwebui_installer.cli.Installer") as mock_cls:
         installer = Mock()
-        mock.return_value = installer
+        mock_cls.return_value.__enter__.return_value = installer
+        mock_cls.return_value.__exit__.return_value = False
         yield installer
 
 

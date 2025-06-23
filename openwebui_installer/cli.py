@@ -18,8 +18,13 @@ console = Console()
 def validate_system(runtime: str) -> bool:
     """Validate system requirements."""
     try:
+<<<<<<< HEAD
         installer = Installer(runtime=runtime)
         installer._check_system_requirements()
+=======
+        with Installer() as installer:
+            installer._check_system_requirements()
+>>>>>>> origin/codex/add-context-manager-and-close-method
         return True
     except Exception as e:
         console.print(f"[red]System validation failed:[/red] {str(e)}")
@@ -61,6 +66,7 @@ def install(model: str, port: int, force: bool, image: Optional[str]):
         if not validate_system(ctx.obj['runtime']):
             sys.exit(1)
 
+<<<<<<< HEAD
         installer = Installer(runtime=ctx.obj['runtime'])
         with Progress(
             SpinnerColumn(),
@@ -70,6 +76,17 @@ def install(model: str, port: int, force: bool, image: Optional[str]):
             task = progress.add_task("Installing Open WebUI...", total=None)
             installer.install(model=model, port=port, force=force, image=image)
             progress.update(task, completed=True)
+=======
+        with Installer() as installer:
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                console=console,
+            ) as progress:
+                task = progress.add_task("Installing Open WebUI...", total=None)
+                installer.install(model=model, port=port, force=force, image=image)
+                progress.update(task, completed=True)
+>>>>>>> origin/codex/add-context-manager-and-close-method
 
         console.print("[green]✓[/green] Installation complete!")
         console.print(f"\nOpen WebUI is now available at: http://localhost:{port}")
@@ -87,6 +104,7 @@ def uninstall(ctx):
         console.print("Uninstallation aborted.")
         return
     try:
+<<<<<<< HEAD
         installer = Installer(runtime=ctx.obj['runtime'])
         with Progress(
             SpinnerColumn(),
@@ -96,6 +114,17 @@ def uninstall(ctx):
             task = progress.add_task("Uninstalling Open WebUI...", total=None)
             installer.uninstall()
             progress.update(task, completed=True)
+=======
+        with Installer() as installer:
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                console=console,
+            ) as progress:
+                task = progress.add_task("Uninstalling Open WebUI...", total=None)
+                installer.uninstall()
+                progress.update(task, completed=True)
+>>>>>>> origin/codex/add-context-manager-and-close-method
 
         console.print("[green]✓[/green] Uninstallation complete!")
 
@@ -112,6 +141,7 @@ def status(ctx):
 def start():
     """Start the Open WebUI container."""
     try:
+<<<<<<< HEAD
         installer = Installer()
         installer.start()
         console.print("[green]✓[/green] Open WebUI started")
@@ -188,6 +218,10 @@ def status():
     try:
         installer = Installer(runtime=ctx.obj['runtime'])
         status = installer.get_status()
+=======
+        with Installer() as installer:
+            status = installer.get_status()
+>>>>>>> origin/codex/add-context-manager-and-close-method
 
         if status["installed"]:
             console.print("[green]✓[/green] Open WebUI is installed")
