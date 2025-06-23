@@ -3,7 +3,7 @@
 # setup.sh - Setup script for your private repository
 # This script helps you set up the automated release workflow
 
-set -e
+set -euo pipefail
 
 # Colors for output
 RED='\033[0;31m'
