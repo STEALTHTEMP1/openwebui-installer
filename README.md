@@ -77,6 +77,13 @@ brew update
 brew upgrade openwebui-installer
 ```
 
+To upgrade later, run:
+
+```bash
+brew update
+brew upgrade openwebui-installer
+```
+
 ## 🔧 Container Management
 
 ```bash
