@@ -34,6 +34,26 @@ class Installer:
         self.webui_image = "ghcr.io/open-webui/open-webui:main"  # Default image
         self.config_dir = os.path.expanduser("~/.openwebui")
 
+    def close(self):
+        """Close any resources held by the installer."""
+        if hasattr(self.docker_client, "close"):
+            try:
+                self.docker_client.close()
+            except Exception:
+                pass
+
+    # ------------------------------------------------------------------
+    # Context manager support
+    # ------------------------------------------------------------------
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+        # Propagate exceptions
+        return False
+
     def _check_system_requirements(self):
         """Validate system requirements."""
         # Check macOS

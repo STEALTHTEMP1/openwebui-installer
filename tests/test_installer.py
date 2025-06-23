@@ -338,3 +338,20 @@ class TestInstallerSuite:
     #     # with pytest.raises(InstallerError):
     #         # installer.install_ollama() # Method doesn't exist
     #     pass
+
+    def test_close_calls_docker_client_close(self, mocker):
+        """Installer.close should close the docker client if available."""
+        mock_client = MagicMock()
+        mocker.patch('docker.from_env', return_value=mock_client)
+        inst = Installer()
+        inst.close()
+        mock_client.close.assert_called_once()
+
+    def test_context_manager_invokes_close(self, mocker):
+        """Using Installer as a context manager should close the docker client."""
+        mock_client = MagicMock()
+        mocker.patch('docker.from_env', return_value=mock_client)
+        with Installer() as _:
+            pass
+        mock_client.close.assert_called_once()
+

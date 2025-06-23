@@ -18,8 +18,8 @@ console = Console()
 def validate_system() -> bool:
     """Validate system requirements."""
     try:
-        installer = Installer()
-        installer._check_system_requirements()
+        with Installer() as installer:
+            installer._check_system_requirements()
         return True
     except Exception as e:
         console.print(f"[red]System validation failed:[/red] {str(e)}")
@@ -44,15 +44,15 @@ def install(model: str, port: int, force: bool, image: Optional[str]):
         if not validate_system():
             sys.exit(1)
 
-        installer = Installer()
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console,
-        ) as progress:
-            task = progress.add_task("Installing Open WebUI...", total=None)
-            installer.install(model=model, port=port, force=force, image=image)
-            progress.update(task, completed=True)
+        with Installer() as installer:
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                console=console,
+            ) as progress:
+                task = progress.add_task("Installing Open WebUI...", total=None)
+                installer.install(model=model, port=port, force=force, image=image)
+                progress.update(task, completed=True)
 
         console.print("[green]✓[/green] Installation complete!")
         console.print(f"\nOpen WebUI is now available at: http://localhost:{port}")
@@ -69,15 +69,15 @@ def uninstall():
         console.print("Uninstallation aborted.")
         return
     try:
-        installer = Installer()
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console,
-        ) as progress:
-            task = progress.add_task("Uninstalling Open WebUI...", total=None)
-            installer.uninstall()
-            progress.update(task, completed=True)
+        with Installer() as installer:
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                console=console,
+            ) as progress:
+                task = progress.add_task("Uninstalling Open WebUI...", total=None)
+                installer.uninstall()
+                progress.update(task, completed=True)
 
         console.print("[green]✓[/green] Uninstallation complete!")
 
@@ -90,8 +90,8 @@ def uninstall():
 def status():
     """Check Open WebUI installation status."""
     try:
-        installer = Installer()
-        status = installer.get_status()
+        with Installer() as installer:
+            status = installer.get_status()
 
         if status['installed']:
             console.print("[green]✓[/green] Open WebUI is installed")
