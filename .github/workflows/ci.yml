@@ -26,6 +26,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
+
+    - name: Start Docker
+      run: |
+        brew install colima > /dev/null
+        colima start --quiet
+        docker info
         
     - name: Run tests
       run: |
