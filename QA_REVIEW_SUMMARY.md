@@ -150,6 +150,9 @@ docker-compose -f docker-compose.dev.yml exec dev-environment python -m pytest
 
 # Check status
 ./dev.sh status
+# Production deployment (no Docker socket)
+docker-compose -f docker-compose.prod.yml up -d
+
 ```
 
 ### **Available Commands**
@@ -174,7 +177,7 @@ docker-compose -f docker-compose.dev.yml exec dev-environment python -m pytest
 - ⚠️ API keys stored in environment files
 
 ### **Recommendations for Production**
-1. Remove Docker socket mounting
+1. Use `docker-compose.prod.yml` to avoid Docker socket mounting
 2. Implement proper secrets management
 3. Use non-root containers
 4. Enable container scanning in CI/CD
@@ -208,6 +211,7 @@ docker-compose -f docker-compose.dev.yml exec dev-environment python -m pytest
 - ✅ Coverage reporting with Codecov
 - ⚠️ Security scanning not yet integrated
 
+- ✅ CI tests use `docker-compose.dev.yml` for environment setup
 ## 📋 Recommendations
 
 ### **Immediate (Optional)**
