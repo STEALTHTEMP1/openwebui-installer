@@ -1,0 +1,24 @@
+# Default values for Open WebUI Helm chart.
+# This file contains settings that can be overridden via --set or values files.
+
+image:
+  repository: ghcr.io/open-webui/open-webui
+  tag: main
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+# Environment variables for the Open WebUI container
+env:
+  OLLAMA_BASE_URL: "http://ollama:11434"
+  # Secret key used by Open WebUI. Override via --set env.secretKey or provide a Secret.
+  secretKey: ""
+
+persistence:
+  enabled: true
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 5Gi
