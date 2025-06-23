@@ -77,6 +77,14 @@ docker start open-webui
 docker rm open-webui
 ```
 
+### Enable Autostart on macOS
+
+Automatically start Open WebUI when you log in:
+
+```bash
+openwebui-installer enable-autostart
+```
+
 ## 📖 Documentation
 
 - [Working Setup Guide](WORKING_SETUP.md) - Detailed troubleshooting and setup notes
