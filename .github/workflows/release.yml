@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      version: ${{ steps.extract_version.outputs.VERSION }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -244,3 +247,58 @@ jobs:
         echo "2. 🔄 Update Homebrew formula with the SHA256 hash above"
         echo "3. 🧪 Test the installation"
         echo "4. 📢 Announce the release!"
+
+  build_dmg:
+    name: Build macOS DMG
+    needs: release
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Extract version
+      run: echo "VERSION=${{ needs.release.outputs.version }}" >> $GITHUB_ENV
+
+    - name: Prepare files for DMG
+      run: |
+        mkdir -p dmg_root
+        cp install.py README.md dmg_root/
+
+    - name: Build DMG
+      run: |
+        DMG_NAME="openwebui-installer-${VERSION}.dmg"
+        hdiutil create -volname "OpenWebUI Installer" -srcfolder dmg_root -ov -format UDZO "$DMG_NAME"
+
+    - name: Import signing certificate
+      if: secrets.MACOS_CERTIFICATE != ''
+      env:
+        CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE }}
+        CERT_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+      run: |
+        echo "$CERTIFICATE_BASE64" | base64 --decode > certificate.p12
+        security create-keychain -p "" build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "" build.keychain
+        security import certificate.p12 -k build.keychain -P "$CERT_PASSWORD" -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" build.keychain
+
+    - name: Sign DMG
+      if: secrets.MACOS_CERTIFICATE != ''
+      env:
+        IDENTITY: ${{ secrets.MACOS_CERT_IDENTITY }}
+      run: |
+        DMG_NAME="openwebui-installer-${VERSION}.dmg"
+        codesign --force --timestamp --sign "$IDENTITY" "$DMG_NAME"
+        codesign -dv "$DMG_NAME"
+
+    - name: Upload DMG
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.release.outputs.upload_url }}
+        asset_path: ./openwebui-installer-${{ needs.release.outputs.version }}.dmg
+        asset_name: openwebui-installer-${{ needs.release.outputs.version }}.dmg
+        asset_content_type: application/x-apple-diskimage

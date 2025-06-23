@@ -20,9 +20,17 @@ The following secrets must be configured in GitHub repository settings:
 
 2. `HOMEBREW_TAP_TOKEN`: GitHub Personal Access Token
    - Generate at: https://github.com/settings/tokens
-   - Required scopes: 
+   - Required scopes:
      * `repo` (Full control of private repositories)
      * `workflow` (Update GitHub Action workflows)
+
+3. **macOS Signing & Notarization**
+   - `MACOS_CERTIFICATE`: Base64 encoded `.p12` certificate
+   - `MACOS_CERTIFICATE_PASSWORD`: Certificate password
+   - `MACOS_CERT_IDENTITY`: Codesign identity
+   - `NOTARIZATION_APPLE_ID`: Apple ID for notary service
+   - `NOTARIZATION_TEAM_ID`: Team identifier
+   - `NOTARIZATION_PASSWORD`: App-specific password
 
 ## Release Steps
 
@@ -57,6 +65,23 @@ The following secrets must be configured in GitHub repository settings:
      brew update
      brew install openwebui-installer
      ```
+
+## macOS DMG Notarization
+
+After the workflow builds and signs the DMG it should be notarized with Apple to
+avoid Gatekeeper warnings. Ensure the notarization secrets listed above are
+configured, then run:
+
+```bash
+xcrun notarytool submit openwebui-installer-X.Y.Z.dmg \
+  --apple-id "$NOTARIZATION_APPLE_ID" \
+  --team-id "$NOTARIZATION_TEAM_ID" \
+  --password "$NOTARIZATION_PASSWORD" --wait
+xcrun stapler staple openwebui-installer-X.Y.Z.dmg
+```
+
+The GitHub Actions workflow performs these steps automatically when credentials
+are present.
 
 ## Troubleshooting
 
