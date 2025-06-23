@@ -93,4 +93,27 @@ If issues are found:
    cd homebrew-tap
    git revert HEAD
    git push
-   ``` 
+   ```
+
+## macOS Notarization & DMG Distribution
+
+The release workflow now builds a signed `OpenWebUI-Desktop.dmg` using the
+`create-dmg` tool. To notarize and distribute this DMG:
+
+1. **Prepare Apple Credentials**
+   - Export your *Developer ID Application* certificate as a `.p12` file and
+     store the base64 contents in the `MACOS_CERT_ID` secret.
+   - Provide the certificate password in `MACOS_CERT_PASSWORD`.
+   - Set `AC_USERNAME` and `AC_PASSWORD` for notarization.
+
+2. **Notarize the DMG**
+   ```bash
+   xcrun notarytool submit OpenWebUI-Desktop.dmg \
+     --apple-id "$AC_USERNAME" --password "$AC_PASSWORD" \
+     --team-id YOUR_TEAM_ID --wait
+   xcrun stapler staple OpenWebUI-Desktop.dmg
+   ```
+
+3. **Upload to GitHub**
+   - The workflow automatically uploads the notarized DMG as a release asset.
+   - Users can download it from the release page and drag the app to `/Applications`.
