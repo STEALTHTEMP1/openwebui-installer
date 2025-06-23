@@ -6,7 +6,43 @@ on:
       - "v*"
 
 jobs:
+  validate_container:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      packages: write
+    steps:
+    - name: Pull Open WebUI image
+      run: docker pull ghcr.io/open-webui/open-webui:main
+
+    - name: Inspect image
+      run: docker image inspect ghcr.io/open-webui/open-webui:main
+
+    - name: Scan image with Trivy
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ghcr.io/open-webui/open-webui:main
+        format: sarif
+        output: trivy-image.sarif
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: trivy-image.sarif
+
+    - name: Save image artifact
+      run: docker save ghcr.io/open-webui/open-webui:main | gzip > openwebui-image.tar.gz
+
+    - name: Upload container image
+      uses: actions/upload-artifact@v4
+      with:
+        name: openwebui-image
+        path: openwebui-image.tar.gz
+
   release:
+    needs: validate_container
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -237,7 +273,6 @@ jobs:
           echo "3. Commit and push the changes" >> $GITHUB_STEP_SUMMARY
           echo "4. Test installation: \`brew install STEALTHTEMP1/openwebui-installer/openwebui-installer\`" >> $GITHUB_STEP_SUMMARY
 
-<<<<<<< HEAD
       - name: Verify Release
         run: |
           echo "✅ Release verification:"
@@ -253,22 +288,6 @@ jobs:
           echo "2. 🔄 Update Homebrew formula with the SHA256 hash above"
           echo "3. 🧪 Test the installation"
           echo "4. 📢 Announce the release!"
-=======
-    - name: Verify Release
-      run: |
-        echo "✅ Release verification:"
-        echo "   Tag: ${{ steps.extract_version.outputs.VERSION }}"
-        echo "   Release ID: ${{ steps.create_release.outputs.id }}"
-        echo "   Release URL: ${{ steps.create_release.outputs.html_url }}"
-        echo "   Upload URL: ${{ steps.create_release.outputs.upload_url }}"
-        echo ""
-        echo "🎉 Release ${{ steps.extract_version.outputs.VERSION }} created successfully!"
-        echo ""
-        echo "Next steps:"
-        echo "1. ✅ Release created and archive uploaded"
-        echo "2. 🔄 Update Homebrew formula with the SHA256 hash above"
-        echo "3. 🧪 Test the installation"
-        echo "4. 📢 Announce the release!"
 
   build_dmg:
     name: Build macOS DMG
@@ -324,4 +343,3 @@ jobs:
         asset_path: ./openwebui-installer-${{ needs.release.outputs.version }}.dmg
         asset_name: openwebui-installer-${{ needs.release.outputs.version }}.dmg
         asset_content_type: application/x-apple-diskimage
->>>>>>> origin/codex/enhance-release-workflow-for-macos-dmg

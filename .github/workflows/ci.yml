@@ -119,3 +119,30 @@ jobs:
 
     - name: Security scan with Bandit
       run: bandit -r openwebui_installer -ll
+
+  container:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build development container
+      run: docker build -t openwebui-installer-dev -f Dockerfile.dev .
+
+    - name: Validate container image
+      run: docker run --rm openwebui-installer-dev python --version
+
+    - name: Scan image with Trivy
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: openwebui-installer-dev
+        format: sarif
+        output: trivy-results.sarif
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: trivy-results.sarif
