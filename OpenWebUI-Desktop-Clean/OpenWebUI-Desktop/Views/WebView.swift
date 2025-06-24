@@ -130,7 +130,8 @@ struct WebView: NSViewRepresentable {
             print("❌ WebView: Provisional navigation failed: \(error.localizedDescription)")
 
             // Show user-friendly error if Open WebUI is not ready
-            if error.localizedDescription.contains("could not connect") {
+            let nsError = error as NSError
+            if nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCannotConnectToHost {
                 showConnectionError(webView)
             }
         }
