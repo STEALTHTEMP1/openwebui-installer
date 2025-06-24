@@ -246,6 +246,18 @@ The automated workflow:
 - ✅ **Excludes sensitive files** (.env, .git, logs, etc.)
 - ✅ **Professional release notes** with installation instructions
 
+## 🗝️ GitHub Secrets & Variables
+
+The release workflow relies on several repository settings:
+
+- `OLLAMA_BASE_URL` and `OLLAMA_API_BASE_URL` (variables)
+- `WEBUI_SECRET_KEY` (secret)
+- `PYPI_TOKEN` (secret)
+- `HOMEBREW_TAP_TOKEN` (secret)
+
+Define these under **Settings → Secrets and variables → Actions** before running
+the workflows.
+
 ## 🛠️ Customization
 
 ### Modify the Workflow

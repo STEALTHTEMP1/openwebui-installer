@@ -9,6 +9,12 @@ on:
 jobs:
   test:
     runs-on: macos-latest
+    env:
+      OLLAMA_BASE_URL: ${{ vars.OLLAMA_BASE_URL }}
+      OLLAMA_API_BASE_URL: ${{ vars.OLLAMA_API_BASE_URL }}
+      WEBUI_SECRET_KEY: ${{ secrets.WEBUI_SECRET_KEY }}
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
     strategy:
       matrix:
         python-version: ['3.9', '3.10', '3.11']
@@ -39,6 +45,12 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+    env:
+      OLLAMA_BASE_URL: ${{ vars.OLLAMA_BASE_URL }}
+      OLLAMA_API_BASE_URL: ${{ vars.OLLAMA_API_BASE_URL }}
+      WEBUI_SECRET_KEY: ${{ secrets.WEBUI_SECRET_KEY }}
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
     steps:
     - uses: actions/checkout@v4
     

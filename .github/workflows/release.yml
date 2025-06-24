@@ -8,6 +8,12 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      OLLAMA_BASE_URL: ${{ vars.OLLAMA_BASE_URL }}
+      OLLAMA_API_BASE_URL: ${{ vars.OLLAMA_API_BASE_URL }}
+      WEBUI_SECRET_KEY: ${{ secrets.WEBUI_SECRET_KEY }}
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
     permissions:
       contents: write
     steps:
@@ -184,6 +190,16 @@ jobs:
         asset_path: ./release/openwebui-installer-${{ steps.extract_version.outputs.VERSION }}.tar.gz
         asset_name: openwebui-installer-${{ steps.extract_version.outputs.VERSION }}.tar.gz
         asset_content_type: application/gzip
+
+    - name: Build Python package
+      run: |
+        python -m pip install --upgrade pip build
+        python -m build
+
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@v1
+      with:
+        password: ${{ env.PYPI_TOKEN }}
 
     - name: Generate SHA256 for Homebrew
       run: |
