@@ -428,7 +428,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def test_python_version():
     """Test that we're running a supported Python version."""
-    assert sys.version_info >= (3, 8), "Python 3.8+ required"
+    assert sys.version_info >= (3, 9), "Python 3.9+ required"
 
 
 def test_imports():
