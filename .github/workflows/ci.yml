@@ -3,86 +3,306 @@ name: CI
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
   pull_request:
     branches: [ main ]
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
 
 jobs:
   test:
     runs-on: macos-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
+      WEBUI_SECRET_KEY: ${{ secrets.WEBUI_SECRET_KEY }}
     strategy:
       matrix:
+        os: [ubuntu-latest, macos-latest]
         python-version: ['3.9', '3.10', '3.11']
 
     steps:
     - uses: actions/checkout@v4
-    
+
+    - name: Install system packages
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libegl1
+
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-        
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
-        
+
+    - name: Install Qt system packages (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          xvfb libegl1 libegl1-mesa-dev libgl1 \
+          libxkbcommon-x11-0 libxcomposite1 libxrandr2 \
+          libxdamage1 libxi6 libxtst6 libglu1-mesa \
+          libglib2.0-0 libxshmfence1 libxrender1
+
+    - name: Install Qt system packages (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew update
+        brew install qt pyqt6
+
+    - name: Start Xvfb (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        Xvfb :99 -screen 0 1920x1080x24 > /tmp/Xvfb.log 2>&1 &
+
     - name: Run tests
+      env:
+        QT_QPA_PLATFORM: offscreen
+        DISPLAY: ":99"
       run: |
         pytest tests/ --cov=openwebui_installer --cov-report=xml
-        
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
         file: ./coverage.xml
         fail_ci_if_error: true
 
+    - name: Install security scanners
+      run: |
+        python -m pip install --upgrade bandit safety pip-audit
+
+    - name: Run Bandit
+      run: |
+        bandit -r openwebui_installer -f json -o bandit-report.json
+
+    - name: Run Safety
+      run: |
+        safety check --full-report --json > safety-report.json
+
+    - name: Run pip-audit
+      run: |
+        pip-audit -r requirements.txt -f json -o pip-audit-report.json
+
   lint:
     runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
+      WEBUI_SECRET_KEY: ${{ secrets.WEBUI_SECRET_KEY }}
     steps:
-    - uses: actions/checkout@v4
-    
+      - uses: actions/checkout@v4
+
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v4
       with:
         python-version: '3.11'
-        
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install flake8 black isort
-        
+        pip install bandit
+
     - name: Check formatting
       run: |
         black --check .
         isort --check-only --diff .
-        
+
     - name: Lint with flake8
       run: |
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-  build-and-push:
-    needs: [test, lint]
+  container:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     permissions:
       contents: read
-      packages: write
+      security-events: write
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-    - name: Log in to GHCR
-      uses: docker/login-action@v3
+
+    - name: Build development container
+      run: docker build -t openwebui-installer-dev -f Dockerfile.dev .
+
+    - name: Validate container image
+      run: docker run --rm openwebui-installer-dev python --version
+
+    - name: Scan image with Trivy
+      uses: aquasecurity/trivy-action@master
       with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Build and push dev image
-      uses: docker/build-push-action@v5
+        image-ref: openwebui-installer-dev
+        format: sarif
+        output: trivy-results.sarif
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
       with:
-        context: .
-        file: Dockerfile.dev
-        push: true
-        tags: ghcr.io/${{ github.repository_owner }}/openwebui-installer-dev:latest
+        sarif_file: trivy-results.sarif
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+
+jobs:
+  test:
+    runs-on: macos-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
+      WEBUI_SECRET_KEY: ${{ secrets.WEBUI_SECRET_KEY }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ['3.9', '3.10', '3.11']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install system packages
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libegl1
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+
+    - name: Install Qt system packages (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          xvfb libegl1 libegl1-mesa-dev libgl1 \
+          libxkbcommon-x11-0 libxcomposite1 libxrandr2 \
+          libxdamage1 libxi6 libxtst6 libglu1-mesa \
+          libglib2.0-0 libxshmfence1 libxrender1
+
+    - name: Install Qt system packages (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew update
+        brew install qt pyqt6
+
+    - name: Start Xvfb (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        Xvfb :99 -screen 0 1920x1080x24 > /tmp/Xvfb.log 2>&1 &
+
+    - name: Run tests
+      env:
+        QT_QPA_PLATFORM: offscreen
+        DISPLAY: ":99"
+      run: |
+        pytest tests/ --cov=openwebui_installer --cov-report=xml
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: true
+
+    - name: Install security scanners
+      run: |
+        python -m pip install --upgrade bandit safety pip-audit
+
+    - name: Run Bandit
+      run: |
+        bandit -r openwebui_installer -f json -o bandit-report.json
+
+    - name: Run Safety
+      run: |
+        safety check --full-report --json > safety-report.json
+
+    - name: Run pip-audit
+      run: |
+        pip-audit -r requirements.txt -f json -o pip-audit-report.json
+
+  lint:
+    runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
+      WEBUI_SECRET_KEY: ${{ secrets.WEBUI_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black isort
+        pip install bandit
+
+    - name: Check formatting
+      run: |
+        black --check .
+        isort --check-only --diff .
+
+    - name: Lint with flake8
+      run: |
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+  container:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build development container
+      run: docker build -t openwebui-installer-dev -f Dockerfile.dev .
+
+    - name: Validate container image
+      run: docker run --rm openwebui-installer-dev python --version
+
+    - name: Scan image with Trivy
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: openwebui-installer-dev
+        format: sarif
+        output: trivy-results.sarif
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: trivy-results.sarif
