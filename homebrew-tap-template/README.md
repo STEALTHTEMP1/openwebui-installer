@@ -64,13 +64,13 @@ Open WebUI is a user-friendly web interface for AI models that supports:
 - **One-command installation** - Get Open WebUI running with a single command
 - **Automatic updates** - Keep your installation up-to-date
 - **Service management** - Start, stop, and manage the Open WebUI service
-- **Cross-platform** - Works on macOS, Linux, and Windows (via WSL)
+- **macOS only** - Linux and Windows support planned
 - **Docker support** - Uses Docker for clean, isolated installations
 - **Configuration management** - Easy setup and configuration
 
 ## Requirements
 
-- macOS 10.15+ or Linux
+- macOS 10.15+
 - Docker (will be installed if not present)
 - Internet connection for downloading models and updates
 

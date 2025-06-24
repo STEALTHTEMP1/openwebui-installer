@@ -188,7 +188,7 @@ jobs:
 
           ### Installation Methods
 
-          #### 🍺 Via Homebrew (macOS/Linux) - **Recommended**
+          #### 🍺 Via Homebrew (macOS only) - **Recommended**
           ```bash
           # Add the tap
           brew tap STEALTHTEMP1/openwebui-installer
@@ -220,7 +220,7 @@ jobs:
           - **Automatic updates** - Keep your installation current
           - **Service management** - Start, stop, restart Open WebUI easily
           - **Docker support** - Clean, isolated installations
-          - **Multi-platform** - Works on macOS, Linux, and Windows (via WSL)
+          - **macOS focused** - Linux and Windows support planned for the future
           - **Configuration management** - Easy setup and customization
 
           ### 📋 Requirements
@@ -384,7 +384,7 @@ Easy installer and manager for Open WebUI - A user-friendly AI interface.
 - Automatic updates
 - Service management
 - Docker support
-- Multi-platform compatibility
+- macOS focused; future Linux and Windows support
 
 ## Installation
 
