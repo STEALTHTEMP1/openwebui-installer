@@ -24,24 +24,27 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Logging functions
+# log_info prints an informational message to stdout with blue color formatting.
 log_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
 }
 
+# log_success prints a success message in green to stdout.
 log_success() {
     echo -e "${GREEN}[SUCCESS]${NC} $1"
 }
 
+# log_warning prints a warning message to stdout in yellow color.
 log_warning() {
     echo -e "${YELLOW}[WARNING]${NC} $1"
 }
 
+# log_error prints an error message in red to stderr.
 log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Check if running on macOS
+# check_platform verifies that the script is running on macOS and exits with an error if not.
 check_platform() {
     if [[ "$OSTYPE" != "darwin"* ]]; then
         log_error "This script must be run on macOS"
@@ -49,7 +52,7 @@ check_platform() {
     fi
 }
 
-# Detect architecture
+# detect_architecture determines the current CPU architecture and echoes 'arm64' or 'amd64', exiting with an error for unsupported architectures.
 detect_architecture() {
     local arch=$(uname -m)
     if [[ "$arch" == "arm64" ]]; then
@@ -62,7 +65,7 @@ detect_architecture() {
     fi
 }
 
-# Create necessary directories
+# setup_directories creates the bundled runtime and temporary directories required for resource preparation.
 setup_directories() {
     log_info "Setting up directories..."
 
@@ -72,7 +75,7 @@ setup_directories() {
     log_success "Directories created"
 }
 
-# Download Podman binary
+# download_podman downloads the appropriate Podman remote client binary for the detected macOS architecture, verifies its functionality, and places it in the bundled runtime directory. Exits on failure at any step.
 download_podman() {
     local arch=$(detect_architecture)
     local podman_version="v4.8.3"  # Use stable version
@@ -130,7 +133,7 @@ download_podman() {
     log_success "Podman downloaded and verified: $version_info"
 }
 
-# Download and prepare Open WebUI container image
+# prepare_openwebui_image pulls the latest Open WebUI container image, saves it as a compressed archive in the bundled runtime directory, and ensures Podman is available for the operation.
 prepare_openwebui_image() {
     log_info "Preparing Open WebUI container image..."
 
@@ -182,7 +185,7 @@ prepare_openwebui_image() {
     rm -f "$temp_archive"
 }
 
-# Create resource metadata file
+# create_metadata generates a JSON metadata file describing the bundled Podman binary and Open WebUI container image, including version, size, architecture, and system requirements.
 create_metadata() {
     log_info "Creating resource metadata..."
 
@@ -242,7 +245,7 @@ EOF
     log_success "Resource metadata created: $metadata_file"
 }
 
-# Verify bundled resources
+# verify_bundle checks the integrity and validity of the bundled Podman binary, Open WebUI image archive, and metadata file, reporting any errors found.
 verify_bundle() {
     log_info "Verifying bundled resources..."
 
@@ -301,7 +304,7 @@ verify_bundle() {
     fi
 }
 
-# Clean up temporary files
+# cleanup removes the temporary download directory and its contents if it exists.
 cleanup() {
     log_info "Cleaning up temporary files..."
 
@@ -311,7 +314,7 @@ cleanup() {
     fi
 }
 
-# Display bundle summary
+# show_summary displays a summary of the bundled Podman runtime and Open WebUI image, including their sizes, versions, and bundle location.
 show_summary() {
     log_info "Bundle Summary:"
     echo "----------------------------------------"
@@ -337,7 +340,7 @@ show_summary() {
     echo "Ready for Xcode integration!"
 }
 
-# Print usage information
+# usage prints command-line usage instructions and available options for the bundle-resources.sh script.
 usage() {
     echo "Usage: $0 [OPTIONS]"
     echo ""
@@ -356,7 +359,7 @@ usage() {
     echo "  $0 --verify       Verify existing bundle"
 }
 
-# Main execution
+# main parses command-line arguments and orchestrates the resource bundling, verification, cleanup, and summary display for the OpenWebUI Desktop application on macOS.
 main() {
     local podman_only=false
     local image_only=false

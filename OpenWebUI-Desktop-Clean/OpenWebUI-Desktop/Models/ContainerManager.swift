@@ -64,13 +64,16 @@ class ContainerManager: ObservableObject {
         setupNotifications()
     }
 
-    // MARK: - Main Initialization Flow
+    /// Begins the asynchronous initialization process for the container manager, including system checks, runtime setup, image loading, and container startup.
     func initialize() {
         Task {
             await performInitialization()
         }
     }
 
+    /// Performs the full initialization sequence for the Open WebUI container environment asynchronously.
+    /// 
+    /// This includes checking system requirements, setting up the container runtime if needed, loading the container image, starting the container, initiating health monitoring, and displaying notifications on success or failure. Updates published state and progress properties throughout the process.
     private func performInitialization() async {
         do {
             log("Starting OpenWebUI initialization")
@@ -141,7 +144,8 @@ class ContainerManager: ObservableObject {
         }
     }
 
-    // MARK: - System Requirements Check
+    /// Checks if the current system meets the minimum requirements for running the container.
+    /// - Throws: `ContainerError.unsupportedSystem` if the macOS version is below 10.15, `ContainerError.insufficientDiskSpace` if less than 3GB of free disk space is available, or `ContainerError.insufficientMemory` if less than 4GB of RAM is present.
     private func checkSystemRequirements() throws {
         let systemInfo = SystemInfo.current()
         log("Checking system requirements - macOS: \(systemInfo.macOSVersion), Arch: \(systemInfo.architecture)")
@@ -167,13 +171,16 @@ class ContainerManager: ObservableObject {
         log("System requirements satisfied")
     }
 
-    // MARK: - Runtime Management
+    /// Checks if the Podman runtime binary exists at the expected path.
+    /// - Returns: `true` if the Podman binary is present; otherwise, `false`.
     private func runtimeExists() -> Bool {
         let exists = FileManager.default.fileExists(atPath: podmanPath.path)
         log("Runtime exists check: \(exists)")
         return exists
     }
 
+    /// Extracts the bundled Podman runtime to the application's runtime directory, sets executable permissions, and initializes the Podman machine if necessary.
+    /// - Throws: `ContainerError.bundledRuntimeMissing` if the Podman binary is not found in the app bundle, or other errors if file operations or initialization fail.
     private func extractBundledRuntime() async throws {
         log("Starting runtime extraction")
 
@@ -200,6 +207,9 @@ class ContainerManager: ObservableObject {
         log("Runtime extraction completed")
     }
 
+    /// Initializes the Podman machine configuration for rootless operation.
+    /// 
+    /// Runs the `podman system connection default` command to set up the default Podman connection. Errors during this process are not considered fatal, as Podman may already be configured.
     private func initializePodmanMachine() async throws {
         log("Initializing podman machine")
 
@@ -220,7 +230,8 @@ class ContainerManager: ObservableObject {
         log("Podman machine initialization completed (exit code: \(process.terminationStatus))")
     }
 
-    // MARK: - Image Management
+    /// Checks asynchronously if the required container image exists in the Podman image list.
+    /// - Returns: `true` if the image is present; otherwise, `false`.
     private func containerImageExists() async -> Bool {
         do {
             let output = try await runPodmanCommand(["images", "--format", "json"])
@@ -233,6 +244,8 @@ class ContainerManager: ObservableObject {
         }
     }
 
+    /// Loads the bundled Open WebUI container image into Podman from the application bundle.
+    /// - Throws: `ContainerError.bundledImageMissing` if the image file is not found, or an error if the Podman load command fails.
     private func loadBundledImage() async throws {
         log("Starting image loading")
 
@@ -246,7 +259,8 @@ class ContainerManager: ObservableObject {
         log("Image loading completed")
     }
 
-    // MARK: - Container Management
+    /// Starts a new container with the configured settings, replacing any existing container with the same name.
+    /// - Throws: An error if the container fails to start or does not become ready within the expected time.
     private func startContainer() async throws {
         log("Starting container")
 
@@ -278,6 +292,8 @@ class ContainerManager: ObservableObject {
         log("Container started successfully")
     }
 
+    /// Stops and removes the existing container asynchronously if it exists.
+    /// Ignores errors if the container is not running or does not exist.
     private func stopAndRemoveContainer() async throws {
         log("Stopping and removing existing container")
 
@@ -290,6 +306,8 @@ class ContainerManager: ObservableObject {
         log("Container stopped and removed")
     }
 
+    /// Waits for the container's HTTP endpoint to become responsive, polling up to a maximum number of attempts.
+    /// - Throws: `ContainerError.containerNotReady` if the container does not respond within the allowed time.
     private func waitForContainerReady() async throws {
         let maxAttempts = 60
         let checkInterval: UInt64 = 1_000_000_000 // 1 second in nanoseconds
@@ -317,6 +335,8 @@ class ContainerManager: ObservableObject {
         throw ContainerError.containerNotReady("Container failed to become ready within \(maxAttempts) seconds")
     }
 
+    /// Checks if the container's HTTP endpoint is responding with a 200 OK status.
+    /// - Returns: `true` if the container responds with HTTP 200; otherwise, `false`.
     private func isContainerResponding() async throws -> Bool {
         guard let url = URL(string: "http://localhost:\(configuration.containerPort)") else {
             return false
@@ -341,7 +361,7 @@ class ContainerManager: ObservableObject {
         return false
     }
 
-    // MARK: - Health Monitoring
+    /// Starts a repeating timer to periodically perform container health checks every 30 seconds.
     private func startHealthMonitoring() {
         log("Starting health monitoring")
 
@@ -353,6 +373,7 @@ class ContainerManager: ObservableObject {
         }
     }
 
+    /// Performs an asynchronous health check of the container, updating status and attempting recovery if the container has stopped unexpectedly.
     private func performHealthCheck() async {
         do {
             let status = try await getContainerStatus()
@@ -369,6 +390,7 @@ class ContainerManager: ObservableObject {
         }
     }
 
+    /// Updates the published container status and health flag, and sets the app state to `.ready` if the container is running.
     private func updateContainerStatus(_ status: ContainerStatus) {
         containerStatus = status
         isHealthy = status.health == .healthy
@@ -378,6 +400,8 @@ class ContainerManager: ObservableObject {
         }
     }
 
+    /// Attempts to automatically recover from a container failure by restarting the container and notifying the user of the outcome.
+    /// If recovery fails, updates the application state to error and prompts the user to restart the application.
     private func attemptRecovery() async {
         log("Attempting automatic recovery")
 
@@ -407,7 +431,9 @@ class ContainerManager: ObservableObject {
         }
     }
 
-    // MARK: - Container Status
+    /// Retrieves the current status of the managed container, including running state, health, memory usage, and CPU usage.
+    /// - Returns: A `ContainerStatus` object containing the container's running state, health, resource usage, and port information.
+    /// - Throws: An error if the container status cannot be determined.
     private func getContainerStatus() async throws -> ContainerStatus {
         let output = try await runPodmanCommand(["ps", "--filter", "name=\(containerName)", "--format", "json"])
 
@@ -467,7 +493,10 @@ class ContainerManager: ObservableObject {
         return ContainerStatus(isRunning: false, health: .stopped, port: configuration.containerPort)
     }
 
-    // MARK: - Podman Command Execution
+    /// Executes a Podman CLI command asynchronously and returns its output as a string.
+    /// - Parameter arguments: The arguments to pass to the Podman executable.
+    /// - Returns: The standard output from the executed Podman command.
+    /// - Throws: `ContainerError.containerStartFailed` if the command fails to execute or returns a non-zero exit status.
     private func runPodmanCommand(_ arguments: [String]) async throws -> String {
         return try await withCheckedThrowingContinuation { continuation in
             let process = Process()
@@ -498,13 +527,14 @@ class ContainerManager: ObservableObject {
         }
     }
 
-    // MARK: - Public Control Methods
+    /// Re-initializes the container manager by performing the full setup and startup sequence asynchronously.
     func restart() {
         Task {
             await performInitialization()
         }
     }
 
+    /// Stops and removes the running container, updates the application state to stopped, and invalidates the health check timer.
     func stop() {
         Task {
             do {
@@ -518,13 +548,14 @@ class ContainerManager: ObservableObject {
         }
     }
 
+    /// Opens the container's web UI in the default browser using the configured local port.
     func openInBrowser() {
         let url = URL(string: "http://localhost:\(configuration.containerPort)")!
         NSWorkspace.shared.open(url)
         log("Opened in browser: \(url)")
     }
 
-    // MARK: - Diagnostics
+    /// Generates a diagnostic report containing system and container information, presents a save dialog for the user to export the report, and notifies upon successful save.
     func generateDiagnostics() {
         Task {
             do {
@@ -552,6 +583,8 @@ class ContainerManager: ObservableObject {
         }
     }
 
+    /// Assembles and returns a diagnostic report containing current system information, container status, recent application logs, container logs, and configuration data.
+    /// - Returns: A `DiagnosticReport` object with collected diagnostic details.
     private func createDiagnosticReport() async -> DiagnosticReport {
         let containerLogs = await getContainerLogs()
 
@@ -565,6 +598,8 @@ class ContainerManager: ObservableObject {
         )
     }
 
+    /// Retrieves the last 100 lines of logs from the container asynchronously.
+    /// - Returns: An array of log lines, or an array containing an error message if retrieval fails.
     private func getContainerLogs() async -> [String] {
         do {
             let output = try await runPodmanCommand(["logs", "--tail", "100", containerName])
@@ -574,7 +609,7 @@ class ContainerManager: ObservableObject {
         }
     }
 
-    // MARK: - Notifications
+    /// Requests user authorization for alert and sound notifications and logs the result.
     private func setupNotifications() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
             if let error = error {
@@ -585,6 +620,10 @@ class ContainerManager: ObservableObject {
         }
     }
 
+    /// Displays a user notification with the specified title and body if notifications are enabled in the configuration.
+    /// - Parameters:
+    ///   - title: The notification title.
+    ///   - body: The notification message body.
     private func showNotification(title: String, body: String) async {
         guard configuration.enableNotifications else { return }
 
@@ -602,12 +641,14 @@ class ContainerManager: ObservableObject {
         try? await UNUserNotificationCenter.current().add(request)
     }
 
-    // MARK: - Logging
+    /// Initializes the logging system and records the startup of the ContainerManager.
     private func setupLogging() {
         // Initialize logging system
         log("ContainerManager initialized")
     }
 
+    /// Appends a timestamped log entry to the internal log buffer and prints it to the console.
+    /// Maintains a maximum of 1000 log entries in the buffer.
     private func log(_ message: String) {
         let timestamp = DateFormatter().string(from: Date())
         let logEntry = "[\(timestamp)] \(message)"
@@ -621,7 +662,9 @@ class ContainerManager: ObservableObject {
         print("🔧 ContainerManager: \(message)")
     }
 
-    // MARK: - Error Handling
+    /// Converts an error into a user-friendly message suitable for display.
+    /// - Parameter error: The error to be translated.
+    /// - Returns: A descriptive string explaining the error in terms understandable by end users. Common technical errors are mapped to clearer guidance.
     private func getUserFriendlyErrorMessage(_ error: Error) -> String {
         if let containerError = error as? ContainerError {
             return containerError.localizedDescription

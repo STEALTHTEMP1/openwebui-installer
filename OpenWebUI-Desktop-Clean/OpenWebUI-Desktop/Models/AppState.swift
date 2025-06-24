@@ -115,6 +115,7 @@ struct SystemInfo {
     let appVersion: String
     let buildNumber: String
 
+    /// Returns a `SystemInfo` instance populated with the current system's macOS version, architecture, total memory, available disk space, and application version and build number.
     static func current() -> SystemInfo {
         let bundle = Bundle.main
         return SystemInfo(
@@ -214,6 +215,7 @@ struct AppConfiguration {
         self.enableMenuBarIcon = UserDefaults.standard.bool(forKey: "enableMenuBarIcon")
     }
 
+    /// Persists the current app configuration settings to UserDefaults.
     func save() {
         UserDefaults.standard.set(autoStartContainer, forKey: "autoStartContainer")
         UserDefaults.standard.set(enableDiagnostics, forKey: "enableDiagnostics")
@@ -239,6 +241,8 @@ struct DiagnosticReport {
         return "OpenWebUI-Diagnostic-\(formatter.string(from: timestamp)).txt"
     }
 
+    /// Generates a detailed diagnostic report containing system information, container status, configuration settings, and the last 50 entries from both application and container logs.
+    /// - Returns: A formatted string representing the complete diagnostic report.
     func generateReport() -> String {
         var report = """
         OpenWebUI Desktop Diagnostic Report
@@ -285,7 +289,8 @@ struct DiagnosticReport {
     }
 }
 
-// MARK: - Helper Functions
+/// Retrieves the current machine architecture string using the `uname` system call.
+/// - Returns: The architecture identifier (e.g., "arm64", "x86_64"), or "unknown" if unavailable.
 
 private func getCurrentArchitecture() -> String {
     var info = utsname()
@@ -298,6 +303,8 @@ private func getCurrentArchitecture() -> String {
     return machine ?? "unknown"
 }
 
+/// Returns the available disk space in bytes for the user's home directory.
+/// - Returns: The number of free bytes available, or 0 if the value cannot be determined.
 private func getAvailableDiskSpace() -> UInt64 {
     if let attributes = try? FileManager.default.attributesOfFileSystem(forPath: NSHomeDirectory()),
        let freeSize = attributes[.systemFreeSize] as? NSNumber {

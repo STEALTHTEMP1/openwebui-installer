@@ -162,6 +162,9 @@ struct SetupView: View {
 
 // MARK: - Custom Progress View Style
 struct CustomProgressViewStyle: ProgressViewStyle {
+    /// Creates a custom progress bar view with a rounded background and animated gradient fill reflecting the current progress.
+    /// - Parameter configuration: The progress view configuration containing the current completion fraction.
+    /// - Returns: A view representing the styled progress bar.
     func makeBody(configuration: Configuration) -> some View {
         ZStack(alignment: .leading) {
             // Background track

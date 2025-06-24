@@ -40,6 +40,7 @@ struct OpenWebUIApp: App {
         }
     }
 
+    /// Registers default user preferences for container auto-start, diagnostics, and update checks.
     private func setupAppEnvironment() {
         // Configure app-level settings
         UserDefaults.standard.register(defaults: [
@@ -49,6 +50,7 @@ struct OpenWebUIApp: App {
         ])
     }
 
+    /// Displays an informational dialog with details about the Open WebUI Desktop application, including its version, description, authorship, and license.
     private func showAboutPanel() {
         let alert = NSAlert()
         alert.messageText = "Open WebUI Desktop"
