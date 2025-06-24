@@ -1,0 +1,94 @@
+name: Branch Cleanup
+
+on:
+  schedule:
+    # Run weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (only show deletions, do not delete)'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Git CLI
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Update remote refs & list merged branches
+        id: branches
+        run: |
+          git remote update origin --prune
+
+          # Determine base branch (main or master)
+          if git rev-parse --verify origin/main > /dev/null 2>&1; then
+            BASE=main
+          elif git rev-parse --verify origin/master > /dev/null 2>&1; then
+            BASE=master
+          else
+            echo "::error::Could not find main or master branch."
+            exit 1
+          fi
+
+          # Get merged branches (exclude main/master/HEAD) and filter for safe patterns
+          MERGED=$(git branch -r --merged origin/$BASE | grep -vE "$BASE|HEAD" | sed 's|origin/||')
+          SAFE=""
+          for branch in $MERGED; do
+            if [[ "$branch" =~ ^(codex/|dependabot/|feature/|bugfix/|hotfix/|[a-z0-9]+-codex/) ]]; then
+              SAFE="$SAFE $branch"
+            fi
+          done
+
+          echo "Branches to delete:"
+          echo "$SAFE" | tr ' ' '\n' | grep . || true
+
+          # Set outputs for downstream steps
+          COUNT=$(echo "$SAFE" | tr ' ' '\n' | grep . | wc -l)
+          echo "branch_count=$COUNT" >> $GITHUB_OUTPUT
+          echo "branches<<EOF" >> $GITHUB_OUTPUT
+          echo "$SAFE" | tr ' ' '\n' | grep . >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Show/deleting merged branches
+        if: fromJson(steps.branches.outputs.branch_count) > 0
+        run: |
+          DRY_RUN="${{ github.event.inputs.dry_run || 'false' }}"
+          echo "DRY RUN: $DRY_RUN"
+          i=0
+          for branch in ${{ steps.branches.outputs.branches }}; do
+            if [[ "$DRY_RUN" == "true" ]]; then
+              echo "🧪 Would delete remote branch: $branch"
+            else
+              if git push origin --delete "$branch"; then
+                echo "✅ Deleted remote branch: $branch"
+                i=$((i+1))
+              else
+                echo "❌ Failed to delete: $branch"
+              fi
+            fi
+          done
+          echo "Total branches deleted: $i"
+
+      - name: Summary
+        run: |
+          echo "Branch cleanup completed."
+          echo "Merged eligible branches analyzed: ${{ steps.branches.outputs.branch_count }}"
+          echo "Branches subject to deletion:"
+          echo "${{ steps.branches.outputs.branches }}"
+
+      - name: Info if no branches
+        if: steps.branches.outputs.branch_count == '0'
+        run: |
+          echo "No merged branches found to delete."
