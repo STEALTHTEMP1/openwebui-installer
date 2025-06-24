@@ -121,7 +121,8 @@ struct DiagnosticsView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    // MARK: - Report View
+    /// Displays the diagnostic report with a sidebar of report sections and a main content area showing detailed information for each section.
+    /// - Parameter report: The diagnostic report to display, including system information, container status, configuration, and logs.
     @ViewBuilder
     private func reportView(_ report: DiagnosticReport) -> some View {
         HSplitView {
@@ -182,7 +183,9 @@ struct DiagnosticsView: View {
         }
     }
 
-    // MARK: - Report Sections
+    /// Creates a diagnostic section displaying detailed system information, including macOS version, architecture, memory, disk space, app version, and Apple Silicon status.
+    /// - Parameter systemInfo: The system information to display.
+    /// - Returns: A view presenting the system information in a structured diagnostic section.
     @ViewBuilder
     private func systemInformationSection(_ systemInfo: SystemInfo) -> some View {
         DiagnosticSection(title: "System Information", icon: "desktopcomputer") {
@@ -201,6 +204,9 @@ struct DiagnosticsView: View {
         }
     }
 
+    /// Creates a diagnostic section displaying the current status and health metrics of the container.
+    /// - Parameter status: The container's status information to display, including running state, health, port, uptime, resource usage, and image version.
+    /// - Returns: A view presenting container status details in a structured diagnostic section.
     @ViewBuilder
     private func containerStatusSection(_ status: ContainerStatus) -> some View {
         DiagnosticSection(title: "Container Status", icon: "cube.box") {
@@ -224,6 +230,9 @@ struct DiagnosticsView: View {
         }
     }
 
+    /// Creates a diagnostics section displaying the application's configuration settings.
+    /// - Parameter config: The current application configuration to display.
+    /// - Returns: A view presenting configuration options such as auto-start, diagnostics, update checks, container port, notifications, and menu bar icon status.
     @ViewBuilder
     private func configurationSection(_ config: AppConfiguration) -> some View {
         DiagnosticSection(title: "Configuration", icon: "gear") {
@@ -253,6 +262,8 @@ struct DiagnosticsView: View {
         }
     }
 
+    /// Displays the Application Logs section, showing up to the last 50 log entries or a placeholder if no logs are available.
+    /// - Parameter logs: The list of application log entries to display.
     @ViewBuilder
     private func applicationLogsSection(_ logs: [String]) -> some View {
         DiagnosticSection(title: "Application Logs", icon: "doc.text") {
@@ -285,6 +296,8 @@ struct DiagnosticsView: View {
         }
     }
 
+    /// Displays the container logs section, showing up to the last 50 log entries or a placeholder if no logs are available.
+    /// - Parameter logs: An array of container log entries to display.
     @ViewBuilder
     private func containerLogsSection(_ logs: [String]) -> some View {
         DiagnosticSection(title: "Container Logs", icon: "terminal") {
@@ -317,7 +330,7 @@ struct DiagnosticsView: View {
         }
     }
 
-    // MARK: - Actions
+    /// Asynchronously generates a diagnostic report with current system information, container status, configuration, and mock log entries, updating the view state upon completion.
     private func generateReport() {
         isGenerating = true
 
@@ -495,6 +508,9 @@ struct ExportOptionsView: View {
         .frame(width: 400, height: 200)
     }
 
+    /// Presents a save dialog to export the diagnostic report in the selected format.
+    /// - Saves the report to disk as plain text, JSON, or Markdown based on user selection.
+    /// - Shows a success or error alert upon completion.
     private func exportReport() {
         let savePanel = NSSavePanel()
         savePanel.nameFieldStringValue = "OpenWebUI-Diagnostic-\(Date().timeIntervalSince1970).\(format.fileExtension)"
@@ -540,6 +556,8 @@ struct ExportOptionsView: View {
 
 // MARK: - DiagnosticReport Extensions
 extension DiagnosticReport {
+    /// Generates a JSON-formatted string representing the diagnostic report, including system information, container status, configuration, and logs.
+    /// - Returns: A pretty-printed JSON string of the report, or an error JSON string if serialization fails.
     func generateJSONReport() -> String {
         let data: [String: Any] = [
             "timestamp": timestamp.ISO8601Format(),
@@ -579,6 +597,8 @@ extension DiagnosticReport {
         return "{\"error\": \"Failed to generate JSON report\"}"
     }
 
+    /// Generates a markdown-formatted diagnostic report containing system information, container status, configuration settings, and the latest application and container logs.
+    /// - Returns: A string representing the diagnostic report in markdown format.
     func generateMarkdownReport() -> String {
         return """
         # OpenWebUI Desktop Diagnostic Report

@@ -136,6 +136,12 @@ struct ErrorView: View {
         }
     }
 
+    /// Displays a formatted troubleshooting tip with an icon, title, and description.
+    /// - Parameters:
+    ///   - icon: The system image name for the tip's icon.
+    ///   - title: The title of the troubleshooting tip.
+    ///   - description: A brief description or advice for the tip.
+    /// - Returns: A view presenting the troubleshooting tip in a styled layout.
     private func troubleshootingTip(icon: String, title: String, description: String) -> some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: icon)
@@ -157,6 +163,7 @@ struct ErrorView: View {
         }
     }
 
+    /// Opens the local web application at http://localhost:3000 in the default browser.
     private func openInBrowser() {
         if let url = URL(string: "http://localhost:3000") {
             NSWorkspace.shared.open(url)
@@ -240,6 +247,7 @@ struct DiagnosticReportView: View {
         }
     }
 
+    /// Asynchronously generates a diagnostic report containing error details, system information, troubleshooting steps, and support resources, and updates the report content when complete.
     private func generateReport() {
         Task {
             await Task.sleep(nanoseconds: 1_000_000_000) // Simulate report generation
@@ -286,6 +294,8 @@ struct DiagnosticReportView: View {
         }
     }
 
+    /// Presents a save dialog for the user to export the diagnostic report as a plain text file.
+    /// If the user selects a location, writes the report content to the chosen file. Errors during saving are printed to the console.
     private func saveReport() {
         let savePanel = NSSavePanel()
         savePanel.nameFieldStringValue = "OpenWebUI-Diagnostic-\(Date().timeIntervalSince1970).txt"

@@ -283,17 +283,19 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Helper Methods
+    /// Loads the current application configuration into local state and updates the temporary port value.
     private func loadSettings() {
         configuration = AppConfiguration()
         tempPort = String(configuration.containerPort)
     }
 
+    /// Saves the current configuration and closes the settings view.
     private func saveSettings() {
         configuration.save()
         dismiss()
     }
 
+    /// Resets the application configuration to its default values and updates the temporary port field accordingly.
     private func resetToDefaults() {
         configuration = AppConfiguration()
         configuration.autoStartContainer = true
@@ -306,6 +308,8 @@ struct SettingsView: View {
         tempPort = String(configuration.containerPort)
     }
 
+    /// Validates the temporary port input and triggers a port change alert if the value is valid and different from the current configuration.
+    /// If the input is invalid, resets the temporary port field to the current container port.
     private func validateAndSetPort() {
         guard let port = Int(tempPort), port > 1024 && port < 65535 else {
             tempPort = String(configuration.containerPort)
@@ -317,6 +321,8 @@ struct SettingsView: View {
         }
     }
 
+    /// Applies the new container port setting and restarts the container if the port is valid.
+    /// - Note: Only ports in the range 1025–65534 are accepted.
     private func applyPortChange() {
         if let port = Int(tempPort), port > 1024 && port < 65535 {
             configuration.containerPort = port
@@ -325,12 +331,15 @@ struct SettingsView: View {
         }
     }
 
+    /// Opens the container logs window. Currently, this function only prints a message to the console as a placeholder.
     private func openContainerLogs() {
         // This would open a separate window with container logs
         // For now, we'll just print to console
         print("Opening container logs...")
     }
 
+    /// Prompts the user to confirm resetting the container, then stops and recreates the container if confirmed.
+    /// All container data will be lost upon reset.
     private func resetContainer() {
         let alert = NSAlert()
         alert.messageText = "Reset Container"
@@ -348,6 +357,7 @@ struct SettingsView: View {
         }
     }
 
+    /// Displays an informational alert with license details and provides an option to view the full license online.
     private func showLicense() {
         let alert = NSAlert()
         alert.messageText = "License Information"

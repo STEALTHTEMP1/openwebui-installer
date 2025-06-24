@@ -16,6 +16,9 @@ struct WebView: NSViewRepresentable {
     @State private var canGoBack = false
     @State private var canGoForward = false
 
+    /// Creates and configures a WKWebView instance for use within the SwiftUI WebView component.
+    /// - Parameter context: The context provided by SwiftUI for coordinating with the view.
+    /// - Returns: A WKWebView configured for the Open WebUI desktop application, with custom preferences, navigation and UI delegates, appearance settings, and property observers.
     func makeNSView(context: Context) -> WKWebView {
         let configuration = WKWebViewConfiguration()
 
@@ -58,6 +61,9 @@ struct WebView: NSViewRepresentable {
         return webView
     }
 
+    /// Updates the WKWebView to load the specified URL if it differs from the current one.
+    /// - Parameter nsView: The WKWebView instance to update.
+    /// - Parameter context: The context provided by SwiftUI for view updates.
     func updateNSView(_ nsView: WKWebView, context: Context) {
         // Only load if URL is different from current URL
         if nsView.url?.absoluteString != url.absoluteString {
@@ -66,23 +72,27 @@ struct WebView: NSViewRepresentable {
         }
     }
 
+    /// Creates and returns a coordinator to manage navigation and UI delegate interactions for the web view.
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
 
-    // MARK: - WebView Actions
+    /// Reloads the current page in the web view.
     func reload() {
         webView?.reload()
     }
 
+    /// Navigates the web view to the previous page in its history, if available.
     func goBack() {
         webView?.goBack()
     }
 
+    /// Navigates the web view forward to the next page in the browsing history, if available.
     func goForward() {
         webView?.goForward()
     }
 
+    /// Stops the current page load in the web view if one is in progress.
     func stopLoading() {
         webView?.stopLoading()
     }
@@ -95,7 +105,8 @@ struct WebView: NSViewRepresentable {
             self.parent = parent
         }
 
-        // MARK: - Navigation Delegate
+        /// Called when the web view begins loading a new page.
+        /// Sets the loading state to true.
         func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
             DispatchQueue.main.async {
                 self.parent.isLoading = true
@@ -103,6 +114,8 @@ struct WebView: NSViewRepresentable {
             print("🌐 WebView: Started loading \(webView.url?.absoluteString ?? "unknown URL")")
         }
 
+        /// Called when the web view finishes loading a page.
+        /// Updates loading and navigation state, logs completion, and injects custom styles and scripts for native integration.
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             DispatchQueue.main.async {
                 self.parent.isLoading = false
@@ -116,6 +129,7 @@ struct WebView: NSViewRepresentable {
             injectCustomStyles(webView)
         }
 
+        /// Handles navigation failures by updating the loading state and logging the error.
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
             DispatchQueue.main.async {
                 self.parent.isLoading = false
@@ -123,6 +137,8 @@ struct WebView: NSViewRepresentable {
             print("❌ WebView: Navigation failed with error: \(error.localizedDescription)")
         }
 
+        /// Handles failures during the provisional navigation phase of the web view.
+        /// - If the error indicates a connection issue, displays a custom connection error page in the web view.
         func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
             DispatchQueue.main.async {
                 self.parent.isLoading = false
@@ -135,6 +151,13 @@ struct WebView: NSViewRepresentable {
             }
         }
 
+        /// Determines whether a navigation action should be allowed or canceled based on the destination URL.
+        /// - Parameters:
+        ///   - webView: The WKWebView requesting the navigation decision.
+        ///   - navigationAction: The navigation action being evaluated.
+        ///   - decisionHandler: The closure to call with the navigation policy.
+        /// 
+        /// Allows navigation only for localhost URLs; external links are opened in the default browser and canceled in the web view.
         func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
             guard let url = navigationAction.request.url else {
                 decisionHandler(.cancel)
@@ -153,7 +176,8 @@ struct WebView: NSViewRepresentable {
             decisionHandler(.allow)
         }
 
-        // MARK: - UI Delegate
+        /// Handles requests to open new windows (e.g., popups) by loading the requested URL in the main web view instead of creating a new window.
+        /// - Returns: Always returns nil to prevent creation of a new WKWebView.
         func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
             // Handle popup windows by loading in main webview
             if let url = navigationAction.request.url {
@@ -162,6 +186,12 @@ struct WebView: NSViewRepresentable {
             return nil
         }
 
+        /// Presents a native macOS alert dialog in response to a JavaScript `alert()` call from the web content.
+        /// - Parameters:
+        ///   - webView: The WKWebView invoking the alert.
+        ///   - message: The message to display in the alert dialog.
+        ///   - frame: The frame that initiated the alert.
+        ///   - completionHandler: Called after the alert is dismissed.
         func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
             // Show native alert for JavaScript alerts
             let alert = NSAlert()
@@ -173,6 +203,10 @@ struct WebView: NSViewRepresentable {
             completionHandler()
         }
 
+        /// Presents a native macOS confirmation dialog in response to a JavaScript `confirm()` call from the web content.
+        /// - Parameters:
+        ///   - message: The message to display in the confirmation dialog.
+        ///   - completionHandler: Called with `true` if the user selects OK, or `false` if Cancel is selected.
         func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
             // Show native confirmation dialog
             let alert = NSAlert()
@@ -186,7 +220,12 @@ struct WebView: NSViewRepresentable {
             completionHandler(response == .alertFirstButtonReturn)
         }
 
-        // MARK: - Key-Value Observing
+        /// Observes changes to WKWebView navigation and loading properties and updates the parent WebView's state accordingly.
+        /// - Parameters:
+        ///   - keyPath: The key path of the property that changed.
+        ///   - object: The observed WKWebView instance.
+        ///   - change: A dictionary containing the changes to the observed property.
+        ///   - context: The context pointer passed during observation.
         override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
             if let webView = object as? WKWebView {
                 DispatchQueue.main.async {
@@ -204,7 +243,11 @@ struct WebView: NSViewRepresentable {
             }
         }
 
-        // MARK: - Helper Methods
+        /// Injects custom CSS and JavaScript into the provided WKWebView to enhance native integration.
+        /// - Parameter webView: The WKWebView instance to modify.
+        /// 
+        /// This method applies styles for improved text selection, scrolling, and hides scrollbars to better match macOS appearance.
+        /// It also injects JavaScript to enable native-like keyboard shortcuts for reload and zoom controls.
         private func injectCustomStyles(_ webView: WKWebView) {
             let css = """
             /* Custom styles for better native integration */
@@ -264,6 +307,8 @@ struct WebView: NSViewRepresentable {
             }
         }
 
+        /// Loads a custom HTML error page into the provided WKWebView to indicate a connection issue with Open WebUI.
+        /// The page displays a spinner, a user-friendly message, and automatically refreshes every 3 seconds.
         private func showConnectionError(_ webView: WKWebView) {
             let errorHTML = """
             <!DOCTYPE html>
