@@ -186,10 +186,12 @@ jobs:
         asset_content_type: application/gzip
 
     - name: Generate SHA256 for Homebrew
+      id: compute_sha
       run: |
         cd release
         ARCHIVE_NAME="openwebui-installer-${{ steps.extract_version.outputs.VERSION }}.tar.gz"
         SHA256=$(shasum -a 256 "$ARCHIVE_NAME" | cut -d' ' -f1)
+        echo "sha256=$SHA256" >> $GITHUB_OUTPUT
 
         echo "================================================"
         echo "🍺 HOMEBREW FORMULA UPDATE REQUIRED"
@@ -227,6 +229,17 @@ jobs:
         echo "3. Commit and push the changes" >> $GITHUB_STEP_SUMMARY
         echo "4. Test installation: \`brew install STEALTHTEMP1/openwebui-installer/openwebui-installer\`" >> $GITHUB_STEP_SUMMARY
 
+    - name: Update Homebrew tap
+      env:
+        GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+      run: |
+        git config --global user.email "actions@github.com"
+        git config --global user.name "GitHub Actions"
+        git clone https://x-access-token:${GH_TOKEN}@github.com/STEALTHTEMP1/homebrew-openwebui-installer.git tap_repo
+        cd tap_repo
+        ../homebrew-tap-template/update-formula.sh ${{ steps.extract_version.outputs.VERSION }}
+        git push origin HEAD:main
+
     - name: Verify Release
       run: |
         echo "✅ Release verification:"
@@ -242,3 +255,13 @@ jobs:
         echo "2. 🔄 Update Homebrew formula with the SHA256 hash above"
         echo "3. 🧪 Test the installation"
         echo "4. 📢 Announce the release!"
+
+  verify_formula:
+    needs: release
+    runs-on: macos-latest
+    steps:
+      - name: Install updated formula
+        run: |
+          brew update
+          brew install STEALTHTEMP1/openwebui-installer/openwebui-installer
+          openwebui-installer --version
