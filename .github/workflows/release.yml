@@ -185,47 +185,23 @@ jobs:
         asset_name: openwebui-installer-${{ steps.extract_version.outputs.VERSION }}.tar.gz
         asset_content_type: application/gzip
 
-    - name: Generate SHA256 for Homebrew
+    - name: Update Homebrew formula
+      env:
+        HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
       run: |
         cd release
         ARCHIVE_NAME="openwebui-installer-${{ steps.extract_version.outputs.VERSION }}.tar.gz"
         SHA256=$(shasum -a 256 "$ARCHIVE_NAME" | cut -d' ' -f1)
 
-        echo "================================================"
-        echo "🍺 HOMEBREW FORMULA UPDATE REQUIRED"
-        echo "================================================"
-        echo ""
-        echo "Archive: $ARCHIVE_NAME"
-        echo "SHA256: $SHA256"
-        echo ""
-        echo "Update your Formula/openwebui-installer.rb file with:"
-        echo ""
-        echo "url \"https://github.com/STEALTHTEMP1/openwebui-installer/archive/refs/tags/${{ steps.extract_version.outputs.VERSION }}.tar.gz\""
-        echo "sha256 \"$SHA256\""
-        echo ""
-        echo "================================================"
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git clone https://$HOMEBREW_TAP_TOKEN@github.com/open-webui/homebrew-openwebui-installer.git ../tap
+        python ../scripts/update_formula.py "${{ steps.extract_version.outputs.VERSION }}" "$ARCHIVE_NAME" ../tap --commit
+        cd ../tap
+        git push origin HEAD:main
 
-        # Create GitHub Actions summary
-        echo "## 🍺 Homebrew Formula Update Required" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Update your \`Formula/openwebui-installer.rb\` file in the [homebrew-openwebui-installer](https://github.com/STEALTHTEMP1/homebrew-openwebui-installer) repository:" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`ruby" >> $GITHUB_STEP_SUMMARY
-        echo "url \"https://github.com/STEALTHTEMP1/openwebui-installer/archive/refs/tags/${{ steps.extract_version.outputs.VERSION }}.tar.gz\"" >> $GITHUB_STEP_SUMMARY
-        echo "sha256 \"$SHA256\"" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Quick Update Command" >> $GITHUB_STEP_SUMMARY
-        echo "If you have the update script, run:" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-        echo "./update-formula.sh ${{ steps.extract_version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Manual Steps" >> $GITHUB_STEP_SUMMARY
-        echo "1. Update the formula file with the new URL and SHA256" >> $GITHUB_STEP_SUMMARY
-        echo "2. Test with \`brew audit --strict Formula/openwebui-installer.rb\`" >> $GITHUB_STEP_SUMMARY
-        echo "3. Commit and push the changes" >> $GITHUB_STEP_SUMMARY
-        echo "4. Test installation: \`brew install STEALTHTEMP1/openwebui-installer/openwebui-installer\`" >> $GITHUB_STEP_SUMMARY
+        echo "## 🍺 Homebrew formula updated" >> $GITHUB_STEP_SUMMARY
+        echo "URL: https://github.com/open-webui/homebrew-openwebui-installer" >> $GITHUB_STEP_SUMMARY
 
     - name: Verify Release
       run: |
@@ -239,6 +215,6 @@ jobs:
         echo ""
         echo "Next steps:"
         echo "1. ✅ Release created and archive uploaded"
-        echo "2. 🔄 Update Homebrew formula with the SHA256 hash above"
+        echo "2. ✅ Homebrew formula updated"
         echo "3. 🧪 Test the installation"
         echo "4. 📢 Announce the release!"

@@ -60,7 +60,7 @@ The following secrets must be configured in GitHub repository settings:
      2. Build package
      3. Create GitHub Release
      4. Publish to PyPI
-     5. Update Homebrew formula
+     5. Update the Homebrew formula using `scripts/update_formula.py`
 
 4. **Verify Release**
    - Check GitHub release page
@@ -99,6 +99,7 @@ are present.
 1. Verify tap repository permissions
 2. Check HOMEBREW_TAP_TOKEN permissions
 3. Ensure formula template is valid
+4. Run `scripts/update_formula.py <version> <tarball> <tap-path> --commit` manually if needed
 
 ## Rolling Back a Release
 
