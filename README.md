@@ -3,6 +3,8 @@
 Formerly **Open WebUI Installer**, this project is evolving into a **Universal Container App Store**. The goal is to provide a streamlined way to install and manage containerized applications—including Open WebUI—through a single interface.
 
 
+**Supported OS:** macOS (Apple Silicon and Intel). Linux and Windows support are planned for future releases.
+
 ## 🎯 WORKING SETUP (Verified ✅)
 
 **Quick Start - Direct Docker Method:**
