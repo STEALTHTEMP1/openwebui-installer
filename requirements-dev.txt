@@ -1,7 +1,6 @@
--r requirements.txt
+# Development requirements (container-safe)
 pytest>=7.0.0
 pytest-cov>=3.0.0
-pytest-qt>=4.2.0
 pytest-mock>=3.10.0
 black>=22.0.0
 isort>=5.0.0
@@ -10,3 +9,10 @@ mypy>=0.900
 bandit>=1.7.0
 build>=0.10.0
 twine>=4.0.0
+
+# Additional development tools
+pre-commit>=3.0.0
+coverage>=7.0.0
+tox>=4.0.0
+sphinx>=6.0.0
+sphinx-rtd-theme>=1.2.0

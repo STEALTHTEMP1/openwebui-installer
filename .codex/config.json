@@ -1,0 +1,110 @@
+{
+    "name": "OpenWebUI Installer",
+    "version": "1.0.0",
+    "description": "Development environment configuration for OpenWebUI Installer project",
+    "environment": {
+        "type": "development",
+        "containerized": true,
+        "python_version": "3.11",
+        "nodejs_version": "18"
+    },
+    "development": {
+        "auto_reload": true,
+        "debug_mode": true,
+        "hot_reload": false,
+        "profiling": false
+    },
+    "tools": {
+        "code_quality": {
+            "enabled": true,
+            "auto_format": true,
+            "lint_on_save": true,
+            "type_check": true
+        },
+        "testing": {
+            "auto_test": false,
+            "coverage_threshold": 80,
+            "parallel_execution": true
+        },
+        "documentation": {
+            "auto_generate": false,
+            "format": "sphinx",
+            "output_dir": "docs/_build"
+        }
+    },
+    "docker": {
+        "base_image": "python:3.11-slim",
+        "build_args": {
+            "DEVELOPMENT": "true"
+        },
+        "volumes": [
+            ".:/workspace",
+            "/var/run/docker.sock:/var/run/docker.sock"
+        ],
+        "ports": {
+            "dev_server": 8000,
+            "jupyter": 8888,
+            "docs": 8080,
+            "monitoring": 3000
+        }
+    },
+    "ai": {
+        "providers": {
+            "openai": {
+                "enabled": true,
+                "api_key_env": "OPENAI_API_KEY"
+            },
+            "anthropic": {
+                "enabled": true,
+                "api_key_env": "ANTHROPIC_API_KEY"
+            }
+        },
+        "jupyter_kernels": [
+            "python3",
+            "ai-python"
+        ]
+    },
+    "security": {
+        "scan_dependencies": true,
+        "scan_code": true,
+        "exclude_patterns": [
+            "tests/",
+            "*.test.py",
+            ".git/",
+            "__pycache__/"
+        ]
+    },
+    "integrations": {
+        "github": {
+            "auto_pr_checks": true,
+            "required_checks": [
+                "lint",
+                "test",
+                "security"
+            ]
+        },
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.flake8",
+                "ms-python.mypy-type-checker",
+                "ms-python.black-formatter",
+                "ms-vscode.docker"
+            ]
+        }
+    },
+    "scripts": {
+        "setup": "./setup-codex.sh",
+        "start": "./dev.sh start",
+        "test": "./dev.sh test",
+        "lint": "./dev.sh lint",
+        "format": "./dev.sh format",
+        "clean": "./dev.sh clean"
+    },
+    "metadata": {
+        "created": "2024-01-15",
+        "last_updated": "2024-01-15",
+        "maintainer": "OpenWebUI Installer Team",
+        "repository": "https://github.com/STEALTHTEMP1/openwebui-installer"
+    }
+}

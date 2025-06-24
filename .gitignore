@@ -191,3 +191,26 @@ Temporary Items
 # Application-specific
 .openwebui/
 launch-openwebui.sh
+*.tar.gz
+
+# Large bundled runtime files (exceed GitHub 100MB limit)
+OpenWebUI-Desktop/Bundled-Runtime/openwebui-image.tar.gz
+OpenWebUI-Desktop/Bundled-Runtime/podman
+OpenWebUI-Desktop/Bundled-Runtime/*.tar.gz
+OpenWebUI-Desktop/Bundled-Runtime/*.tar
+OpenWebUI-Desktop/temp-downloads/
+
+# Virtual environments and large dependencies
+venv/
+.venv/
+*/venv/
+node_modules/
+*.so
+*.dylib
+
+# Container images and runtime binaries
+*.oci
+*.container
+*-image.tar*
+podman-*
+docker-*

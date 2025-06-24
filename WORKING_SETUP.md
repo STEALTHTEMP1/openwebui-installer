@@ -2,7 +2,9 @@
 
 ## 🎯 Success! Open WebUI is Running
 
-After troubleshooting the installer issues, we found that the **direct Docker approach** works perfectly.
+After troubleshooting the installer issues, we found that the **direct Docker approach** works perfectly and is now the recommended method across all documentation.
+
+This same command is used by the `openwebui-installer` CLI (`pipx install openwebui-installer`) and the Homebrew formula.
 
 ## 🚀 Working Installation Command
 

@@ -1,0 +1,93 @@
+name: Test Homebrew Formula
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  schedule:
+    # Test weekly to catch any upstream changes
+    - cron: '0 0 * * 0'
+
+jobs:
+  test:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        os: [macos-latest, macos-12]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Homebrew
+      id: set-up-homebrew
+      uses: Homebrew/actions/setup-homebrew@master
+
+    - name: Cache Homebrew Bundler RubyGems
+      id: cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.set-up-homebrew.outputs.gems-path }}
+        key: ${{ runner.os }}-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
+        restore-keys: ${{ runner.os }}-rubygems-
+
+    - name: Install Homebrew Bundler RubyGems
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: brew install-bundler-gems
+
+    - name: Run brew test-bot
+      run: |
+        brew test-bot --only-cleanup-before
+        brew test-bot --only-setup
+        brew test-bot --only-tap-syntax
+
+    - name: Test formula syntax
+      run: |
+        brew audit --strict Formula/openwebui-installer.rb
+        brew style Formula/openwebui-installer.rb
+
+    - name: Test formula installation (dry run)
+      run: |
+        # Test that the formula can be parsed without errors
+        brew info Formula/openwebui-installer.rb
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.1'
+
+    - name: Install dependencies
+      run: |
+        gem install rubocop
+        gem install rubocop-sorbet
+
+    - name: Run RuboCop
+      run: |
+        rubocop Formula/openwebui-installer.rb
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
