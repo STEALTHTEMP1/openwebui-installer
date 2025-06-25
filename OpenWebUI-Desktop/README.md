@@ -60,7 +60,12 @@ git clone https://github.com/STEALTHTEMP1/openwebui-installer.git
 cd openwebui-installer/OpenWebUI-Desktop
 ```
 
-2. **Download Runtime Components** ⚠️ **Required Step**
+2. **Bootstrap Environment**
+```bash
+../scripts/bootstrap.sh
+```
+
+3. **Download Runtime Components** ⚠️ **Required Step**
 ```bash
 # Make script executable
 chmod +x Scripts/bundle-resources.sh
@@ -74,17 +79,17 @@ chmod +x Scripts/bundle-resources.sh
 
 > **📝 Note**: The large bundled runtime files (Podman binary ~41MB, OpenWebUI image ~1.5GB) are not included in the git repository due to GitHub's 100MB file size limit. You must run the `bundle-resources.sh` script to download these components locally before building the app.
 
-3. **Open in Xcode**
+4. **Open in Xcode**
 ```bash
 open OpenWebUI-Desktop.xcodeproj
 ```
 
-4. **Configure Code Signing**
+5. **Configure Code Signing**
    - Select your Development Team in project settings
    - Update Bundle Identifier if needed
    - Ensure "Automatically manage signing" is enabled
 
-5. **Build and Run**
+6. **Build and Run**
    - Product → Build (⌘B)
    - Product → Run (⌘R)
 
@@ -221,6 +226,7 @@ xattr -cr /Applications/OpenWebUI.app
 2. Check Activity Monitor for resource usage
 3. Restart the app to reset container
 4. Ensure you have adequate free disk space
+5. Run `../scripts/clean-xcode.sh` to clear caches and verify the runtime
 
 ### Diagnostic Tools
 
