@@ -37,10 +37,13 @@ The CLI runs the same Docker command shown above.
 
 ## ⚙️ Environment Configuration
 
-Copy `.env.example` to `.env` and update the variables as needed:
+Copy `.env.example` to `.env` and update the variables as needed. For a
+development environment, you can create `.env.dev` the same way:
 
 ```bash
 cp .env.example .env
+# Optionally prepare a development file
+cp .env.example .env.dev
 # Edit .env and set OLLAMA_BASE_URL, OLLAMA_API_BASE_URL,
 # WEBUI_SECRET_KEY and DEBUG
 ```
