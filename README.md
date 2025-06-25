@@ -49,6 +49,7 @@ cp .env.example .env
 - Docker Desktop installed and running
 - Web browser
 - Optional for running tests: `docker` and `requests` Python packages (`pip install docker requests`)
+- If Docker is not installed, run `./setup-codex.sh` which installs Docker and Docker Compose using the official script (requires sudo)
 
 ## ⚠️ Important Note About Large Files
 
