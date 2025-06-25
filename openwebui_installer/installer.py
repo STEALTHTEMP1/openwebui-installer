@@ -270,8 +270,12 @@ class Installer:
 
         try:
             container = self.docker_client.containers.get("open-webui")
-            if container.status == "running":
+            try:
+                # Attempt to stop the container regardless of current status
                 container.stop()
+            except docker.errors.APIError:
+                # Ignore errors if the container is already stopped or not running
+                pass
             container.remove()
             if self.verbose:
                 logger.info("Stopped and removed existing container")
