@@ -57,19 +57,19 @@ xcode-select --install
 1. **Clone and Setup**
 ```bash
 git clone https://github.com/STEALTHTEMP1/openwebui-installer.git
-cd openwebui-installer/OpenWebUI-Desktop
+cd openwebui-installer/OpenWebUI-Desktop-Clean/OpenWebUI-Desktop
 ```
 
 2. **Download Runtime Components** ⚠️ **Required Step**
 ```bash
 # Make script executable
-chmod +x Scripts/bundle-resources.sh
+chmod +x ../../scripts/bundle-resources.sh
 
 # Download Podman and Open WebUI image (~1.5GB download)
-./Scripts/bundle-resources.sh
+../../scripts/bundle-resources.sh
 
 # Verify bundle (optional)
-./Scripts/bundle-resources.sh --verify
+../../scripts/bundle-resources.sh --verify
 ```
 
 > **📝 Note**: The large bundled runtime files (Podman binary ~41MB, OpenWebUI image ~1.5GB) are not included in the git repository due to GitHub's 100MB file size limit. You must run the `bundle-resources.sh` script to download these components locally before building the app.
@@ -155,7 +155,7 @@ This native app ports proven logic from the existing Python installer:
 xcodebuild test -scheme OpenWebUI-Desktop
 
 # Test resource bundling
-./Scripts/bundle-resources.sh --verify
+../../scripts/bundle-resources.sh --verify
 
 # Manual testing checklist
 # □ First launch setup completes

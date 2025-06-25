@@ -194,11 +194,11 @@ launch-openwebui.sh
 *.tar.gz
 
 # Large bundled runtime files (exceed GitHub 100MB limit)
-OpenWebUI-Desktop/Bundled-Runtime/openwebui-image.tar.gz
-OpenWebUI-Desktop/Bundled-Runtime/podman
-OpenWebUI-Desktop/Bundled-Runtime/*.tar.gz
-OpenWebUI-Desktop/Bundled-Runtime/*.tar
-OpenWebUI-Desktop/temp-downloads/
+OpenWebUI-Desktop-Clean/OpenWebUI-Desktop/Bundled-Runtime/openwebui-image.tar.gz
+OpenWebUI-Desktop-Clean/OpenWebUI-Desktop/Bundled-Runtime/podman
+OpenWebUI-Desktop-Clean/OpenWebUI-Desktop/Bundled-Runtime/*.tar.gz
+OpenWebUI-Desktop-Clean/OpenWebUI-Desktop/Bundled-Runtime/*.tar
+OpenWebUI-Desktop-Clean/OpenWebUI-Desktop/temp-downloads/
 
 # Virtual environments and large dependencies
 venv/
