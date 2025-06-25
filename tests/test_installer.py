@@ -10,6 +10,7 @@ import subprocess
 from unittest.mock import MagicMock, mock_open
 
 import docker
+import requests
 import pytest
 from openwebui_installer.installer import Installer, InstallerError, SystemRequirementsError
 
@@ -47,8 +48,8 @@ class TestInstallerSuite:
 
     def test_check_system_requirements_wrong_os(self, installer, mocker):
         """Test that system requirements check fails on a non-macOS system."""
-        mocker.patch("platform.system", return_value="Linux")
-        with pytest.raises(SystemRequirementsError, match="This installer only supports macOS"):
+        mocker.patch("platform.system", return_value="Windows")
+        with pytest.raises(SystemRequirementsError, match="This installer supports macOS and Linux. Windows support coming soon."):
             installer._check_system_requirements()
 
     def test_check_system_requirements_wrong_python(self, installer, mocker):
@@ -64,7 +65,7 @@ class TestInstallerSuite:
         mocker.patch("sys.version_info", (3, 9, 0))
         installer.docker_client.ping.side_effect = Exception("Docker not running")
 
-        with pytest.raises(SystemRequirementsError, match="Docker is not running or not installed"):
+        with pytest.raises(SystemRequirementsError, match="Docker service is not running. Start Docker Desktop and ensure the daemon is running."):
             installer._check_system_requirements()
 
     def test_check_system_requirements_ollama_not_running(self, installer, mocker):
@@ -73,9 +74,9 @@ class TestInstallerSuite:
         mocker.patch("sys.version_info", (3, 9, 0))
         installer.docker_client.ping.return_value = True
         mock_requests_get = mocker.patch("requests.get")
-        mock_requests_get.side_effect = Exception("Connection failed")
+        mock_requests_get.side_effect = requests.exceptions.RequestException("Connection failed")
 
-        with pytest.raises(SystemRequirementsError, match="Ollama is not installed or not running"):
+        with pytest.raises(SystemRequirementsError, match="Ollama is not running. Please install and start Ollama first:"):
             installer._check_system_requirements()
 
     def test_install_full_run_success(self, installer, mocker):
