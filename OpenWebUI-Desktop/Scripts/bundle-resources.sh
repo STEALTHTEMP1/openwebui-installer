@@ -13,7 +13,8 @@ set -e  # Exit on any error
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+REPO_DIR="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel 2>/dev/null || cd "$SCRIPT_DIR" && pwd)"
+PROJECT_DIR="$REPO_DIR/OpenWebUI-Desktop-Clean/OpenWebUI-Desktop"
 BUNDLED_RUNTIME_DIR="$PROJECT_DIR/Bundled-Runtime"
 TEMP_DIR="$PROJECT_DIR/temp-downloads"
 
