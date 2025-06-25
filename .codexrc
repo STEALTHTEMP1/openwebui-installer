@@ -1,3 +1,4 @@
 test = xvfb-run -a bash -c 'export QT_QPA_PLATFORM=offscreen; pytest -q'
 lint = flake8 .
 build = python -m build
+allow_network = true
