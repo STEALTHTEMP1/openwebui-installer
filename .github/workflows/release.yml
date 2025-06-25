@@ -278,23 +278,6 @@ jobs:
           echo "3. Commit and push the changes" >> $GITHUB_STEP_SUMMARY
           echo "4. Test installation: \`brew install STEALTHTEMP1/openwebui-installer/openwebui-installer\`" >> $GITHUB_STEP_SUMMARY
 
-<<<<<<< HEAD
-      - name: Verify Release
-        run: |
-          echo "✅ Release verification:"
-          echo "   Tag: ${{ steps.extract_version.outputs.VERSION }}"
-          echo "   Release ID: ${{ steps.create_release.outputs.id }}"
-          echo "   Release URL: ${{ steps.create_release.outputs.html_url }}"
-          echo "   Upload URL: ${{ steps.create_release.outputs.upload_url }}"
-          echo ""
-          echo "🎉 Release ${{ steps.extract_version.outputs.VERSION }} created successfully!"
-          echo ""
-          echo "Next steps:"
-          echo "1. ✅ Release created and archive uploaded"
-          echo "2. 🔄 Update Homebrew formula with the SHA256 hash above"
-          echo "3. 🧪 Test the installation"
-          echo "4. 📢 Announce the release!"
-=======
     - name: Verify Release
       run: |
         echo "✅ Release verification:"
@@ -365,4 +348,3 @@ jobs:
         asset_path: ./openwebui-installer-${{ needs.release.outputs.version }}.dmg
         asset_name: openwebui-installer-${{ needs.release.outputs.version }}.dmg
         asset_content_type: application/x-apple-diskimage
->>>>>>> d505069 (ci: build signed dmg)
