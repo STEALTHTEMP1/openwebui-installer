@@ -14,7 +14,7 @@ on:
 
 jobs:
   test:
-    runs-on: macos-latest
+    runs-on: macos-12
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -22,8 +22,8 @@ jobs:
       WEBUI_SECRET_KEY: ${{ secrets.WEBUI_SECRET_KEY }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        python-version: ['3.9', '3.10', '3.11']
+        os: [ubuntu-22.04, macos-12]
+        python-version: ['3.9.18', '3.10.13', '3.11.13']
 
     steps:
     - uses: actions/checkout@v4
@@ -96,7 +96,7 @@ jobs:
         pip-audit -r requirements.txt -f json -o pip-audit-report.json
 
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -108,7 +108,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: '3.11.13'
 
     - name: Install dependencies
       run: |
@@ -127,7 +127,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
   container:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       contents: read
       security-events: write
@@ -168,7 +168,7 @@ on:
 
 jobs:
   test:
-    runs-on: macos-latest
+    runs-on: macos-12
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -176,8 +176,8 @@ jobs:
       WEBUI_SECRET_KEY: ${{ secrets.WEBUI_SECRET_KEY }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        python-version: ['3.9', '3.10', '3.11']
+        os: [ubuntu-22.04, macos-12]
+        python-version: ['3.9.18', '3.10.13', '3.11.13']
 
     steps:
     - uses: actions/checkout@v4
@@ -250,7 +250,7 @@ jobs:
         pip-audit -r requirements.txt -f json -o pip-audit-report.json
 
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -262,7 +262,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: '3.11.13'
 
     - name: Install dependencies
       run: |
@@ -281,7 +281,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
   container:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       contents: read
       security-events: write

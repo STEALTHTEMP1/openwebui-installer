@@ -7,7 +7,7 @@ on:
 
 jobs:
   validate_container:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       contents: read
       security-events: write
@@ -43,7 +43,7 @@ jobs:
 
   release:
     needs: validate_container
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -297,7 +297,7 @@ jobs:
   build_dmg:
     name: Build macOS DMG
     needs: release
-    runs-on: macos-latest
+    runs-on: macos-12
     permissions:
       contents: write
     steps:
