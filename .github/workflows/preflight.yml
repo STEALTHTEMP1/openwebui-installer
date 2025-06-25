@@ -1,0 +1,31 @@
+# yamllint disable rule:truthy
+---
+name: Preflight Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+
+jobs:
+  check-environment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify Docker installation
+        run: |
+          if ! command -v docker >/dev/null 2>&1; then
+            echo "Docker is not installed." >&2
+            exit 1
+          fi
+          if ! docker info >/dev/null 2>&1; then
+            echo "Docker daemon is not running or not accessible." >&2
+            exit 1
+          fi
+      - name: Verify network connectivity
+        run: |
+          if ! curl -fsSL https://github.com >/dev/null; then
+            echo "Network connectivity check failed." >&2
+            exit 1
+          fi
+      - name: Display Docker version
+        run: docker --version
