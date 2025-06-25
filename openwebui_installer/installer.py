@@ -62,6 +62,9 @@ class Installer:
         self.webui_image = "ghcr.io/open-webui/open-webui:main"
         self.config_dir = os.path.expanduser("~/.openwebui")
 
+        # Ensure configuration directory exists before setting up logging
+        self._ensure_config_dir()
+
         # Initialize Docker client with runtime fallback
         try:
             self.docker_client = docker.from_env()
@@ -114,6 +117,10 @@ class Installer:
             )
             logger.addHandler(handler)
             logger.setLevel(logging.INFO)
+
+    def _ensure_config_dir(self) -> None:
+        """Create the configuration directory if it does not already exist."""
+        os.makedirs(self.config_dir, exist_ok=True)
 
     def _podman_available(self) -> bool:
         """Check if Podman is installed."""
