@@ -15,7 +15,7 @@ resource "docker_volume" "grafana_data" {
 
 resource "docker_container" "prometheus" {
   name  = "prometheus"
-  image = "prom/prometheus:latest"
+  image = "prom/prometheus:v3.4.1"
 
   ports {
     internal = 9090
@@ -30,7 +30,7 @@ resource "docker_container" "prometheus" {
 
 resource "docker_container" "grafana" {
   name  = "grafana"
-  image = "grafana/grafana:latest"
+  image = "grafana/grafana:12.0.2"
 
   env = ["GF_SECURITY_ADMIN_PASSWORD=admin"]
 
