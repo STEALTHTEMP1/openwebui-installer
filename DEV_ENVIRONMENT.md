@@ -139,7 +139,7 @@ black --check .
 ### GitHub Container Registry
 
 The development image is built by CI and published to GHCR as
-`ghcr.io/stealthtemp1/openwebui-installer-dev:latest`. The compose file pulls
+`ghcr.io/stealthtemp1/openwebui-installer-dev:v1`. The compose file pulls
 this image automatically, so the environment starts quickly without a local
 build.
 

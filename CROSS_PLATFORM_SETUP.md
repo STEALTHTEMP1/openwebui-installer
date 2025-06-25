@@ -4,7 +4,7 @@ This guide outlines the recommended steps to prepare a development environment o
 
 ## Requirements
 
-- **Python 3.9+**
+- **Python 3.11.13** (same version used by CI and Docker images)
 - **Docker** (Docker Desktop or compatible engine)
 - `bash`, `curl`, and common build tools
 

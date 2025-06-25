@@ -1,7 +1,7 @@
 services:
   # Main development environment
   dev-environment:
-    image: ghcr.io/stealthtemp1/openwebui-installer-dev:latest
+    image: ghcr.io/stealthtemp1/openwebui-installer-dev:v1
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -137,7 +137,7 @@ services:
 
   # Performance monitoring
   monitoring:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.4.1
     container_name: openwebui-monitoring
     ports:
       - "9090:9090"
@@ -151,7 +151,7 @@ services:
 
   # Log aggregation
   logs:
-    image: grafana/loki:latest
+    image: grafana/loki:3.5.1
     container_name: openwebui-logs
     ports:
       - "3100:3100"
@@ -164,7 +164,7 @@ services:
 
   # Development dashboard
   dashboard:
-    image: grafana/grafana:latest
+    image: grafana/grafana:12.0.2
     container_name: openwebui-dashboard
     ports:
       - "3000:3000"

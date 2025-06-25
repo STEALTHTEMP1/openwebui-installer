@@ -23,7 +23,7 @@ services:
       start_period: 40s
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
+    image: gcr.io/cadvisor/cadvisor:v0.53.0
     container_name: cadvisor
     volumes:
       - /:/rootfs:ro
@@ -35,7 +35,7 @@ services:
     restart: always
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.4.1
     container_name: prometheus
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
@@ -46,7 +46,7 @@ services:
     restart: always
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:12.0.2
     container_name: grafana
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
