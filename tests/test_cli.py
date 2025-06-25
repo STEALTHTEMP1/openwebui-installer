@@ -19,10 +19,13 @@ def runner():
 
 @pytest.fixture
 def mock_installer():
-    """Mock installer instance."""
-    with patch("openwebui_installer.cli.Installer") as mock:
+    """Mock installer instance supporting context manager usage."""
+    with patch("openwebui_installer.cli.Installer") as mock_cls:
         installer = Mock()
-        mock.return_value = installer
+        # Configure the mock to behave as a context manager
+        mock_instance = mock_cls.return_value
+        mock_instance.__enter__.return_value = installer
+        mock_instance.__exit__.return_value = False
         yield installer
 
 
@@ -260,7 +263,10 @@ class TestCLI:
             inst = Mock()
             inst.log_file = str(log_file)
             inst._setup_logger = Mock()
-            mock_inst.return_value = inst
+            # Support context manager usage
+            mock_instance = mock_inst.return_value
+            mock_instance.__enter__.return_value = inst
+            mock_instance.__exit__.return_value = False
 
             result = runner.invoke(cli, ["logs", "--tail", "1"])
             assert result.exit_code == 0
