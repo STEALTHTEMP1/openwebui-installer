@@ -87,7 +87,7 @@ The Open WebUI Installer repository development environment has been **successfu
 
 ### **Key Components**
 
-- **Base Image**: `python:3.11-slim`
+- **Base Image**: `python:3.11.13-slim`
 - **Development Tools**: Black, isort, flake8, mypy, pylint, pytest
 - **AI Tools**: OpenAI, Anthropic clients (optional)
 - **Documentation**: Sphinx, Jupyter Lab
