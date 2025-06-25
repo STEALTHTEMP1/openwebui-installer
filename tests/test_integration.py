@@ -107,7 +107,12 @@ def test_installation_workflow(installer):
     """Test complete installation workflow"""
     with patch.object(installer, '_check_system_requirements'), \
          patch.object(installer.docker_client.images, 'pull'), \
-         patch('subprocess.run') as mock_run:
+         patch('subprocess.run') as mock_run, \
+         patch('requests.get') as mock_get:
+
+        mock_resp = Mock(status_code=200)
+        mock_resp.json.return_value = {"models": []}
+        mock_get.return_value = mock_resp
 
         installer.install(model="llama2", port=3000)
 

@@ -87,6 +87,10 @@ class TestInstallerSuite:
         mock_json_dump = mocker.patch("json.dump")
         mock_subprocess_run = mocker.patch("subprocess.run")
         mocker.patch("os.chmod")
+        # Avoid real HTTP requests to Ollama
+        mock_resp = mocker.Mock(status_code=200)
+        mock_resp.json.return_value = {"models": []}
+        mocker.patch("requests.get", return_value=mock_resp)
 
         mocker.patch.dict(os.environ, {
             "OLLAMA_BASE_URL": "http://customhost:9999",
@@ -118,6 +122,10 @@ class TestInstallerSuite:
             "OLLAMA_BASE_URL": "http://customhost:9999",
             "OLLAMA_API_BASE_URL": "http://customhost:9999/api",
         }, clear=False)
+        # Avoid real HTTP requests to Ollama
+        mock_resp = mocker.Mock(status_code=200)
+        mock_resp.json.return_value = {"models": []}
+        mocker.patch("requests.get", return_value=mock_resp)
         installer.install(model="test-model", port=1234, force=False, image=custom_image)
 
         installer.docker_client.images.pull.assert_called_with(custom_image)
@@ -132,6 +140,11 @@ class TestInstallerSuite:
         mocker.patch("subprocess.run")
         mocker.patch("os.chmod")
         mocker.patch("json.dump")
+
+        # Avoid real HTTP requests to Ollama
+        mock_resp = mocker.Mock(status_code=200)
+        mock_resp.json.return_value = {"models": []}
+        mocker.patch("requests.get", return_value=mock_resp)
 
         installer.docker_client.images.pull.return_value = None
         installer.install(model="test", port=1234)
@@ -274,6 +287,11 @@ class TestInstallerSuite:
         mock_subprocess_run.side_effect = subprocess.CalledProcessError(
             1, ["ollama", "pull", model_name]
         )
+
+        # Avoid real HTTP requests to Ollama
+        mock_resp = mocker.Mock(status_code=200)
+        mock_resp.json.return_value = {"models": []}
+        mocker.patch("requests.get", return_value=mock_resp)
 
         expected_error_message = f"Failed to pull Ollama model {model_name}"
         with pytest.raises(InstallerError, match=expected_error_message):
