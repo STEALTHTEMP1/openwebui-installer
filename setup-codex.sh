@@ -357,6 +357,46 @@ EOF
     fi
 }
 
+install_docker() {
+    log_step "Installing Docker..."
+    local uname_out
+    uname_out=$(uname -s)
+    if [[ "$uname_out" == "Darwin" ]]; then
+        if command -v brew >/dev/null 2>&1; then
+            brew install --cask docker >/dev/null 2>&1 && \
+                log_success "Docker installed via Homebrew" || \
+                log_error "Homebrew Docker installation failed"
+            log_info "Launch Docker Desktop to finish setup"
+        else
+            log_error "Homebrew not found. Install it from https://brew.sh"
+        fi
+    else
+        curl -fsSL https://get.docker.com | sudo sh >/dev/null 2>&1 && \
+            log_success "Docker installed via get.docker.com" || \
+            log_error "Automatic Docker installation failed"
+        if command -v usermod >/dev/null 2>&1; then
+            sudo usermod -aG docker "$USER" && \
+                log_info "Added $USER to docker group (re-login required)" || true
+        fi
+    fi
+
+    if ! command -v docker-compose >/dev/null 2>&1; then
+        log_step "Installing Docker Compose..."
+        if [[ "$uname_out" == "Darwin" ]]; then
+            if command -v brew >/dev/null 2>&1; then
+                brew install docker-compose >/dev/null 2>&1 && \
+                    log_success "Docker Compose installed" || \
+                    log_error "Failed to install Docker Compose"
+            fi
+        else
+            sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && \
+                sudo chmod +x /usr/local/bin/docker-compose && \
+                log_success "Docker Compose installed" || \
+                log_error "Failed to install Docker Compose"
+        fi
+    fi
+}
+
 setup_docker_environment() {
     if [[ "$SKIP_DOCKER" == true ]]; then
         log_info "Skipping Docker setup verification"
@@ -374,15 +414,16 @@ setup_docker_environment() {
             log_info "Please start Docker daemon"
         fi
     else
-        log_warning "Docker not found. Some features may not work."
-        log_info "Install Docker from: https://docs.docker.com/get-docker/"
+        log_warning "Docker not found"
+        install_docker
     fi
 
     if command -v docker-compose >/dev/null 2>&1; then
         COMPOSE_VERSION=$(docker-compose --version | cut -d' ' -f3 | tr -d ',')
         log_success "Docker Compose $COMPOSE_VERSION found"
     else
-        log_info "Docker Compose not found (optional for development)"
+        log_info "Docker Compose not found"
+        install_docker
     fi
 }
 
