@@ -33,7 +33,7 @@
         }
     },
     "docker": {
-        "base_image": "python:3.11-slim",
+        "base_image": "python:3.11.13-slim",
         "build_args": {
             "DEVELOPMENT": "true"
         },

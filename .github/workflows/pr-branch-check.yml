@@ -7,7 +7,7 @@ on:
 
 jobs:
   enforce-source-branch:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Check that PR originates from develop or phase branch
         run: |
