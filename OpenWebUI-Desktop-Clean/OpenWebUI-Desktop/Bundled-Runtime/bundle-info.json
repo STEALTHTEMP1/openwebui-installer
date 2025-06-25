@@ -1,0 +1,28 @@
+{
+  "bundleInfo": {
+    "createdAt": "2025-06-23T16:28:58Z",
+    "architecture": "arm64",
+    "bundler": "bundle-resources.sh",
+    "bundlerVersion": "1.0.0"
+  },
+  "runtime": {
+    "name": "podman",
+    "version": "podman version 4.8.3",
+    "size": 42793650,
+    "path": "podman",
+    "executable": true
+  },
+  "containerImage": {
+    "name": "ghcr.io/open-webui/open-webui:main",
+    "size": 1600011248,
+    "path": "openwebui-image.tar.gz",
+    "compressed": true,
+    "format": "tar.gz"
+  },
+  "requirements": {
+    "macOSMinVersion": "10.15",
+    "architectures": ["arm64", "x86_64"],
+    "minimumMemoryGB": 4,
+    "minimumDiskSpaceGB": 3
+  }
+}

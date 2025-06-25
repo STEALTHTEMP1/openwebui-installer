@@ -16,20 +16,11 @@ First, add the tap:
 brew tap open-webui/tap
 ```
 
-Then install the desired formula:
+Then install the desired formula and launch Open WebUI:
 
 ```bash
 brew install openwebui-installer
-brew upgrade openwebui-installer # update to the latest version
-```
-
-### Upgrading
-
-To upgrade `openwebui-installer` to the latest release, run:
-
-```bash
-brew update
-brew upgrade openwebui-installer
+openwebui-installer install  # runs the standard Docker command
 ```
 
 ### Upgrading
