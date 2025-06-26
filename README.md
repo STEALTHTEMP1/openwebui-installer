@@ -159,10 +159,10 @@ openwebui-installer status     # Show current status
 
 ## 🧑‍💻 Development and Testing
 
-Install the development requirements and Qt dependencies before running tests.
+Install the development requirements (which include `python-dotenv`) and Qt dependencies before running tests.
 
 ```bash
-pip install -r requirements-dev.txt
+pip install -r requirements-dev.txt  # installs python-dotenv for pytest
 sudo apt-get update && sudo apt-get install -y libegl1
 QT_QPA_PLATFORM=offscreen pytest tests/
 ```
