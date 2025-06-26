@@ -1,3 +1,0 @@
-# Potential Duplicate Branches
-# These branches may have overlapping functionality
-

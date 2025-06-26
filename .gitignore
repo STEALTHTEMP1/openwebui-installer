@@ -243,3 +243,6 @@ internal/
 .snapshots/
 !scripts/lib/
 !scripts/lib/**
+
+# Internal branch analysis directory
+.branch-analysis/
