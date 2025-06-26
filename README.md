@@ -305,6 +305,7 @@ These are automatically passed to the container by the installer.
 - **No sensitive data** is included in releases (see exclusions above)
 - **Workflow runs in GitHub's secure environment**
 - **Uses GitHub's built-in secrets** for authentication
+- [Security policy](SECURITY.md) – how to report vulnerabilities
 
 ## 🆘 Troubleshooting
 
