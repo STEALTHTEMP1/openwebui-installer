@@ -1,5 +1,0 @@
-  backup-before-auto-merge-20250623_115218
-  backup-before-critical-merge-20250623_115230
-  main
-* merge-codex-consolidate-installation-steps-in-documentation
-  merge-trailing-newlines
