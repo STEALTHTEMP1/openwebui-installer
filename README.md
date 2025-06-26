@@ -295,8 +295,13 @@ Set the following secrets in your environment or as Docker secrets:
 - `ANTHROPIC_API_KEY`
 - `HUGGINGFACE_TOKEN`
 - `WEBUI_SECRET_KEY`
+- `GH_AUTOMATION_TOKEN`
 
 These are automatically passed to the container by the installer.
+
+`GH_AUTOMATION_TOKEN` is used by the auto-merge workflow. It must be a
+personal access token with **repo** and **workflow** scopes and should be
+saved as a repository secret.
 
 
 ## 🔒 Security & Privacy
@@ -348,6 +353,12 @@ These are automatically passed to the container by the installer.
 ## 🗂️ Docker Image Caching
 
 GitHub Actions builds development images and pushes them to GitHub Container Registry. These cached images can dramatically reduce setup time. See [DevOps/REGISTRY_CACHING.md](DevOps/REGISTRY_CACHING.md) for details on using the registry and overriding image tags with environment variables.
+
+## 🤖 Automated PR Merging
+
+When you push to `develop` or any `phase-*` branch, `.github/workflows/auto-pr-merge.yml` automatically creates a pull request if one does not already exist. After all required checks pass, the PR is merged and the branch is deleted.
+
+The workflow authenticates using the `GH_AUTOMATION_TOKEN` secret described above.
 
 ---
 
