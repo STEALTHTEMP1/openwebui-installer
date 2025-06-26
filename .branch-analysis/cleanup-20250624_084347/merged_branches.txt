@@ -1,2 +1,0 @@
-codex/complete-error_handling.sh-script
-codex/investigate-empty-openwebui-installer-folder
