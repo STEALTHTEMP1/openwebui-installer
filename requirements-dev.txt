@@ -19,3 +19,4 @@ coverage>=7.0.0
 tox>=4.0.0
 sphinx>=6.0.0
 sphinx-rtd-theme>=1.2.0
+pytest-qt>=4.4.0
