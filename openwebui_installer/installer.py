@@ -159,11 +159,11 @@ class Installer:
         if self.verbose:
             logger.info("Validating system requirements")
 
-        # Check supported operating systems (currently only macOS)
+        # Check supported operating systems (macOS and Linux)
         system = platform.system()
-        if system != "Darwin":
+        if system not in ("Darwin", "Linux"):
             raise SystemRequirementsError(
-                "This installer currently supports only macOS"
+                "This installer currently supports macOS and Linux"
             )
 
         # Check Python version (aligned with setup.py)
@@ -233,14 +233,16 @@ class Installer:
                     return
 
             console.print(f"Pulling Ollama model: {model}...")
-            result = subprocess.run(
+            subprocess.run(
                 ["ollama", "pull", model],
+                check=True,
                 capture_output=True,
                 text=True,
-                timeout=300
+                timeout=300,
             )
-            if result.returncode != 0:
-                raise InstallerError(f"Failed to pull Ollama model {model}: {result.stderr}")
+
+        except subprocess.CalledProcessError:
+            raise InstallerError(f"Failed to pull Ollama model {model}")
 
         except requests.exceptions.RequestException:
             raise InstallerError("Failed to communicate with Ollama")

@@ -15,14 +15,16 @@ docker run -d -p 3000:8080 \
   -v open-webui:/app/backend/data \
   --name open-webui \
   --restart always \
-  ghcr.io/open-webui/open-webui:main
+ghcr.io/open-webui/open-webui:main
 ```
+
+On Linux, add `--add-host host.docker.internal:host-gateway` so the container can reach your local Ollama instance.
 
 Then access: **http://localhost:3000**
 
 ### Optional CLI Installation (Homebrew or pip)
 
-Install the CLI if you prefer managing Open WebUI via commands (macOS supported today, Windows and Linux coming soon):
+Install the CLI if you prefer managing Open WebUI via commands (macOS and Linux supported today, Windows coming soon):
 
 ```bash
 # macOS via Homebrew
@@ -73,7 +75,7 @@ This will download the required runtime components locally before building.
 ## 🚀 Installation Options
 
 The Docker command in the quick start section is the recommended way to run Open WebUI on any platform.
-If you prefer a helper CLI you can install it via Homebrew or pip (macOS only for now; Windows and Linux support is planned):
+If you prefer a helper CLI you can install it via Homebrew or pip (macOS and Linux supported; Windows support is planned):
 
 ```bash
 # macOS via Homebrew
