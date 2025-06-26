@@ -13,32 +13,38 @@ jobs:
       contents: write
       pull-requests: write
       statuses: read
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup GitHub CLI
+      - name: Install GitHub CLI
         uses: cli/cli@v2
 
       - name: Create pull request if needed
         id: ensure_pr
         env:
-          GH_TOKEN: ${{ secrets.GH_AUTOMATION_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_AUTOMATION_TOKEN || secrets.GH_PR_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           BRANCH="${GITHUB_REF#refs/heads/}"
-          PR_NUMBER=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number')
+          # Check if PR already exists for this branch to main
+          PR_NUMBER=$(gh pr list --base main --head "$BRANCH" --json number --jq '.[0].number')
           if [ -z "$PR_NUMBER" ]; then
             gh pr create --fill --base main --head "$BRANCH"
-            PR_NUMBER=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number')
+            PR_NUMBER=$(gh pr list --base main --head "$BRANCH" --json number --jq '.[0].number')
           fi
           echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          gh pr view "$PR_NUMBER" --json url -q .url > pr_url.txt
 
       - name: Wait for checks to pass
         env:
-          GH_TOKEN: ${{ secrets.GH_AUTOMATION_TOKEN }}
-        run: gh pr checks "${{ steps.ensure_pr.outputs.number }}" --watch
+          GH_TOKEN: ${{ secrets.GH_AUTOMATION_TOKEN || secrets.GH_PR_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          PR_URL=$(cat pr_url.txt)
+          gh pr checks "$PR_URL" --watch
 
-      - name: Enable auto-merge
+      - name: Enable auto-merge and delete branch
         env:
-          GH_TOKEN: ${{ secrets.GH_AUTOMATION_TOKEN }}
-        run: gh pr merge "${{ steps.ensure_pr.outputs.number }}" --auto --delete-branch
-
+          GH_TOKEN: ${{ secrets.GH_AUTOMATION_TOKEN || secrets.GH_PR_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          PR_URL=$(cat pr_url.txt)
+          gh pr merge "$PR_URL" --auto --delete-branch
