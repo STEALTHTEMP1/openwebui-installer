@@ -29,17 +29,10 @@ Future phases will introduce Windows and Linux compatibility once the macOS vers
 3. Generate a Homebrew formula as part of the release pipeline for cross‑platform support.
 4. Perform final UI/UX polishing, documentation updates, and release‑candidate testing.
 
-<<<<<<< codex/review-prd-and-suggest-next-steps
-## Phase 4: Windows Support (Backlog)
-1. Port the container management layer to Windows using WSL or native Podman.
-2. Add CI jobs for Windows runners and update tests accordingly.
-3. Provide an installer package for Windows users while keeping the shared codebase intact.
-=======
-## Phase 4: Windows & Linux Support (Weeks 13‑16)
+## Phase 4: Windows & Linux Support (Weeks 13-16)
 1. Adapt the container store to run on Windows and Linux.
 2. Add dedicated CI jobs for Windows and Linux runners.
 3. Update automated tests to cover all supported platforms.
->>>>>>> main
 
 ---
 
