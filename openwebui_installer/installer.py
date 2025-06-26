@@ -106,6 +106,11 @@ class Installer:
         os.makedirs(self.log_dir, exist_ok=True)
         self.log_file = os.path.join(self.log_dir, "openwebui_installer.log")
 
+        # Ensure the log file exists even if verbose logging is disabled
+        # This guarantees that other parts of the application relying on the
+        # log file can safely write to it.
+        open(self.log_file, "a").close()
+
         if self.verbose:
             handler = RotatingFileHandler(
                 self.log_file, maxBytes=5 * 1024 * 1024, backupCount=3
