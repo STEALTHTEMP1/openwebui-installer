@@ -115,9 +115,10 @@ Final release and docs	September 1, 2025
 ⸻
 
 🔚 12. Out of Scope
-	•	Cross-platform support (Windows/Linux).
+	•	Native Windows support (planned for a future phase).
 	•	GUI management of containers beyond initial setup.
 	•	Updates/maintenance of installed Docker images (could be added later).
+**Note**: The CLI installer continues to support macOS and Linux and will be maintained alongside the new macOS app.
 
 ⸻
 

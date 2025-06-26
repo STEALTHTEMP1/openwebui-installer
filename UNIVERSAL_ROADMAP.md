@@ -28,6 +28,11 @@ This roadmap extends the initial product requirements for the Universal Containe
 3. Generate a Homebrew formula as part of the release pipeline for cross‑platform support.
 4. Perform final UI/UX polishing, documentation updates, and release‑candidate testing.
 
+## Phase 4: Windows Support (Backlog)
+1. Port the container management layer to Windows using WSL or native Podman.
+2. Add CI jobs for Windows runners and update tests accordingly.
+3. Provide an installer package for Windows users while keeping the shared codebase intact.
+
 ---
 
 _This document reflects the approved development plan as of December 2024. Future updates may refine milestones or introduce additional phases as the project evolves._
