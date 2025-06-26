@@ -1,0 +1,45 @@
+name: Auto PR Merge
+
+on:
+  push:
+    branches:
+      - develop
+      - 'phase-*'
+
+jobs:
+  automate-pr:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install GitHub CLI
+        uses: cli/cli@v2
+
+      - name: Create pull request if needed
+        env:
+          GH_TOKEN: ${{ secrets.GH_PR_TOKEN || secrets.GITHUB_TOKEN }}
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          set -e
+          if ! gh pr view "$BRANCH_NAME" >/dev/null 2>&1; then
+            gh pr create --fill --head "$BRANCH_NAME" --base main
+          fi
+          gh pr view "$BRANCH_NAME" --json url -q .url > pr_url.txt
+          cat pr_url.txt
+
+      - name: Wait for checks
+        env:
+          GH_TOKEN: ${{ secrets.GH_PR_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          PR_URL=$(cat pr_url.txt)
+          gh pr checks "$PR_URL" --watch
+
+      - name: Enable auto merge and delete branch
+        env:
+          GH_TOKEN: ${{ secrets.GH_PR_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          PR_URL=$(cat pr_url.txt)
+          gh pr merge "$PR_URL" --auto --delete-branch

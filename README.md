@@ -298,6 +298,20 @@ Set the following secrets in your environment or as Docker secrets:
 
 These are automatically passed to the container by the installer.
 
+## 🔐 GitHub Token for Automation
+
+The `auto-pr-merge` workflow uses the GitHub CLI to open and merge pull requests
+for branches pushed to `develop` and `phase-*`. To allow these operations it
+requires a personal access token (PAT) with the following scopes:
+
+- `repo`
+- `workflow`
+
+Create the PAT in your GitHub account settings and save it as a repository
+secret named `GH_PR_TOKEN`. The workflow exports this secret as `GH_TOKEN` for
+the `gh` CLI. Using a PAT ensures the automation can create and merge pull
+requests even when the default `GITHUB_TOKEN` lacks permissions.
+
 
 ## 🔒 Security & Privacy
 
