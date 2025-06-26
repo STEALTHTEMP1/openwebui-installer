@@ -243,3 +243,9 @@ internal/
 .snapshots/
 !scripts/lib/
 !scripts/lib/**
+
+# Editor and cleanup artifacts
+.DS_Store
+.env.dev
+.zed/
+..bfg-report/
