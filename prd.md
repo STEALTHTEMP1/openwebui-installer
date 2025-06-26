@@ -1,4 +1,3 @@
-Here’s a polished Product Requirements Document (PRD) outlining the proposed macOS installer—an all-in-one GUI workflow that installs dependencies, configures Open WebUI + Ollama setup, and creates a one-click launcher. It aligns with best practices and follows a structured PRD template.
 
 > **Project Update**: The repository is transitioning into a **Universal Container App Store**. This document describes the original Open WebUI Installer concept and is kept for historical reference.
 
@@ -89,7 +88,6 @@ Internal QA & bugfixing	August 15, 2025
 Beta release to users	August 22, 2025
 Final release and docs	September 1, 2025
 
-
 ⸻
 
 🧩 9. Dependencies & Constraints
@@ -118,6 +116,16 @@ Final release and docs	September 1, 2025
 	•	Cross-platform support (Windows/Linux) — deferred to a later phase.
 	•	GUI management of containers beyond initial setup.
 	•	Updates/maintenance of installed Docker images (could be added later).
+
+⸻
+
+🚀 **Development Phases**
+
+_Phase 1-3_ retain their original scope.
+_Phase 4_ introduces Windows & Linux support:
+  1. Adapt the container store to run on Windows and Linux.
+  2. Add CI jobs for those platforms.
+  3. Update tests accordingly.
 
 ⸻
 

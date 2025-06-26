@@ -29,6 +29,11 @@ Future phases will introduce Windows and Linux compatibility once the macOS vers
 3. Generate a Homebrew formula as part of the release pipeline for cross‑platform support.
 4. Perform final UI/UX polishing, documentation updates, and release‑candidate testing.
 
+## Phase 4: Windows & Linux Support (Weeks 13‑16)
+1. Adapt the container store to run on Windows and Linux.
+2. Add dedicated CI jobs for Windows and Linux runners.
+3. Update automated tests to cover all supported platforms.
+
 ---
 
 _This document reflects the approved development plan as of December 2024. Future updates may refine milestones or introduce additional phases as the project evolves._
