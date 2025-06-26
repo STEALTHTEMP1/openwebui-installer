@@ -318,6 +318,7 @@ Using a PAT allows the automation to create and merge pull requests even when th
 - **No sensitive data** is included in releases (see exclusions above)
 - **Workflow runs in GitHub's secure environment**
 - **Uses GitHub's built-in secrets** for authentication
+- [Security policy](SECURITY.md) – how to report vulnerabilities
 
 ## 🆘 Troubleshooting
 
