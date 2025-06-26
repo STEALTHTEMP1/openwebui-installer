@@ -143,6 +143,12 @@ git checkout -b feature/your-feature-name
 - **Safety**: Dry-run mode available
 - **Reporting**: Detailed logs and summaries
 
+If you must delete a branch manually, use:
+
+```bash
+git push origin --delete BRANCH_NAME
+```
+
 ### Branch Patterns (Auto-delete)
 - `codex/*` - AI-generated improvements
 - `dependabot/*` - Dependency updates

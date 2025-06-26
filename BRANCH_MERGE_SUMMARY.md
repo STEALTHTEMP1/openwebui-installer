@@ -159,6 +159,12 @@ The automated duplicate detection didn't find exact duplicates, but manual revie
 - `.github/workflows/branch-cleanup.yml` - Cleanup recommendations
 - `scripts/branch_maintenance.sh` - Ongoing maintenance tools
 
+If direct branch removal is required, run:
+
+```bash
+git push origin --delete BRANCH_NAME
+```
+
 ### 🔧 Merge Scripts  
 - `scripts/manual_merge_branch.sh` - Manual conflict resolution helper
 - `scripts/merge_critical_branches.sh` - Intelligent merge for critical branches
