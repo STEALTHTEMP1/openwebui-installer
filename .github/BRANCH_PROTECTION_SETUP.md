@@ -98,6 +98,7 @@ Never use these patterns for feature branches:
 2. **Auto-delete**: GitHub automatically deletes merged branches
 3. **Security Scanning**: Automated security checks on all PRs
 4. **Branch Cleanup Workflow**: See `.github/workflows/branch-cleanup.yml`
+   - This is the recommended way to remove merged branches.
 
 ### Manual Cleanup Commands
 

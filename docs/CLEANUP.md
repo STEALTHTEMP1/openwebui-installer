@@ -32,6 +32,9 @@ triggered from the GitHub Actions tab with a dry-run option.
 ```bash
 # Manually list merged branches for review
 git branch -r --merged main | grep -v 'main\|master\|HEAD'
+
+# Delete a merged branch manually (if scripts are unavailable)
+git push origin --delete BRANCH_NAME
 ```
 
 ---

@@ -126,6 +126,12 @@ Branch cleanup is handled by the workflow
 `.github/workflows/branch-cleanup.yml`. It runs weekly and can also be
 triggered manually.
 
+If you need to remove a merged branch without using a helper script, run:
+
+```bash
+git push origin --delete BRANCH_NAME
+```
+
 ```bash
 # Review history before deleting a branch
 git log --graph --oneline main..origin/BRANCH_NAME
