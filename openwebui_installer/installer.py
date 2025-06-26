@@ -337,6 +337,9 @@ class Installer:
             if self.verbose:
                 logger.info("Starting installation")
 
+            # Validate prerequisites before proceeding
+            self._check_system_requirements()
+
             # Check if already installed
             if not force and self.get_status()["installed"]:
                 raise InstallerError("Open WebUI is already installed. Use --force to reinstall.")

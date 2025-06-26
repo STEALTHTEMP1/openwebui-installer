@@ -25,7 +25,7 @@ def installer(tmp_path, mocker):  # Added mocker
     mock_docker_client = MagicMock()
     mocker.patch("docker.from_env", return_value=mock_docker_client)
 
-    installer_instance = Installer()
+    installer_instance = Installer(verbose=True)
     installer_instance.config_dir = str(config_dir)
     # Ensure the mock was effective
     assert installer_instance.docker_client == mock_docker_client
@@ -113,6 +113,7 @@ class TestInstallerSuite:
         installer.docker_client.images.pull.assert_called_with(installer.webui_image)
         mock_subprocess_run.assert_called_with(
             ["ollama", "pull", "test-model"],
+            check=True,
             capture_output=True,
             text=True,
             timeout=300,
@@ -168,6 +169,7 @@ class TestInstallerSuite:
 
     def test_install_stops_if_already_installed_without_force(self, installer, mocker):
         """Test that installation stops if already installed and force=False."""
+        mocker.patch.object(installer, "_check_system_requirements")
         mocker.patch.object(installer, "get_status", return_value={"installed": True})
         with pytest.raises(
             InstallerError, match="Open WebUI is already installed. Use --force to reinstall."
@@ -224,7 +226,7 @@ class TestInstallerSuite:
 
     def test_get_status_installed_and_running(self, installer, mocker):
         """Test get_status reports correctly when installed and the container is running."""
-        mock_file_content = '{"version": "1.0", "port": 8080, "model": "test-model"}'
+        mock_file_content = '{"image": "1.0", "port": 8080, "model": "test-model"}'
         mocker.patch("builtins.open", mock_open(read_data=mock_file_content))
         mocker.patch("os.path.exists", return_value=True)
 
@@ -240,7 +242,7 @@ class TestInstallerSuite:
 
     def test_get_status_installed_not_running(self, installer, mocker):
         """Test get_status reports correctly when installed but the container is not running."""
-        mock_file_content = '{"version": "1.0", "port": 8080, "model": "test-model"}'
+        mock_file_content = '{"image": "1.0", "port": 8080, "model": "test-model"}'
         mocker.patch("builtins.open", mock_open(read_data=mock_file_content))
         mocker.patch("os.path.exists", return_value=True)
 
@@ -315,6 +317,7 @@ class TestInstallerSuite:
         # Ensure subprocess.run was called with the correct model
         mock_subprocess_run.assert_called_with(
             ["ollama", "pull", model_name],
+            check=True,
             capture_output=True,
             text=True,
             timeout=300,
