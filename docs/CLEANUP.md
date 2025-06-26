@@ -26,20 +26,13 @@ This document describes how to keep your repository clean of stale/merged branch
 
 ## 2. Manual Branch Analysis and Cleanup
 
-Scripts in `scripts/` allow you to analyze and clean branches interactively:
+Use the **Branch Cleanup** workflow to safely remove merged branches. It can be
+triggered from the GitHub Actions tab with a dry-run option.
 
-- **Analyze merged/unmerged branches:**  
-  `./scripts/branch_cleanup_assessment.sh`  
-  This generates a report under `.branch-analysis/cleanup-YYYYMMDD_HHMMSS/`.  
-
-- **Review report:**  
-  The generated Markdown report explains which branches are safe to delete and provides a script to do so.
-
-- **Execute the recommended cleanup:**  
-  Run the generated shell script (e.g., `.branch-analysis/cleanup-YYYYMMDD_HHMMSS/cleanup_merged_branches.sh`).
-
-- **Safety:**  
-  Each cleanup generates backups of current branches, and always asks for confirmation before deleting anything.
+```bash
+# Manually list merged branches for review
+git branch -r --merged main | grep -v 'main\|master\|HEAD'
+```
 
 ---
 

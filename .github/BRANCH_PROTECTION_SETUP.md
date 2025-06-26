@@ -97,13 +97,11 @@ Never use these patterns for feature branches:
 1. **Weekly Cleanup**: Automated workflow runs every Sunday at 2 AM UTC
 2. **Auto-delete**: GitHub automatically deletes merged branches
 3. **Security Scanning**: Automated security checks on all PRs
+4. **Branch Cleanup Workflow**: See `.github/workflows/branch-cleanup.yml`
 
 ### Manual Cleanup Commands
 
 ```bash
-# Run assessment
-./scripts/branch_cleanup_assessment.sh
-
 # View current branch status
 git branch -r | wc -l
 git branch -r --merged main | grep -v 'main\|master\|HEAD'
@@ -151,7 +149,7 @@ git branch -r --merged main | grep 'codex/' | sed 's/origin\///' | xargs -I {} g
 **Solution**: Verify "Automatically delete head branches" is enabled in repository settings
 
 **Problem**: Too many stale branches
-**Solution**: Run manual cleanup script: `./scripts/branch_cleanup_assessment.sh`
+**Solution**: Trigger the **Branch Cleanup** workflow or prune branches manually
 
 ### Emergency Procedures
 
@@ -184,7 +182,7 @@ This setup works with the following repository files:
 
 - `.github/workflows/branch-cleanup.yml` - Automated cleanup
 - `.github/workflows/ci.yml` - Status checks
-- `scripts/branch_cleanup_assessment.sh` - Manual cleanup tool
+- `.github/workflows/branch-cleanup.yml` - Automated cleanup
 - `CODEOWNERS` - Code review assignments (optional)
 
 ## Compliance and Auditing

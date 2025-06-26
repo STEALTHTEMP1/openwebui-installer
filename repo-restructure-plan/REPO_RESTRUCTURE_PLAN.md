@@ -84,7 +84,6 @@ REMOVE/PRIVATE:
 ├── .branch-analysis/ (entire directory)
 ├── scripts/
 │   ├── auto_merge_safe.sh
-│   ├── branch_cleanup_assessment.sh
 │   ├── branch_maintenance.sh
 │   ├── enhanced_branch_analyzer.sh
 │   ├── merge_critical_branches.sh
