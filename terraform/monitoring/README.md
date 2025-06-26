@@ -7,7 +7,7 @@ It mirrors the configuration used in `docker-compose.monitoring.yml`.
 
 ```hcl
 module "monitoring" {
-  source = "./DevOps/terraform/monitoring"
+  source = "./terraform/monitoring"
 }
 ```
 
