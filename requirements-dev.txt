@@ -10,6 +10,9 @@ bandit>=1.7.0
 build>=0.10.0
 twine>=4.0.0
 
+# Needed for tests and local runs to load environment variables
+python-dotenv>=1.0.0
+
 # Additional development tools
 pre-commit>=3.0.0
 coverage>=7.0.0

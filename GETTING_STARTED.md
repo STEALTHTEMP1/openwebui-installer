@@ -19,7 +19,12 @@ git clone https://github.com/STEALTHTEMP1/openwebui-installer.git
 cd openwebuiinstaller
 ```
 
-### 2. Start Development Environment
+### 2. Install Dependencies
+```bash
+pip install -r requirements-dev.txt  # includes python-dotenv for tests
+```
+
+### 3. Start Development Environment
 ```bash
 ./dev.sh start
 ```
@@ -29,7 +34,7 @@ This will:
 - 🚀 Start all services (database, Redis, development environment)
 - ✅ Set up the complete development stack
 
-### 3. Verify Everything Works
+### 4. Verify Everything Works
 ```bash
 # Check status
 ./dev.sh status
@@ -41,7 +46,7 @@ This will:
 ./dev.sh exec "python -m pytest tests/ -v"
 ```
 
-### 4. Launch Open WebUI
+### 5. Launch Open WebUI
 
 Outside of the dev container you can start Open WebUI using the same Docker command described in the main README:
 
