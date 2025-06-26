@@ -224,7 +224,9 @@ internal/
 !scripts/lib/
 !scripts/lib/**
 
+# Internal branch analysis directory
+.branch-analysis/
+
 # Editor and cleanup files
 .zed/
 ..bfg-report/
-.branch-analysis/
