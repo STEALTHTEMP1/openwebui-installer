@@ -76,7 +76,6 @@ main() {
 # Branch Analysis and Management
 .branch-analysis/
 scripts/auto_merge_safe.sh
-scripts/branch_cleanup_assessment.sh
 scripts/branch_maintenance.sh
 scripts/enhanced_branch_analyzer.sh
 scripts/merge_critical_branches.sh

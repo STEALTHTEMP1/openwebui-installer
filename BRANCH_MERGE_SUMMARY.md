@@ -155,7 +155,7 @@ The automated duplicate detection didn't find exact duplicates, but manual revie
 
 ### 📋 Analysis Scripts
 - `scripts/systematic_branch_review.sh` - Comprehensive branch analysis
-- `scripts/branch_cleanup_assessment.sh` - Cleanup recommendations
+- `.github/workflows/branch-cleanup.yml` - Cleanup recommendations
 - `scripts/branch_maintenance.sh` - Ongoing maintenance tools
 
 ### 🔧 Merge Scripts  
