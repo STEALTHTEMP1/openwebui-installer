@@ -243,3 +243,4 @@ internal/
 .snapshots/
 !scripts/lib/
 !scripts/lib/**
+.branch-analysis/
