@@ -104,7 +104,6 @@ REMOVE:
 ├── .zed/
 ├── .env.dev
 ├── ..bfg-report/
-├── tests/test_cli.py.bak
 └── dev.sh
 ```
 

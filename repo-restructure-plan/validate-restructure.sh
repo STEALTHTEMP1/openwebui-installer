@@ -156,7 +156,6 @@ check_no_private_files() {
         "BRANCH_MANAGEMENT.md"
         "DEVELOPMENT_TEAM_GUIDE.md"
         ".env.dev"
-        "tests/test_cli.py.bak"
     )
 
     for file in "${private_files[@]}"; do
