@@ -243,3 +243,7 @@ internal/
 .snapshots/
 !scripts/lib/
 !scripts/lib/**
+
+# Editor and cleanup files
+.zed/
+..bfg-report/
