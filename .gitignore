@@ -54,17 +54,17 @@ cover/
 *.mo
 *.pot
 
-# Django stuff:
+# Django stuff
 *.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
-# Flask stuff:
+# Flask stuff
 instance/
 .webassets-cache
 
-# Scrapy stuff:
+# Scrapy stuff
 .scrapy
 
 # Sphinx documentation
@@ -176,7 +176,7 @@ Temporary Items
 launch-openwebui.sh
 *.tar.gz
 
-# Large bundled runtime files
+# Large bundled runtime files (exceed GitHub 100MB limit)
 OpenWebUI-Desktop-Clean/OpenWebUI-Desktop/Bundled-Runtime/openwebui-image.tar.gz
 OpenWebUI-Desktop-Clean/OpenWebUI-Desktop/Bundled-Runtime/podman
 OpenWebUI-Desktop-Clean/OpenWebUI-Desktop/Bundled-Runtime/*.tar.gz
@@ -196,7 +196,9 @@ node_modules/
 podman-*
 docker-*
 
+# ===============================================
 # INTERNAL DOCUMENTATION - NOT FOR DISTRIBUTION
+# ===============================================
 .internal/
 internal/
 **/INTERNAL*
