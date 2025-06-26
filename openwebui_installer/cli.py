@@ -4,6 +4,8 @@ Command-line interface for Open WebUI Installer
 
 import sys
 import logging
+import os
+import shutil
 from typing import Optional
 
 import click
@@ -274,23 +276,60 @@ def update(ctx):
 
 
 @cli.command()
-@click.option("--lines", "-n", help="Number of log lines to show", default=50, type=int)
+@click.option(
+    "--lines",
+    "-n",
+    "--tail",
+    "-t",
+    "lines",
+    help="Number of log lines to show",
+    default=50,
+    type=int,
+)
 @click.option("--follow", "-f", is_flag=True, help="Follow log output")
+@click.option(
+    "--export",
+    "export_path",
+    type=click.Path(dir_okay=False, writable=True),
+    help="Copy installer log file to PATH",
+)
 @click.pass_context
-def logs(ctx, lines: int, follow: bool):
-    """Show Open WebUI container logs."""
+def logs(ctx, lines: int, follow: bool, export_path: Optional[str]):
+    """Show installer logs or export the log file."""
     try:
         runtime = (ctx.obj or {}).get("runtime", "docker")
         verbose = (ctx.obj or {}).get("verbose", False)
 
         if verbose:
-            logger.info("CLI logs command invoked with lines: %d, follow: %s", lines, follow)
+            logger.info(
+                "CLI logs command invoked with lines: %d, follow: %s, export: %s",
+                lines,
+                follow,
+                export_path,
+            )
 
         with Installer(runtime=runtime, verbose=verbose) as installer:
-            installer.show_logs(lines=lines, follow=follow)
+            if export_path:
+                shutil.copy(installer.log_file, export_path)
+                console.print(f"[green]✓[/green] Log file exported to {export_path}")
+                return
+
+            if follow:
+                installer.show_logs(lines=lines, follow=True)
+                return
+
+            if os.path.exists(installer.log_file):
+                with open(installer.log_file, "r") as f:
+                    log_lines = f.readlines()
+                for line in log_lines[-lines:]:
+                    console.print(line.rstrip())
+            else:
+                installer.show_logs(lines=lines, follow=False)
 
     except Exception as e:
         if (ctx.obj or {}).get("verbose", False):
+     
+      main
             logger.error("Logs command failed: %s", str(e))
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
