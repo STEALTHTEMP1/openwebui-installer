@@ -6,8 +6,7 @@ class OpenwebuiInstaller < Formula
   desc "A macOS installer for Open WebUI with native Ollama integration"
   homepage "https://github.com/open-webui/openwebui-installer"
   url "https://github.com/open-webui/openwebui-installer/archive/refs/tags/v#{version}.tar.gz"
-  sha256 "placeholder" # Will be updated by CI
-  version "0.1.0"
+  sha256 "REPLACE_WITH_ACTUAL_SHA256_HASH" # Updated by CI during release
   license "MIT"
 
   livecheck do
