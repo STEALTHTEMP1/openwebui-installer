@@ -32,7 +32,7 @@ resource "docker_container" "grafana" {
   name  = "grafana"
   image = "grafana/grafana:12.0.2"
 
-  env = ["GF_SECURITY_ADMIN_PASSWORD=admin"]
+  env = ["GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}"]
 
   ports {
     internal = 3000
