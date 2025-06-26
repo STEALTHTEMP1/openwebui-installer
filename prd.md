@@ -115,10 +115,18 @@ Final release and docs	September 1, 2025
 ⸻
 
 🔚 12. Out of Scope
-	•	Cross-platform support (Windows/Linux).
 	•	GUI management of containers beyond initial setup.
 	•	Updates/maintenance of installed Docker images (could be added later).
 
+⸻
+
+
+🚀 **Development Phases**
+
+**Phase 1-3** retain their original scope. **Phase 4** introduces Windows & Linux support:
+        1. Adapt the container store to run on Windows and Linux.
+        2. Add CI jobs for those platforms.
+        3. Update tests accordingly.
 ⸻
 
 🧑‍🎨 13. Next Steps
