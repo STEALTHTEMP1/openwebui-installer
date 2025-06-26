@@ -165,10 +165,10 @@ If direct branch removal is required, run:
 git push origin --delete BRANCH_NAME
 ```
 
-### 🔧 Merge Scripts  
+### 🔧 Merge Scripts
 - `scripts/manual_merge_branch.sh` - Manual conflict resolution helper
 - `scripts/merge_critical_branches.sh` - Intelligent merge for critical branches
-- `scripts/post_merge_validation.sh` - Post-merge testing and validation
+- `.github/workflows/ci.yml` - Post-merge testing and validation pipeline
 
 ### 📊 Generated Reports
 - `.branch-analysis/review-20250623_143321/systematic_review_report.md` - Full analysis

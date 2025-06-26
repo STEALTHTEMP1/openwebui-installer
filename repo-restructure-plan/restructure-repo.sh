@@ -75,13 +75,13 @@ main() {
     cat > "${BACKUP_DIR}/files_to_move.txt" << 'EOF'
 # Branch Analysis and Management
 .branch-analysis/
-# auto_merge_safe.sh is retained publicly
-# scripts/auto_merge_safe.sh
+# auto-pr-merge workflow is public
+.github/workflows/auto-pr-merge.yml
 scripts/branch_maintenance.sh
 scripts/enhanced_branch_analyzer.sh
 scripts/merge_critical_branches.sh
 scripts/merge_safe_branches.sh
-scripts/post_merge_validation.sh
+.github/workflows/ci.yml
 scripts/systematic_branch_review.sh
 smart_merge.sh
 BRANCH_ANALYSIS_FIXES.md
