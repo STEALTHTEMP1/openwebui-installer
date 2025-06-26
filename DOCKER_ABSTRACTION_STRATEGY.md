@@ -414,6 +414,7 @@ func cleanupOldData() {
 
 ## 🚀 Implementation Roadmap
 
+*Windows and Linux releases will be tackled after the macOS implementation proves stable.*
 ### Week 1-2: Foundation
 - [ ] Evaluate container runtime options (Podman vs alternatives)
 - [ ] Create proof-of-concept with bundled runtime

@@ -374,6 +374,7 @@ func handleDroppedFiles(_ urls: [URL]) {
 
 ## 🚀 Development Roadmap
 
+*Windows and Linux support will be introduced in later phases once the macOS wrapper is validated.*
 ### Phase 1: Level 3 Complete Abstraction (Week 1-2)
 - [ ] Swift app with WKWebView
 - [ ] Bundled Podman runtime integration

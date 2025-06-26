@@ -30,6 +30,7 @@ This document serves as the **single source of truth** for all requirements rela
 *"App Store for native desktop AI—privacy‑first, fully local."*
 
 Download one installer, browse an app store catalog, one-click install any AI or productivity tool, and use them seamlessly without ever knowing containers exist.
+*Cross-platform Windows and Linux support is planned after the initial macOS release.*
 
 ### **Core Value Proposition**
 - **Local containerization** → safety, isolation, zero vendor lock‑in
@@ -354,6 +355,7 @@ Users think: *"I want AI tools"* (not "I want OpenWebUI specifically")
 - macOS 13.0 (Ventura)
 - macOS 14.0 (Sonoma)
 - macOS 15.0 (Sequoia)
+- *Initial release targets macOS only; Windows and Linux support will follow in a later phase.*
 
 ### **TR-002: Container Runtime**
 

@@ -2,6 +2,7 @@
 
 This roadmap extends the initial product requirements for the Universal Container App Store (code name **UniversalInstaller.app**). It outlines the planned development phases and key milestones after the foundational work from Phase 1 Week 2.
 
+Future phases will introduce Windows and Linux compatibility once the macOS version is stable.
 ## Phase 1: Multi‑Frontend Foundation (Weeks 1‑4)
 
 ### Week 3: Download‑on‑Demand System (cont’d)
