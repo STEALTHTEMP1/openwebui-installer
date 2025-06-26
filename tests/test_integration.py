@@ -162,7 +162,7 @@ def test_status_check(installer):
     with patch('os.path.exists', return_value=True), \
          patch('builtins.open', create=True) as mock_open:
 
-        mock_open.return_value.__enter__.return_value.read.return_value = '{"version": "0.1.0", "port": 3000, "model": "llama2"}'
+        mock_open.return_value.__enter__.return_value.read.return_value = '{"image": "0.1.0", "port": 3000, "model": "llama2"}'
 
         with patch.object(installer.docker_client.containers, 'get', side_effect=docker.errors.NotFound("Container not found")):
             status = installer.get_status()

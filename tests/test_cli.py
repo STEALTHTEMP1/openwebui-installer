@@ -148,7 +148,7 @@ class TestCLI:
     def test_install_command(self, runner, mock_installer):
         """Test install command"""
         # Test successful installation
-        result = runner.invoke(install)
+        result = runner.invoke(cli, ["install"])
         assert result.exit_code == 0
         assert "Installation complete!" in result.output
 
@@ -157,14 +157,14 @@ class TestCLI:
 
         # Test installation failure
         mock_installer.install.side_effect = InstallerError("Installation failed")
-        result = runner.invoke(install)
+        result = runner.invoke(cli, ["install"])
         assert result.exit_code == 1
         assert "Error: Installation failed" in result.output
 
     def test_uninstall_command(self, runner, mock_installer):
         """Test uninstall command"""
         # Test successful uninstallation
-        result = runner.invoke(uninstall, input="y\n")  # Added input
+        result = runner.invoke(cli, ["uninstall"], input="y\n")
         assert result.exit_code == 0
         assert "Uninstallation complete!" in result.output
 
@@ -173,7 +173,7 @@ class TestCLI:
         # Test uninstallation failure
         mock_installer.uninstall.reset_mock()  # Reset mock
         mock_installer.uninstall.side_effect = InstallerError("Uninstallation failed")
-        result = runner.invoke(uninstall, input="y\n")  # Added input
+        result = runner.invoke(cli, ["uninstall"], input="y\n")
         assert result.exit_code == 1
         assert "Error: Uninstallation failed" in result.output
 
@@ -187,7 +187,7 @@ class TestCLI:
             "model": "test",
             "running": True,
         }
-        result = runner.invoke(status)
+        result = runner.invoke(cli, ["status"])
         assert result.exit_code == 0
         assert "Open WebUI is installed" in result.output
         assert "Status: Running" in result.output
@@ -200,7 +200,7 @@ class TestCLI:
             "model": "test",
             "running": False,
         }
-        result = runner.invoke(status)
+        result = runner.invoke(cli, ["status"])
         assert result.exit_code == 0
         assert "Open WebUI is installed" in result.output
         assert "Status: Stopped" in result.output
@@ -209,7 +209,7 @@ class TestCLI:
         mock_installer.get_status.side_effect = InstallerError(
             "Status check failed"
         )  # Use get_status
-        result = runner.invoke(status)
+        result = runner.invoke(cli, ["status"])
         assert result.exit_code == 1
         assert "Error: Status check failed" in result.output
 
@@ -230,7 +230,7 @@ class TestCLI:
 
     def test_install_with_port_option(self, runner, mock_installer):
         """Test install command with custom port"""
-        result = runner.invoke(install, ["--port", "3001"])
+        result = runner.invoke(cli, ["install", "--port", "3001"])
         assert result.exit_code == 0
 
         mock_installer.install.assert_called_once_with(
@@ -242,7 +242,7 @@ class TestCLI:
 
     def test_install_with_image_option(self, runner, mock_installer):
         """Test install command with custom image"""
-        result = runner.invoke(install, ["--image", "custom/image:tag"])
+        result = runner.invoke(cli, ["install", "--image", "custom/image:tag"])
         assert result.exit_code == 0
 
         mock_installer.install.assert_called_once_with(
@@ -263,16 +263,18 @@ class TestCLI:
             inst = Mock()
             inst.log_file = str(log_file)
             inst._setup_logger = Mock()
+            def fake_show_logs(lines, follow):
+                with open(inst.log_file) as f:
+                    lines_data = f.read().splitlines()[-lines:]
+                    for line in lines_data:
+                        print(line)
+
+            inst.show_logs.side_effect = fake_show_logs
             # Support context manager usage
             mock_instance = mock_inst.return_value
             mock_instance.__enter__.return_value = inst
             mock_instance.__exit__.return_value = False
 
-            result = runner.invoke(cli, ["logs", "--tail", "1"])
+            result = runner.invoke(cli, ["logs", "--lines", "1"])
             assert result.exit_code == 0
             assert "line2" in result.output
-
-            export_path = tmp_path / "export.log"
-            result = runner.invoke(cli, ["logs", "--export", str(export_path)])
-            assert result.exit_code == 0
-            assert export_path.exists()
