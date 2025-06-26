@@ -2,11 +2,7 @@
 
 Formerly **Open WebUI Installer**, this project is evolving into a **Universal Container App Store**. The goal is to provide a streamlined way to install and manage containerized applications—including Open WebUI—through a single interface.
 
-<<<<<<< codex/review-prd-and-suggest-next-steps
-> **Platform Support**: The new App Store application is currently macOS only. The command‑line installer continues to work on macOS and Linux, while a native Windows version is on the backlog.
-=======
-Currently the App Store is packaged only for **macOS**, with cross-platform support planned.
->>>>>>> main
+**Platform Support**: The new App Store application is currently macOS only. The command‑line installer continues to work on macOS and Linux, while a native Windows version is on the backlog.
 
 
 ## 🎯 Quick Start (Docker)
@@ -26,14 +22,14 @@ Then access: **http://localhost:3000**
 
 ### Optional CLI Installation (Homebrew or pip)
 
-Install the CLI if you prefer managing Open WebUI via commands:
+Install the CLI if you prefer managing Open WebUI via commands (macOS supported today, Windows and Linux coming soon):
 
 ```bash
 # macOS via Homebrew
 brew tap open-webui/tap
 brew install openwebui-installer
 
-# or cross-platform via pipx/pip
+# install via pipx or pip (experimental on other platforms)
 pipx install openwebui-installer  # pip install openwebui-installer works too
 
 openwebui-installer install
@@ -77,14 +73,14 @@ This will download the required runtime components locally before building.
 ## 🚀 Installation Options
 
 The Docker command in the quick start section is the recommended way to run Open WebUI on any platform.
-If you prefer a helper CLI you can install it via Homebrew or pip:
+If you prefer a helper CLI you can install it via Homebrew or pip (macOS only for now; Windows and Linux support is planned):
 
 ```bash
 # macOS via Homebrew
 brew tap open-webui/tap
 brew install openwebui-installer
 
-# or cross-platform via pipx/pip
+# install via pipx or pip (experimental on other platforms)
 pipx install openwebui-installer
 ```
 The CLI continues to support macOS and Linux. Native Windows support is planned for a future update.
