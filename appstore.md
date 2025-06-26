@@ -19,6 +19,8 @@ This document serves as the **single source of truth** for all requirements rela
 - `ONE_CLICK_REQUIREMENTS.md` (Installation requirements)
 - `prd.md` (Original OpenWebUI installer PRD)
 
+**Platform Strategy**: The graphical App Store targets macOS. The underlying CLI installer remains supported on macOS and Linux. Native Windows support is planned but currently backlogged.
+
 ---
 
 ## 🎯 Executive Summary & Vision
@@ -356,6 +358,8 @@ Users think: *"I want AI tools"* (not "I want OpenWebUI specifically")
 - macOS 14.0 (Sonoma)
 - macOS 15.0 (Sequoia)
 - *Initial release targets macOS only; Windows and Linux support will follow in a later phase.*
+
+The CLI installer is maintained for macOS and Linux users. Native Windows support is on the backlog and will be addressed in a later phase.
 
 ### **TR-002: Container Runtime**
 

@@ -18,6 +18,10 @@ This guide helps you set up and use the complete development environment for the
 ./dev.sh test
 ```
 
+The `setup-codex.sh` script installs all Python dependencies from
+`requirements-dev.txt` (including `python-dotenv`) so tests can load
+environment variables automatically.
+
 ## Environment Components
 
 ### 🧠 Codex Development Setup

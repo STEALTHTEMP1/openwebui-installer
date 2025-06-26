@@ -2,7 +2,7 @@
 
 Formerly **Open WebUI Installer**, this project is evolving into a **Universal Container App Store**. The goal is to provide a streamlined way to install and manage containerized applications—including Open WebUI—through a single interface.
 
-Currently the CLI targets **macOS**. Support for Windows and Linux is scheduled for a future phase.
+**Platform Support**: The new App Store application is currently macOS only. The command‑line installer continues to work on macOS and Linux, while a native Windows version is on the backlog.
 
 
 ## 🎯 Quick Start (Docker)
@@ -34,6 +34,8 @@ pipx install openwebui-installer  # pip install openwebui-installer works too
 
 openwebui-installer install
 ```
+
+The CLI is actively maintained for macOS and Linux users. Native Windows support is planned for a later release.
 
 The CLI runs the same Docker command shown above.
 
@@ -81,6 +83,7 @@ brew install openwebui-installer
 # install via pipx or pip (experimental on other platforms)
 pipx install openwebui-installer
 ```
+The CLI continues to support macOS and Linux. Native Windows support is planned for a future update.
 
 Start Open WebUI using the CLI:
 
@@ -152,10 +155,10 @@ openwebui-installer status     # Show current status
 
 ## 🧑‍💻 Development and Testing
 
-Install the development requirements and Qt dependencies before running tests.
+Install the development requirements (which include `python-dotenv`) and Qt dependencies before running tests.
 
 ```bash
-pip install -r requirements-dev.txt
+pip install -r requirements-dev.txt  # installs python-dotenv for pytest
 sudo apt-get update && sudo apt-get install -y libegl1
 QT_QPA_PLATFORM=offscreen pytest tests/
 ```
