@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for this project. Linux and Windows support will be added later.
+about: Suggest an idea for this project. Windows & Linux support is planned for Phase 4.
 title: '[FEATURE] '
 labels: enhancement
 assignees: ''
@@ -18,8 +18,8 @@ A clear and concise description of any alternative solutions or features you've 
 
 **Target Platform**
 - [x] macOS
-- Linux (coming soon)
-- Windows (coming soon)
+- Linux (Phase 4)
+- Windows (Phase 4)
 
 **Additional context**
 Add any other context or screenshots about the feature request here. 

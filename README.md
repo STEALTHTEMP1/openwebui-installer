@@ -2,7 +2,11 @@
 
 Formerly **Open WebUI Installer**, this project is evolving into a **Universal Container App Store**. The goal is to provide a streamlined way to install and manage containerized applications—including Open WebUI—through a single interface.
 
+<<<<<<< codex/review-prd-and-suggest-next-steps
 > **Platform Support**: The new App Store application is currently macOS only. The command‑line installer continues to work on macOS and Linux, while a native Windows version is on the backlog.
+=======
+Currently the App Store is packaged only for **macOS**, with cross-platform support planned.
+>>>>>>> main
 
 
 ## 🎯 Quick Start (Docker)

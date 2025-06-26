@@ -163,7 +163,7 @@ class Installer:
         system = platform.system()
         if system not in ("Darwin", "Linux"):
             raise SystemRequirementsError(
-                "This installer supports macOS and Linux. Windows support coming soon."
+                "This installer supports macOS and Linux. Windows support is planned for Phase 4."
             )
 
         # Check Python version (aligned with setup.py)

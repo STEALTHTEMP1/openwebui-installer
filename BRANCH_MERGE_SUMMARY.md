@@ -8,6 +8,7 @@
 **Remaining Unmerged**: 84  
 
 This document summarizes the systematic branch review and merge process for the OpenWebUI Installer repository, providing a clear roadmap for resolving the remaining unmerged branches.
+Cross-platform support remains on the backlog and will be incorporated after macOS workflows stabilize.
 
 ## Completed Actions
 
@@ -155,7 +156,7 @@ The automated duplicate detection didn't find exact duplicates, but manual revie
 
 ### 📋 Analysis Scripts
 - `scripts/systematic_branch_review.sh` - Comprehensive branch analysis
-- `scripts/branch_cleanup_assessment.sh` - Cleanup recommendations
+- `.github/workflows/branch-cleanup.yml` - Cleanup recommendations
 - `scripts/branch_maintenance.sh` - Ongoing maintenance tools
 
 ### 🔧 Merge Scripts  

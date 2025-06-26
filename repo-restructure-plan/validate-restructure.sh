@@ -152,7 +152,6 @@ check_no_private_files() {
 
     local private_files=(
         ".branch-analysis"
-        "scripts/branch_cleanup_assessment.sh"
         "scripts/merge_safe_branches.sh"
         "BRANCH_MANAGEMENT.md"
         "DEVELOPMENT_TEAM_GUIDE.md"

@@ -227,6 +227,11 @@ Create the **easiest possible installation experience** for Open WebUI on macOS,
 - Auto-start options
 - Advanced troubleshooting
 
+### Phase 4: Windows & Linux Support
+- Adapt the container store for Windows and Linux compatibility
+- Add CI jobs for Windows and Linux in GitHub Actions
+- Update tests to run across all platforms
+
 ## 📋 Development Checklist
 
 ### Pre-Development

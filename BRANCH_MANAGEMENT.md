@@ -80,13 +80,13 @@ Configure GitHub to automatically:
 
 ### 1. Manual Branch Review Process
 
-```bash
-# Run the assessment script
-./scripts/branch_cleanup_assessment.sh
+Use the GitHub Actions **Branch Cleanup** workflow for a comprehensive
+analysis. It can be triggered manually from the **Actions** tab or run
+on its weekly schedule.
 
-# Review the generated files
-cat .branch-analysis/cleanup-*/branch_cleanup_report.md
-cat .branch-analysis/cleanup-*/active_branches.txt
+```bash
+# List merged branches locally for a quick review
+git branch -r --merged main | grep -v 'main\|master\|HEAD'
 ```
 
 ### 2. Branch Triage Workflow
@@ -120,13 +120,14 @@ Never delete branches that:
 - ❌ Are referenced in open issues/PRs
 - ❌ Represent ongoing work
 
-### 4. Automated Cleanup Script
+### 4. Automated Cleanup
+
+Branch cleanup is handled by the workflow
+`.github/workflows/branch-cleanup.yml`. It runs weekly and can also be
+triggered manually.
 
 ```bash
-# Generated cleanup script (safe branches only)
-.branch-analysis/cleanup-*/cleanup_merged_branches.sh
-
-# Manual review before deletion
+# Review history before deleting a branch
 git log --graph --oneline main..origin/BRANCH_NAME
 ```
 
@@ -225,8 +226,8 @@ git push origin BRANCH_NAME
 
 ## Tools and Scripts
 
-### Available Scripts
-- `scripts/branch_cleanup_assessment.sh` - Comprehensive branch analysis
+### Available Tools
+- `.github/workflows/branch-cleanup.yml` - Automated branch cleanup
 - `scripts/auto_merge_safe.sh` - Automatic merging of safe branches
 - `scripts/enhanced_branch_analyzer.sh` - Detailed branch categorization
 - `scripts/post_merge_validation.sh` - Post-merge validation and testing
@@ -234,9 +235,9 @@ git push origin BRANCH_NAME
 ### Usage Examples
 
 ```bash
-# Full assessment and cleanup
-./scripts/branch_cleanup_assessment.sh
-./scripts/auto_merge_safe.sh
+# Trigger the cleanup workflow manually (optional)
+# This can also be scheduled via GitHub Actions
+gh workflow run branch-cleanup.yml
 
 # Manual merge with validation
 git merge origin/BRANCH_NAME

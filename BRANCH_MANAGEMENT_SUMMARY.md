@@ -28,13 +28,12 @@ All merged branches were safely deleted, including:
 
 ## 🛠️ Tools Created
 
-### 1. Branch Cleanup Assessment (`scripts/branch_cleanup_assessment.sh`)
-- **Purpose**: Analyze repository and identify branches for cleanup
-- **Features**: 
-  - Categorizes branches by type and merge status
-  - Identifies safe-to-delete branches
-  - Generates cleanup scripts and reports
-  - Creates backups before deletion
+### 1. Branch Cleanup Workflow (`.github/workflows/branch-cleanup.yml`)
+- **Purpose**: Automatically remove merged branches
+- **Features**:
+  - Runs weekly or on demand
+  - Supports dry-run mode
+  - Provides a cleanup report
 
 ### 2. Branch Maintenance Tool (`scripts/branch_maintenance.sh`)
 - **Purpose**: Ongoing branch management and monitoring
