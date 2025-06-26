@@ -159,11 +159,11 @@ class Installer:
         if self.verbose:
             logger.info("Validating system requirements")
 
-        # Check supported operating systems (macOS and Linux)
+        # Check supported operating systems (currently only macOS)
         system = platform.system()
-        if system not in ("Darwin", "Linux"):
+        if system != "Darwin":
             raise SystemRequirementsError(
-                "This installer supports macOS and Linux. Windows support is planned for Phase 4."
+                "This installer currently supports only macOS"
             )
 
         # Check Python version (aligned with setup.py)
