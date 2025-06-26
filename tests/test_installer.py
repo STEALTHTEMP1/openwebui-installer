@@ -46,10 +46,20 @@ class TestInstallerSuite:
         # This should not raise any exception
         installer._check_system_requirements()
 
-    def test_check_system_requirements_wrong_os(self, installer, mocker):
-        """Test that system requirements check fails on a non-macOS system."""
+    def test_check_system_requirements_linux_success(self, installer, mocker):
+        """Test that system requirements check passes on Linux with Docker and Ollama running."""
         mocker.patch("platform.system", return_value="Linux")
-        with pytest.raises(SystemRequirementsError, match="This installer currently supports only macOS"):
+        mocker.patch("sys.version_info", (3, 9, 0))
+        installer.docker_client.ping.return_value = True
+        mock_requests_get = mocker.patch("requests.get")
+        mock_requests_get.return_value.status_code = 200
+
+        installer._check_system_requirements()
+
+    def test_check_system_requirements_wrong_os(self, installer, mocker):
+        """Test that system requirements check fails on an unsupported system."""
+        mocker.patch("platform.system", return_value="Windows")
+        with pytest.raises(SystemRequirementsError, match="This installer currently supports macOS and Linux"):
             installer._check_system_requirements()
 
     def test_check_system_requirements_wrong_python(self, installer, mocker):
@@ -102,7 +112,10 @@ class TestInstallerSuite:
         installer._check_system_requirements.assert_called_once()
         installer.docker_client.images.pull.assert_called_with(installer.webui_image)
         mock_subprocess_run.assert_called_with(
-            ["ollama", "pull", "test-model"], check=True, timeout=300
+            ["ollama", "pull", "test-model"],
+            capture_output=True,
+            text=True,
+            timeout=300,
         )
         assert mock_json_dump.call_args[0][0]["port"] == 1234
         assert mock_json_dump.call_args[0][0]["model"] == "test-model"
@@ -252,9 +265,10 @@ class TestInstallerSuite:
         # installer.docker_client is already a MagicMock from the fixture.
         installer.docker_client.images.pull.side_effect = docker.errors.APIError("pull failed")
 
-        with pytest.raises(
-            InstallerError, match="Failed to pull Open WebUI Docker image: pull failed"
-        ):
+        expected_err = (
+            f"Failed to pull Docker image {installer.webui_image}: pull failed"
+        )
+        with pytest.raises(InstallerError, match=expected_err):
             installer.install(force=False)  # Call install, which contains the pull logic
 
     # def test_start_open_webui(self, installer, mocker):
@@ -300,7 +314,10 @@ class TestInstallerSuite:
 
         # Ensure subprocess.run was called with the correct model
         mock_subprocess_run.assert_called_with(
-            ["ollama", "pull", model_name], check=True, timeout=300
+            ["ollama", "pull", model_name],
+            capture_output=True,
+            text=True,
+            timeout=300,
         )
 
     def test_stop_open_webui(self, installer, mocker):  # Renaming to reflect what it does
