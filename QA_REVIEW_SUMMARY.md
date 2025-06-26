@@ -7,6 +7,7 @@
 ## 🎯 Executive Summary
 
 The Open WebUI Installer repository development environment has been **successfully fixed and is now fully operational**. All critical Docker build failures, import errors, and configuration issues have been resolved. The development environment now provides a robust, containerized setup with comprehensive tooling for development, testing, and code quality assurance.
+Cross-platform installers for Windows and Linux will be validated once the macOS tooling is proven.
 
 ## 📊 Overall Assessment
 

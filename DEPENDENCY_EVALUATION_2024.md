@@ -7,6 +7,7 @@
 
 This evaluation identifies several outdated dependencies, missing documentation updates, and configuration improvements needed across the OpenWebUI Installer project. Key findings include outdated Python packages, inconsistent version specifications, and opportunities to enhance deployment configurations.
 
+Future phases will focus on Windows and Linux support once dependencies are modernized.
 ## 1. Python Dependencies Analysis
 
 ### 1.1 Current Dependencies Status
