@@ -295,8 +295,21 @@ Set the following secrets in your environment or as Docker secrets:
 - `ANTHROPIC_API_KEY`
 - `HUGGINGFACE_TOKEN`
 - `WEBUI_SECRET_KEY`
+- `GH_AUTOMATION_TOKEN`
 
 These are automatically passed to the container by the installer.
+
+## 🔐 GitHub Token for Automation
+
+The auto-merge workflow uses the GitHub CLI to open and merge pull requests for branches pushed to `develop` and `phase-*`. To enable these operations, you must provide a personal access token (PAT) with the following scopes:
+
+- `repo`
+- `workflow`
+
+Create the PAT in your GitHub account settings and save it as a repository secret named **either** `GH_PR_TOKEN` **or** `GH_AUTOMATION_TOKEN`. The workflow will export this secret as `GH_TOKEN` for use by the `gh` CLI commands. 
+
+Using a PAT allows the automation to create and merge pull requests even when the default `GITHUB_TOKEN` lacks sufficient permissions.
+
 
 
 ## 🔒 Security & Privacy
@@ -305,6 +318,7 @@ These are automatically passed to the container by the installer.
 - **No sensitive data** is included in releases (see exclusions above)
 - **Workflow runs in GitHub's secure environment**
 - **Uses GitHub's built-in secrets** for authentication
+- [Security policy](SECURITY.md) – how to report vulnerabilities
 
 ## 🆘 Troubleshooting
 
@@ -348,6 +362,12 @@ These are automatically passed to the container by the installer.
 ## 🗂️ Docker Image Caching
 
 GitHub Actions builds development images and pushes them to GitHub Container Registry. These cached images can dramatically reduce setup time. See [DevOps/REGISTRY_CACHING.md](DevOps/REGISTRY_CACHING.md) for details on using the registry and overriding image tags with environment variables.
+
+## 🤖 Automated PR Merging
+
+When you push to `develop` or any `phase-*` branch, `.github/workflows/auto-pr-merge.yml` automatically creates a pull request if one does not already exist. After all required checks pass, the PR is merged and the branch is deleted.
+
+The workflow authenticates using the `GH_AUTOMATION_TOKEN` secret described above.
 
 ---
 
