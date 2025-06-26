@@ -115,7 +115,7 @@ Final release and docs	September 1, 2025
 ⸻
 
 🔚 12. Out of Scope
-	•	Cross-platform support (Windows/Linux).
+	•	Cross-platform support (Windows/Linux) — deferred to a later phase.
 	•	GUI management of containers beyond initial setup.
 	•	Updates/maintenance of installed Docker images (could be added later).
 

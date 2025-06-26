@@ -8,6 +8,7 @@
 **Remaining Unmerged**: 84  
 
 This document summarizes the systematic branch review and merge process for the OpenWebUI Installer repository, providing a clear roadmap for resolving the remaining unmerged branches.
+Cross-platform support remains on the backlog and will be incorporated after macOS workflows stabilize.
 
 ## Completed Actions
 
