@@ -2,7 +2,11 @@
 
 Formerly **Open WebUI Installer**, this project is evolving into a **Universal Container App Store**. The goal is to provide a streamlined way to install and manage containerized applications—including Open WebUI—through a single interface.
 
+<<<<<<< codex/review-prd-and-suggest-next-steps
+> **Platform Support**: The new App Store application is currently macOS only. The command‑line installer continues to work on macOS and Linux, while a native Windows version is on the backlog.
+=======
 Currently the App Store is packaged only for **macOS**, with cross-platform support planned.
+>>>>>>> main
 
 
 ## 🎯 Quick Start (Docker)
@@ -34,6 +38,8 @@ pipx install openwebui-installer  # pip install openwebui-installer works too
 
 openwebui-installer install
 ```
+
+The CLI is actively maintained for macOS and Linux users. Native Windows support is planned for a later release.
 
 The CLI runs the same Docker command shown above.
 
@@ -81,6 +87,7 @@ brew install openwebui-installer
 # or cross-platform via pipx/pip
 pipx install openwebui-installer
 ```
+The CLI continues to support macOS and Linux. Native Windows support is planned for a future update.
 
 Start Open WebUI using the CLI:
 

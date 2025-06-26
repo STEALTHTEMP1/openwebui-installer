@@ -20,3 +20,7 @@ Pass `--base <branch>` to override the default base.
 
 GitHub Actions runs tests and linting for every pull request. Ensure all checks pass before requesting reviews.
 
+## Architectural Considerations
+
+The CLI installer shares its core container-management code with the macOS App Store. Any architectural changes that diverge from this common core must be reviewed before implementation. The CLI must continue to support macOS and Linux, with native Windows support planned for a future phase.
+
