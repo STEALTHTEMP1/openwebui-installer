@@ -328,8 +328,6 @@ def logs(ctx, lines: int, follow: bool, export_path: Optional[str]):
 
     except Exception as e:
         if (ctx.obj or {}).get("verbose", False):
-     
-      main
             logger.error("Logs command failed: %s", str(e))
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
