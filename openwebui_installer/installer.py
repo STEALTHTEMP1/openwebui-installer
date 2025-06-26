@@ -17,6 +17,7 @@ from dotenv import load_dotenv
 import docker
 import requests
 from rich.console import Console
+from . import __version__
 
 logger = logging.getLogger(__name__)
 console = Console()
@@ -249,6 +250,12 @@ class Installer:
         except subprocess.TimeoutExpired:
             raise InstallerError(f"Timeout pulling Ollama model {model}")
 
+    def _extract_version(self, image: str) -> str:
+        """Return the tag portion of a Docker image string or fallback to package version."""
+        if ":" in image:
+            return image.rsplit(":", 1)[-1]
+        return __version__
+
     def _create_launch_script(self, port: int, image: str) -> None:
         """Create launch script for Open WebUI."""
         launch_script = os.path.join(self.config_dir, "launch-openwebui.sh")
@@ -354,8 +361,9 @@ class Installer:
                 "model": model,
                 "port": port,
                 "image": current_webui_image,
+                "version": self._extract_version(current_webui_image),
                 "installed_at": time.time(),
-                "runtime": self.runtime
+                "runtime": self.runtime,
             }
 
             config_file = os.path.join(self.config_dir, "config.json")
@@ -438,10 +446,10 @@ class Installer:
             return {
                 "installed": True,
                 "running": running,
-                "version": config.get("image", "unknown"),
+                "version": config.get("version", config.get("image", "unknown")),
                 "port": config.get("port", 3000),
                 "model": config.get("model", "unknown"),
-                "runtime": config.get("runtime", self.runtime)
+                "runtime": config.get("runtime", self.runtime),
             }
 
         except Exception as e:
@@ -517,16 +525,15 @@ class Installer:
             if not status["installed"]:
                 raise InstallerError("Open WebUI is not installed")
 
-            # Use provided image or current image
-            current_image = image if image else status.get("version", self.webui_image)
-
-            # Pull latest image
-            self._pull_webui_image(current_image)
-
-            # Get current configuration
             config_file = os.path.join(self.config_dir, "config.json")
             with open(config_file) as f:
                 config = json.load(f)
+
+            # Use provided image or current image from config
+            current_image = image if image else config.get("image", self.webui_image)
+
+            # Pull latest image
+            self._pull_webui_image(current_image)
 
             # Stop current container
             self._stop_existing_container()
@@ -536,6 +543,7 @@ class Installer:
 
             # Update config
             config["image"] = current_image
+            config["version"] = self._extract_version(current_image)
             with open(config_file, "w") as f:
                 json.dump(config, f, indent=2)
 
