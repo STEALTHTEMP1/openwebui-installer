@@ -113,6 +113,7 @@ class TestInstallerSuite:
         installer.docker_client.images.pull.assert_called_with(installer.webui_image)
         mock_subprocess_run.assert_called_with(
             ["ollama", "pull", "test-model"],
+            check=True,
             capture_output=True,
             text=True,
             timeout=300,
@@ -315,6 +316,7 @@ class TestInstallerSuite:
         # Ensure subprocess.run was called with the correct model
         mock_subprocess_run.assert_called_with(
             ["ollama", "pull", model_name],
+            check=True,
             capture_output=True,
             text=True,
             timeout=300,

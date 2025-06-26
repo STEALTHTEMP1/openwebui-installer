@@ -120,7 +120,13 @@ def test_installation_workflow(installer):
         installer.docker_client.images.pull.assert_called_once_with(installer.webui_image)
 
         # Verify Ollama model was pulled
-        mock_run.assert_called_once_with(["ollama", "pull", "llama2"], check=True, timeout=300)
+        mock_run.assert_called_once_with(
+            ["ollama", "pull", "llama2"],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
 
 def test_uninstall_workflow(installer):
     """Test uninstall workflow"""

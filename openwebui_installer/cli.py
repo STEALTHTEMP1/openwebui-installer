@@ -34,14 +34,19 @@ def validate_system(runtime: str, verbose: bool = False) -> bool:
 
 @click.group()
 @click.version_option(version=__version__)
-@click.option('--runtime', type=click.Choice(['docker', 'podman']), default='docker', help='Container runtime to use')
+@click.option(
+    "--runtime",
+    type=click.Choice(["docker", "podman"]),
+    default="docker",
+    help="Container runtime to use",
+)
 @click.option("--verbose", is_flag=True, help="Enable verbose output")
 @click.pass_context
 def cli(ctx, runtime, verbose):
     """Open WebUI Installer - Install and manage Open WebUI with Ollama integration."""
     ctx.ensure_object(dict)
-    ctx.obj['runtime'] = runtime
-    ctx.obj['verbose'] = verbose
+    ctx.obj["runtime"] = runtime
+    ctx.obj["verbose"] = verbose
 
     if verbose:
         logging.basicConfig(level=logging.INFO)
@@ -57,8 +62,8 @@ def cli(ctx, runtime, verbose):
 def install(ctx, model: str, port: int, force: bool, image: Optional[str]):
     """Install Open WebUI and configure Ollama integration."""
     try:
-        runtime = ctx.obj['runtime']
-        verbose = ctx.obj.get('verbose', False)
+        runtime = (ctx.obj or {}).get("runtime", "docker")
+        verbose = (ctx.obj or {}).get("verbose", False)
 
         if verbose:
             logger.info("CLI install command invoked with model: %s, port: %d", model, port)
@@ -80,7 +85,7 @@ def install(ctx, model: str, port: int, force: bool, image: Optional[str]):
         console.print(f"\nOpen WebUI is now available at: http://localhost:{port}")
 
     except Exception as e:
-        if ctx.obj.get('verbose', False):
+        if (ctx.obj or {}).get("verbose", False):
             logger.error("Install command failed: %s", str(e))
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
@@ -95,8 +100,8 @@ def uninstall(ctx):
         return
 
     try:
-        runtime = ctx.obj['runtime']
-        verbose = ctx.obj.get('verbose', False)
+        runtime = (ctx.obj or {}).get("runtime", "docker")
+        verbose = (ctx.obj or {}).get("verbose", False)
 
         if verbose:
             logger.info("CLI uninstall command invoked")
@@ -114,7 +119,7 @@ def uninstall(ctx):
         console.print("[green]✓[/green] Uninstallation complete!")
 
     except Exception as e:
-        if ctx.obj.get('verbose', False):
+        if (ctx.obj or {}).get("verbose", False):
             logger.error("Uninstall command failed: %s", str(e))
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
@@ -125,8 +130,8 @@ def uninstall(ctx):
 def status(ctx):
     """Check Open WebUI installation status."""
     try:
-        runtime = ctx.obj['runtime']
-        verbose = ctx.obj.get('verbose', False)
+        runtime = (ctx.obj or {}).get("runtime", "docker")
+        verbose = (ctx.obj or {}).get("verbose", False)
 
         if verbose:
             logger.info("CLI status command invoked")
@@ -134,7 +139,7 @@ def status(ctx):
         with Installer(runtime=runtime, verbose=verbose) as installer:
             status = installer.get_status()
 
-        if status['installed']:
+        if status["installed"]:
             console.print("[green]✓[/green] Open WebUI is installed")
             console.print(f"Version: {status['version']}")
             console.print(f"Port: {status['port']}")
@@ -144,7 +149,7 @@ def status(ctx):
             console.print("[yellow]![/yellow] Open WebUI is not installed")
 
     except Exception as e:
-        if ctx.obj.get('verbose', False):
+        if (ctx.obj or {}).get("verbose", False):
             logger.error("Status command failed: %s", str(e))
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
@@ -155,8 +160,8 @@ def status(ctx):
 def start(ctx):
     """Start Open WebUI container."""
     try:
-        runtime = ctx.obj['runtime']
-        verbose = ctx.obj.get('verbose', False)
+        runtime = (ctx.obj or {}).get("runtime", "docker")
+        verbose = (ctx.obj or {}).get("verbose", False)
 
         if verbose:
             logger.info("CLI start command invoked")
@@ -174,7 +179,7 @@ def start(ctx):
         console.print("[green]✓[/green] Open WebUI started!")
 
     except Exception as e:
-        if ctx.obj.get('verbose', False):
+        if (ctx.obj or {}).get("verbose", False):
             logger.error("Start command failed: %s", str(e))
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
@@ -185,8 +190,8 @@ def start(ctx):
 def stop(ctx):
     """Stop Open WebUI container."""
     try:
-        runtime = ctx.obj['runtime']
-        verbose = ctx.obj.get('verbose', False)
+        runtime = (ctx.obj or {}).get("runtime", "docker")
+        verbose = (ctx.obj or {}).get("verbose", False)
 
         if verbose:
             logger.info("CLI stop command invoked")
@@ -204,7 +209,7 @@ def stop(ctx):
         console.print("[green]✓[/green] Open WebUI stopped!")
 
     except Exception as e:
-        if ctx.obj.get('verbose', False):
+        if (ctx.obj or {}).get("verbose", False):
             logger.error("Stop command failed: %s", str(e))
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
@@ -215,8 +220,8 @@ def stop(ctx):
 def restart(ctx):
     """Restart Open WebUI container."""
     try:
-        runtime = ctx.obj['runtime']
-        verbose = ctx.obj.get('verbose', False)
+        runtime = (ctx.obj or {}).get("runtime", "docker")
+        verbose = (ctx.obj or {}).get("verbose", False)
 
         if verbose:
             logger.info("CLI restart command invoked")
@@ -234,7 +239,7 @@ def restart(ctx):
         console.print("[green]✓[/green] Open WebUI restarted!")
 
     except Exception as e:
-        if ctx.obj.get('verbose', False):
+        if (ctx.obj or {}).get("verbose", False):
             logger.error("Restart command failed: %s", str(e))
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
@@ -245,8 +250,8 @@ def restart(ctx):
 def update(ctx):
     """Update Open WebUI to the latest version."""
     try:
-        runtime = ctx.obj['runtime']
-        verbose = ctx.obj.get('verbose', False)
+        runtime = (ctx.obj or {}).get("runtime", "docker")
+        verbose = (ctx.obj or {}).get("verbose", False)
 
         if verbose:
             logger.info("CLI update command invoked")
@@ -264,7 +269,7 @@ def update(ctx):
         console.print("[green]✓[/green] Open WebUI updated!")
 
     except Exception as e:
-        if ctx.obj.get('verbose', False):
+        if (ctx.obj or {}).get("verbose", False):
             logger.error("Update command failed: %s", str(e))
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
@@ -292,8 +297,8 @@ def update(ctx):
 def logs(ctx, lines: int, follow: bool, export_path: Optional[str]):
     """Show installer logs or export the log file."""
     try:
-        runtime = ctx.obj["runtime"]
-        verbose = ctx.obj.get("verbose", False)
+        runtime = (ctx.obj or {}).get("runtime", "docker")
+        verbose = (ctx.obj or {}).get("verbose", False)
 
         if verbose:
             logger.info(
@@ -322,7 +327,9 @@ def logs(ctx, lines: int, follow: bool, export_path: Optional[str]):
                 installer.show_logs(lines=lines, follow=False)
 
     except Exception as e:
-        if ctx.obj.get("verbose", False):
+        if (ctx.obj or {}).get("verbose", False):
+     
+      main
             logger.error("Logs command failed: %s", str(e))
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
@@ -334,8 +341,8 @@ def logs(ctx, lines: int, follow: bool, export_path: Optional[str]):
 def autostart(ctx, enable: bool):
     """Configure Open WebUI to start automatically on boot (macOS only)."""
     try:
-        runtime = ctx.obj['runtime']
-        verbose = ctx.obj.get('verbose', False)
+        runtime = (ctx.obj or {}).get("runtime", "docker")
+        verbose = (ctx.obj or {}).get("verbose", False)
 
         if verbose:
             logger.info("CLI autostart command invoked with enable: %s", enable)
@@ -349,7 +356,7 @@ def autostart(ctx, enable: bool):
                 console.print("[green]✓[/green] Autostart disabled!")
 
     except Exception as e:
-        if ctx.obj.get('verbose', False):
+        if (ctx.obj or {}).get("verbose", False):
             logger.error("Autostart command failed: %s", str(e))
         console.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
