@@ -75,7 +75,8 @@ main() {
     cat > "${BACKUP_DIR}/files_to_move.txt" << 'EOF'
 # Branch Analysis and Management
 .branch-analysis/
-scripts/auto_merge_safe.sh
+# auto_merge_safe.sh is retained publicly
+# scripts/auto_merge_safe.sh
 scripts/branch_maintenance.sh
 scripts/enhanced_branch_analyzer.sh
 scripts/merge_critical_branches.sh

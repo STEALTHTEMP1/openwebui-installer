@@ -83,7 +83,7 @@ openwebuiinstaller/
 REMOVE/PRIVATE:
 ├── .branch-analysis/ (entire directory)
 ├── scripts/
-│   ├── auto_merge_safe.sh
+│   ├── auto_merge_safe.sh (retained as a public utility)
 │   ├── branch_maintenance.sh
 │   ├── enhanced_branch_analyzer.sh
 │   ├── merge_critical_branches.sh

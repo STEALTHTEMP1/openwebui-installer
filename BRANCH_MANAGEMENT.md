@@ -234,7 +234,9 @@ git push origin BRANCH_NAME
 
 ### Available Tools
 - `.github/workflows/branch-cleanup.yml` - Automated branch cleanup
-- `scripts/auto_merge_safe.sh` - Automatic merging of safe branches
+- `scripts/auto_merge_safe.sh` - Automatically merges branches prefixed with
+  `safe/` into the target branch. Run `./scripts/auto_merge_safe.sh` to merge
+  all safe branches into `main` by default.
 - `scripts/enhanced_branch_analyzer.sh` - Detailed branch categorization
 - `scripts/post_merge_validation.sh` - Post-merge validation and testing
 
