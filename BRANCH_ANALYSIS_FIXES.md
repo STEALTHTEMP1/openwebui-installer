@@ -3866,7 +3866,7 @@ run_integration_tests() {
 1.  Create `scripts/lib/integration_tester.sh` to house comprehensive integration tests.
 2.  Implement distinct test suites (e.g., CLI, installer logic, Swift app build/basic run).
 3.  Use `git worktree` to create isolated environments for testing a branch.
-4.  Integrate this into `post_merge_validation.sh` as a critical step.
+4.  Integrate this into the CI workflow as a critical step.
 5.  Add environment checks (e.g., for `xcodebuild`) to skip irrelevant tests gracefully.
 6.  Expand the number and depth of runtime tests for Python and Swift components.
 

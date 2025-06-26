@@ -2648,7 +2648,7 @@ finalize_test_report() {
 
 ### Files to Modify
 - Create `scripts/utils/integration_testing.sh`
-- Update `post_merge_validation.sh` to include integration tests
+- Integrate these tests into the CI workflow
 - Add integration test configuration options
 
 ### Validation
