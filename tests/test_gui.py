@@ -143,3 +143,37 @@ def test_uninstall_with_error(window):
                     warning_args = mock_warning.call_args[0]
                     assert "Could not uninstall" in warning_args[2]  # message is third argument
                     mock_update.assert_called_once()
+
+
+@patch("openwebui_installer.gui.Installer")
+def test_update_status_installed_sets_label(mock_installer, qapp):
+    """Verify installed status label text is joined correctly."""
+    status = {
+        "installed": True,
+        "version": "1.2.3",
+        "port": 1234,
+        "model": "llama2",
+        "running": False,
+    }
+    mock_installer.return_value.get_status.return_value = status
+
+    # Patch update_status during initialization only
+    with patch.object(MainWindow, "update_status"):
+        win = MainWindow()
+
+    expected_text = "\n".join(
+        [
+            "Open WebUI is installed",
+            f"Version: {status['version']}",
+            f"Port: {status['port']}",
+            f"Model: {status['model']}",
+            f"Status: {'Running' if status['running'] else 'Stopped'}",
+        ]
+    )
+
+    with patch.object(win.status_label, "setText") as mock_set_text:
+        win.update_status()
+        mock_set_text.assert_called_once_with(expected_text)
+
+    win.close()
+    qapp.processEvents()
